@@ -1,27 +1,17 @@
-# Weather Dashboard - Core Dependencies
-# ========================================
+# Weather Dashboard - Essential TKinter GUI Dependencies
+# ======================================================
 
-# GUI Framework
-ttkbootstrap>=1.10.1
-Pillow>=10.0.0
-
-# HTTP Requests
+# Weather API Integration
 requests>=2.31.0
 
-# Environment Variables
+# Environment Variables for API Keys
 python-dotenv>=1.0.0
 
-# Data Validation & Modern Python
+# Data Validation for Weather Models
 pydantic>=2.0.0
 
-# Professional Logging
+# Optional: Enhanced logging for debugging
 loguru>=0.7.0
 
-# Type Extensions
-typing-extensions>=4.0.0
-
-# Data Analysis (optional - for advanced features)
-pandas>=2.0.0
-
-# Development Dependencies (install separately for development)
-# pip install black flake8 mypy pytest pytest-cov pre-commit
+# Note: TKinter is included with Python by default
+# All capstone features work with these minimal dependencies
