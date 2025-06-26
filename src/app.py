@@ -3,12 +3,18 @@
 import logging
 import sys
 from typing import Optional
+from datetime import datetime, date
 
 from .core import WeatherService
+from .core.comparison_service import CityComparisonService
+from .core.journal_service import WeatherJournalService
+from .core.activity_service import ActivitySuggestionService
 from .services import OpenWeatherMapAPI, FileDataStorage, MemoryCacheService
+from .services.poetry_service import WeatherPoetryService
 from .ui import CliInterface
 from .config import config_manager, validate_config, setup_environment
 from .utils import validate_city_name, sanitize_input
+from .models.capstone_models import MoodType
 
 
 class WeatherDashboardApp:
@@ -19,6 +25,12 @@ class WeatherDashboardApp:
         self.config_valid = False
         self.ui: Optional[CliInterface] = None
         self.weather_service: Optional[WeatherService] = None
+        
+        # Capstone services
+        self.comparison_service: Optional[CityComparisonService] = None
+        self.journal_service: Optional[WeatherJournalService] = None
+        self.activity_service: Optional[ActivitySuggestionService] = None
+        self.poetry_service: Optional[WeatherPoetryService] = None
         
         # Setup environment first
         setup_environment()
@@ -57,6 +69,12 @@ class WeatherDashboardApp:
             
             # Initialize core service
             self.weather_service = WeatherService(weather_api, storage, cache)
+            
+            # Initialize capstone services
+            self.comparison_service = CityComparisonService(self.weather_service)
+            self.journal_service = WeatherJournalService(storage)
+            self.activity_service = ActivitySuggestionService()
+            self.poetry_service = WeatherPoetryService()
             
             # Initialize UI
             self.ui = CliInterface()
@@ -107,8 +125,8 @@ class WeatherDashboardApp:
         
         while True:
             try:
-                self.ui.show_menu()
-                choice = self.ui.get_menu_choice()
+                self.ui.show_main_menu()
+                choice = self.ui.get_enhanced_menu_choice()
                 
                 if choice == '1':
                     self._handle_current_weather()
@@ -129,6 +147,14 @@ class WeatherDashboardApp:
                 elif choice == '9':
                     self._handle_clear_cache()
                 elif choice == '10':
+                    self._handle_city_comparison()
+                elif choice == '11':
+                    self._handle_weather_journal()
+                elif choice == '12':
+                    self._handle_activity_suggestions()
+                elif choice == '13':
+                    self._handle_weather_poetry()
+                elif choice == '14':
                     self._handle_exit()
                     break
                 else:
@@ -311,7 +337,339 @@ class WeatherDashboardApp:
         if self.weather_service:
             cache_stats = self.weather_service.get_cache_stats()
             logging.info(f"Final cache stats: {cache_stats}")
-
+    
+    # Capstone Feature Handlers
+    
+    def _handle_city_comparison(self):
+        """Handle city comparison feature."""
+        assert self.ui is not None and self.comparison_service is not None
+        
+        city1, city2 = self.ui.get_cities_for_comparison()
+        if not city1 or not city2:
+            return
+        
+        if not validate_city_name(city1) or not validate_city_name(city2):
+            self.ui.show_error("Invalid city name format")
+            return
+        
+        self.ui.show_message(f"Comparing weather between {city1} and {city2}...")
+        comparison = self.comparison_service.compare_cities(city1, city2)
+        
+        if comparison:
+            self.ui.display_weather_comparison(comparison)
+        else:
+            self.ui.show_error("Could not retrieve weather data for comparison")
+    
+    def _handle_weather_journal(self):
+        """Handle weather journal feature."""
+        assert self.ui is not None and self.journal_service is not None and self.weather_service is not None
+        
+        while True:
+            choice = self.ui.show_journal_menu()
+            
+            if choice == '1':
+                self._create_journal_entry()
+            elif choice == '2':
+                self._view_recent_entries()
+            elif choice == '3':
+                self._view_entry_by_date()
+            elif choice == '4':
+                self._search_journal_entries()
+            elif choice == '5':
+                self._show_mood_statistics()
+            elif choice == '6':
+                self._export_journal()
+            elif choice == '7':
+                break
+            else:
+                self.ui.show_error("Invalid choice. Please try again.")
+    
+    def _create_journal_entry(self):
+        """Create a new journal entry."""
+        assert self.ui is not None and self.journal_service is not None and self.weather_service is not None
+        
+        # Get current weather for user's location or ask for city
+        city = self.ui.get_user_input("Enter city name for weather context")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        # Display current weather
+        self.ui.display_weather(weather)
+        
+        # Get journal entry data
+        mood, notes, activities = self.ui.get_journal_entry_data()
+        
+        # Create entry
+        entry = self.journal_service.create_entry(weather, mood, notes, activities)
+        self.ui.show_message("✅ Journal entry created successfully!")
+        self.ui.display_journal_entry(entry)
+    
+    def _view_recent_entries(self):
+        """View recent journal entries."""
+        assert self.ui is not None and self.journal_service is not None
+        
+        entries = self.journal_service.get_recent_entries(10)
+        self.ui.display_journal_entries(entries)
+    
+    def _view_entry_by_date(self):
+        """View journal entry by specific date."""
+        assert self.ui is not None and self.journal_service is not None
+        
+        date_str = self.ui.get_date_input()
+        if not date_str:
+            entry_date = date.today()
+        else:
+            try:
+                entry_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+            except ValueError:
+                self.ui.show_error("Invalid date format. Use YYYY-MM-DD")
+                return
+        
+        entry = self.journal_service.get_entry_by_date(entry_date)
+        if entry:
+            self.ui.display_journal_entry(entry)
+        else:
+            self.ui.show_message(f"No journal entry found for {entry_date}")
+    
+    def _search_journal_entries(self):
+        """Search journal entries."""
+        assert self.ui is not None and self.journal_service is not None
+        
+        query = self.ui.get_search_query()
+        if not query:
+            return
+        
+        entries = self.journal_service.search_entries(query)
+        if entries:
+            self.ui.display_journal_entries(entries)
+        else:
+            self.ui.show_message(f"No entries found matching '{query}'")
+    
+    def _show_mood_statistics(self):
+        """Show mood statistics."""
+        assert self.ui is not None and self.journal_service is not None
+        
+        stats = self.journal_service.get_mood_statistics()
+        if stats:
+            self.ui.show_statistics(stats)
+        else:
+            self.ui.show_message("No mood data available yet")
+    
+    def _export_journal(self):
+        """Export journal to text file."""
+        assert self.ui is not None and self.journal_service is not None
+        
+        filename = f"weather_journal_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        content = self.journal_service.export_entries_to_text(filename)
+        self.ui.show_message(f"✅ Journal exported to {filename}")
+    
+    def _handle_activity_suggestions(self):
+        """Handle activity suggestions feature."""
+        assert self.ui is not None and self.activity_service is not None and self.weather_service is not None
+        
+        while True:
+            choice = self.ui.show_activity_menu()
+            
+            if choice == '1':
+                self._get_activity_suggestions()
+            elif choice == '2':
+                self._get_indoor_activities()
+            elif choice == '3':
+                self._get_outdoor_activities()
+            elif choice == '4':
+                self._show_activity_details()
+            elif choice == '5':
+                break
+            else:
+                self.ui.show_error("Invalid choice. Please try again.")
+    
+    def _get_activity_suggestions(self):
+        """Get activity suggestions for current weather."""
+        assert self.ui is not None and self.activity_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name for activity suggestions")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        suggestions = self.activity_service.get_activity_suggestions(weather)
+        self.ui.display_activity_suggestions(suggestions)
+    
+    def _get_indoor_activities(self):
+        """Get indoor activity suggestions."""
+        assert self.ui is not None and self.activity_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        indoor_activities = self.activity_service.get_indoor_activities(weather)
+        
+        print(f"\n🏠 Indoor Activities for {weather.location.display_name}")
+        print("-" * 40)
+        if indoor_activities:
+            for i, (activity, score) in enumerate(indoor_activities, 1):
+                print(f"{i}. {activity.name} (Score: {score:.1f})")
+                print(f"   {activity.description}")
+        else:
+            print("No indoor activities found.")
+    
+    def _get_outdoor_activities(self):
+        """Get outdoor activity suggestions."""
+        assert self.ui is not None and self.activity_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        outdoor_activities = self.activity_service.get_outdoor_activities(weather)
+        
+        print(f"\n🌞 Outdoor Activities for {weather.location.display_name}")
+        print("-" * 40)
+        if outdoor_activities:
+            for i, (activity, score) in enumerate(outdoor_activities, 1):
+                print(f"{i}. {activity.name} (Score: {score:.1f})")
+                print(f"   {activity.description}")
+        else:
+            print("No suitable outdoor activities found for current conditions.")
+    
+    def _show_activity_details(self):
+        """Show detailed activity report."""
+        assert self.ui is not None and self.activity_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name for detailed activity report")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        report = self.activity_service.create_activity_report(weather)
+        print(report)
+    
+    def _handle_weather_poetry(self):
+        """Handle weather poetry feature."""
+        assert self.ui is not None and self.poetry_service is not None and self.weather_service is not None
+        
+        while True:
+            choice = self.ui.show_poetry_menu()
+            
+            if choice == '1':
+                self._generate_random_poem()
+            elif choice == '2':
+                self._generate_haiku()
+            elif choice == '3':
+                self._generate_fun_phrase()
+            elif choice == '4':
+                self._generate_limerick()
+            elif choice == '5':
+                self._generate_poetry_collection()
+            elif choice == '6':
+                break
+            else:
+                self.ui.show_error("Invalid choice. Please try again.")
+    
+    def _generate_random_poem(self):
+        """Generate a random weather poem."""
+        assert self.ui is not None and self.poetry_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name for weather poetry")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        poem = self.poetry_service.generate_weather_poetry(weather, "random")
+        self.ui.display_weather_poem(poem)
+    
+    def _generate_haiku(self):
+        """Generate a weather haiku."""
+        assert self.ui is not None and self.poetry_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name for weather haiku")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        poem = self.poetry_service.generate_haiku(weather)
+        self.ui.display_weather_poem(poem)
+    
+    def _generate_fun_phrase(self):
+        """Generate a fun weather phrase."""
+        assert self.ui is not None and self.poetry_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name for weather phrase")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        poem = self.poetry_service.generate_fun_phrase(weather)
+        self.ui.display_weather_poem(poem)
+    
+    def _generate_limerick(self):
+        """Generate a weather limerick."""
+        assert self.ui is not None and self.poetry_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name for weather limerick")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        poem = self.poetry_service.generate_limerick(weather)
+        self.ui.display_weather_poem(poem)
+    
+    def _generate_poetry_collection(self):
+        """Generate a collection of weather poems."""
+        assert self.ui is not None and self.poetry_service is not None and self.weather_service is not None
+        
+        city = self.ui.get_user_input("Enter city name for poetry collection")
+        if not city:
+            return
+        
+        weather = self.weather_service.get_current_weather(city)
+        if not weather:
+            self.ui.show_error(f"Could not get weather data for {city}")
+            return
+        
+        poems = self.poetry_service.create_poetry_collection(weather, 3)
+        self.ui.display_poetry_collection(poems)
+    
 
 def main():
     """Main entry point."""

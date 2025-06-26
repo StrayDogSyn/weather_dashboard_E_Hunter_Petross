@@ -28,10 +28,28 @@ from .weather_models import (
     LocationData
 )
 
+from .capstone_models import (
+    # Enums
+    ActivityType,
+    MoodType,
+    
+    # Capstone entities
+    WeatherComparison,
+    JournalEntry,
+    Activity,
+    ActivitySuggestion,
+    WeatherPoem,
+    
+    # Default data
+    DEFAULT_ACTIVITIES
+)
+
 __all__ = [
     # Enums
     'WeatherCondition',
     'TemperatureUnit',
+    'ActivityType',
+    'MoodType',
     
     # Core entities
     'Location',
@@ -45,6 +63,13 @@ __all__ = [
     'WeatherAlert',
     'FavoriteCity',
     
+    # Capstone entities
+    'WeatherComparison',
+    'JournalEntry',
+    'Activity',
+    'ActivitySuggestion',
+    'WeatherPoem',
+    
     # API Response models
     'APIResponse',
     'WeatherAPIResponse',
@@ -53,5 +78,8 @@ __all__ = [
     # Type aliases
     'WeatherData',
     'ForecastData',
-    'LocationData'
+    'LocationData',
+    
+    # Default data
+    'DEFAULT_ACTIVITIES'
 ]

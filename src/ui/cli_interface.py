@@ -6,6 +6,9 @@ from datetime import datetime
 
 from ..interfaces.weather_interfaces import IUserInterface
 from ..models import CurrentWeather, WeatherForecast, FavoriteCity
+from ..models.capstone_models import (
+    WeatherComparison, JournalEntry, ActivitySuggestion, WeatherPoem, MoodType
+)
 from ..utils import (
     format_temperature, format_percentage, format_wind_speed,
     format_pressure, format_datetime, get_wind_direction_emoji
@@ -138,8 +141,8 @@ class CliInterface(IUserInterface):
         print("Welcome to your personal weather dashboard!")
         print()
     
-    def show_menu(self) -> None:
-        """Show main menu options."""
+    def show_main_menu(self) -> None:
+        """Show enhanced main menu with capstone features."""
         print("\nOptions:")
         print("1. Get current weather")
         print("2. Get weather forecast")
@@ -150,11 +153,263 @@ class CliInterface(IUserInterface):
         print("7. Weather for all favorites")
         print("8. Show configuration")
         print("9. Clear cache")
-        print("10. Exit")
-    
-    def get_menu_choice(self) -> str:
-        """Get menu choice from user."""
-        return self.get_user_input("\nEnter your choice (1-10)")
+        print("")
+        print("🌟 Capstone Features:")
+        print("10. Compare two cities")
+        print("11. Weather journal")
+        print("12. Activity suggestions")
+        print("13. Weather poetry")
+        print("14. Exit")
+
+    def get_enhanced_menu_choice(self) -> str:
+        """Get menu choice from user for enhanced menu."""
+        return self.get_user_input("\nEnter your choice (1-14)")
+
+    # City Comparison Feature
+    def display_weather_comparison(self, comparison: WeatherComparison) -> None:
+        """Display weather comparison between two cities."""
+        city1 = comparison.city1_weather
+        city2 = comparison.city2_weather
+        
+        print(f"\n🌍 Weather Comparison")
+        print("=" * 60)
+        
+        # Header with city names
+        print(f"🏙️  {city1.location.display_name:<25} vs {city2.location.display_name}")
+        print("-" * 60)
+        
+        # Temperature comparison
+        temp1 = f"{city1.temperature.to_celsius():.1f}°C"
+        temp2 = f"{city2.temperature.to_celsius():.1f}°C"
+        temp_diff = abs(comparison.temperature_difference)
+        
+        print(f"🌡️  Temperature:     {temp1:<15} {temp2:<15}")
+        if comparison.temperature_difference > 0:
+            print(f"    ➡️  {city1.location.name} is {temp_diff:.1f}°C warmer")
+        elif comparison.temperature_difference < 0:
+            print(f"    ➡️  {city2.location.name} is {temp_diff:.1f}°C warmer")
+        else:
+            print(f"    ➡️  Same temperature")
+        
+        # Condition comparison
+        print(f"☁️  Condition:       {city1.description.title():<15} {city2.description.title():<15}")
+        
+        # Humidity comparison
+        print(f"💧 Humidity:        {city1.humidity}%{'':<12} {city2.humidity}%")
+        if comparison.humidity_difference != 0:
+            humid_diff = abs(comparison.humidity_difference)
+            if comparison.humidity_difference > 0:
+                print(f"    ➡️  {city1.location.name} is {humid_diff}% more humid")
+            else:
+                print(f"    ➡️  {city2.location.name} is {humid_diff}% more humid")
+        
+        # Wind comparison
+        print(f"💨 Wind:            {city1.wind.speed}km/h {city1.wind.direction_name:<8} {city2.wind.speed}km/h {city2.wind.direction_name}")
+        
+        # Pressure comparison
+        print(f"🌪️  Pressure:        {city1.pressure.value}hPa{'':<8} {city2.pressure.value}hPa")
+        
+        print("-" * 60)
+        print(f"🏆 Better weather overall: {comparison.better_weather_city}")
+
+    def get_cities_for_comparison(self) -> tuple[str, str]:
+        """Get two city names for comparison."""
+        print("\n🌍 City Weather Comparison")
+        print("-" * 30)
+        city1 = self.get_user_input("Enter first city name")
+        if not city1:
+            return "", ""
+        
+        city2 = self.get_user_input("Enter second city name")
+        if not city2:
+            return "", ""
+        
+        return city1, city2
+
+    # Weather Journal Feature
+    def display_journal_entry(self, entry: JournalEntry) -> None:
+        """Display a single journal entry."""
+        print(f"\n📔 Journal Entry - {entry.formatted_date}")
+        print("-" * 40)
+        print(f"📍 Location: {entry.location}")
+        print(f"🌤️  Weather: {entry.weather_summary} ({entry.temperature:.1f}°C)")
+        print(f"😊 Mood: {entry.mood_emoji} {entry.mood.value.title()}")
+        print(f"📝 Notes: {entry.notes}")
+        
+        if entry.activities:
+            print(f"🎯 Activities: {', '.join(entry.activities)}")
+        
+        print(f"📅 Created: {entry.created_at.strftime('%Y-%m-%d %H:%M')}")
+
+    def display_journal_entries(self, entries: list[JournalEntry]) -> None:
+        """Display multiple journal entries."""
+        if not entries:
+            print("\n📔 No journal entries found.")
+            return
+        
+        print(f"\n📔 Journal Entries ({len(entries)} found)")
+        print("=" * 50)
+        
+        for entry in entries:
+            print(f"📅 {entry.formatted_date} | {entry.location}")
+            print(f"   {entry.mood_emoji} {entry.mood.value.title()} | {entry.weather_summary}")
+            print(f"   📝 {entry.notes[:60]}{'...' if len(entry.notes) > 60 else ''}")
+            print()
+
+    def get_journal_entry_data(self) -> tuple[MoodType, str, list[str]]:
+        """Get journal entry data from user."""
+        print("\n📔 Create Weather Journal Entry")
+        print("-" * 35)
+        
+        # Show mood options
+        print("How are you feeling today?")
+        moods = list(MoodType)
+        for i, mood in enumerate(moods, 1):
+            print(f"{i:2}. {mood.value.title()}")
+        
+        mood_choice = self.get_user_input(f"\nChoose mood (1-{len(moods)})")
+        try:
+            mood_index = int(mood_choice) - 1
+            if 0 <= mood_index < len(moods):
+                selected_mood = moods[mood_index]
+            else:
+                selected_mood = MoodType.CONTENT  # Default
+        except ValueError:
+            selected_mood = MoodType.CONTENT  # Default
+        
+        # Get notes
+        notes = self.get_user_input("Write your thoughts about today's weather")
+        
+        # Get activities
+        activities_input = self.get_user_input("What activities did you do today? (comma-separated)")
+        activities = [activity.strip() for activity in activities_input.split(',') if activity.strip()]
+        
+        return selected_mood, notes, activities
+
+    def show_journal_menu(self) -> str:
+        """Show journal menu options."""
+        print("\n📔 Weather Journal")
+        print("-" * 20)
+        print("1. Create today's entry")
+        print("2. View recent entries")
+        print("3. View entry by date")
+        print("4. Search entries")
+        print("5. Mood statistics")
+        print("6. Export journal")
+        print("7. Back to main menu")
+        
+        return self.get_user_input("Choose option (1-7)")
+
+    # Activity Suggestions Feature
+    def display_activity_suggestions(self, suggestions: ActivitySuggestion) -> None:
+        """Display activity suggestions."""
+        weather = suggestions.weather
+        
+        print(f"\n🎯 Activity Suggestions for {weather.location.display_name}")
+        print("=" * 60)
+        print(f"🌤️  Current Weather: {weather.description.title()}")
+        print(f"🌡️  Temperature: {weather.temperature}")
+        print(f"💨 Wind: {weather.wind.speed}km/h")
+        print()
+        
+        if not suggestions.suggested_activities:
+            print("😕 No suitable activities found for current conditions.")
+            return
+        
+        # Top suggestion
+        if suggestions.top_suggestion:
+            top_activity, top_score = suggestions.suggested_activities[0]
+            print(f"🏆 TOP RECOMMENDATION")
+            print(f"   {top_activity.name}")
+            print(f"   {top_activity.description}")
+            print(f"   Suitability Score: {top_score:.1f}/10")
+            print()
+        
+        # All suggestions
+        print("💡 All Suggestions:")
+        for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
+            indoor_icon = "🏠" if activity.indoor else "🌞"
+            print(f"{i:2}. {indoor_icon} {activity.name} (Score: {score:.1f})")
+            if i == 1:  # Show description for top suggestion
+                print(f"       {activity.description}")
+
+    def show_activity_menu(self) -> str:
+        """Show activity suggestions menu."""
+        print("\n🎯 Activity Suggestions")
+        print("-" * 25)
+        print("1. Get suggestions for current weather")
+        print("2. View indoor activities only")
+        print("3. View outdoor activities only")
+        print("4. Activity details")
+        print("5. Back to main menu")
+        
+        return self.get_user_input("Choose option (1-5)")
+
+    # Weather Poetry Feature
+    def display_weather_poem(self, poem: WeatherPoem) -> None:
+        """Display a weather poem."""
+        if poem.poem_type == "haiku":
+            print("\n🌸 Weather Haiku")
+            print("-" * 20)
+            lines = poem.text.split(" / ")
+            for line in lines:
+                print(f"   {line}")
+        elif poem.poem_type == "phrase":
+            print("\n💭 Weather Wisdom")
+            print("-" * 20)
+            print(f"   {poem.text}")
+        elif poem.poem_type == "limerick":
+            print("\n🎵 Weather Limerick")
+            print("-" * 20)
+            lines = poem.text.split(" / ")
+            for line in lines:
+                print(f"   {line}")
+        
+        print(f"\n   📍 Inspired by: {poem.weather_condition.value.title()} weather")
+        print(f"   🌡️  Temperature: {poem.temperature_range.title()}")
+
+    def display_poetry_collection(self, poems: list[WeatherPoem]) -> None:
+        """Display a collection of weather poems."""
+        print(f"\n🎨 Weather Poetry Collection ({len(poems)} poems)")
+        print("=" * 50)
+        
+        for i, poem in enumerate(poems, 1):
+            self.display_weather_poem(poem)
+            if i < len(poems):
+                print("\n" + "~" * 30)
+
+    def show_poetry_menu(self) -> str:
+        """Show poetry menu options."""
+        print("\n🎨 Weather Poetry")
+        print("-" * 18)
+        print("1. Generate random poem")
+        print("2. Generate haiku")
+        print("3. Generate fun phrase")
+        print("4. Generate limerick")
+        print("5. Poetry collection")
+        print("6. Back to main menu")
+        
+        return self.get_user_input("Choose option (1-6)")
+
+    def show_statistics(self, stats: dict) -> None:
+        """Display various statistics."""
+        print("\n📊 Statistics")
+        print("-" * 15)
+        for key, value in stats.items():
+            if isinstance(value, dict):
+                print(f"{key.replace('_', ' ').title()}:")
+                for sub_key, sub_value in value.items():
+                    print(f"  {sub_key}: {sub_value}")
+            else:
+                print(f"{key.replace('_', ' ').title()}: {value}")
+
+    def get_date_input(self) -> str:
+        """Get date input from user."""
+        return self.get_user_input("Enter date (YYYY-MM-DD) or press Enter for today")
+
+    def get_search_query(self) -> str:
+        """Get search query from user."""
+        return self.get_user_input("Enter search terms")
     
     def display_locations(self, locations: List[Any]) -> None:
         """Display search results for locations."""
