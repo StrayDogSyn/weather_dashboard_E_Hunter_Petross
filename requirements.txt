@@ -1,5 +1,5 @@
 # Weather Dashboard - Core Dependencies
-# =======================================
+# ========================================
 
 # GUI Framework
 ttkbootstrap>=1.10.1
@@ -19,13 +19,8 @@ loguru>=0.7.0
 # Type Extensions
 typing-extensions>=4.0.0
 
-# Data Analysis
+# Data Analysis (optional - for advanced features)
 pandas>=2.0.0
 
-# Development Dependencies (install with: pip install -e ".[dev]")
-# black>=23.0.0
-# flake8>=6.0.0  
-# mypy>=1.0.0
-# pytest>=7.0.0
-# pytest-cov>=4.0.0
-# pre-commit>=3.0.0
+# Development Dependencies (install separately for development)
+# pip install black flake8 mypy pytest pytest-cov pre-commit
