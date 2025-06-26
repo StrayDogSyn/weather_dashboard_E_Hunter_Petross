@@ -16,7 +16,7 @@ weather_dashboard_E_Hunter_Petross/
 │   │   └── config.py           # Environment-based configuration
 │   ├── core/                   # Business logic layer
 │   │   ├── __init__.py         
-│   │   └── weather_business.py # Core business rules and logic
+│   │   └── weather_service.py  # Core weather service logic
 │   ├── interfaces/             # Abstract interfaces (dependency inversion)
 │   │   ├── __init__.py         
 │   │   └── weather_interfaces.py # Service interfaces
@@ -33,18 +33,20 @@ weather_dashboard_E_Hunter_Petross/
 │   │   └── cli_interface.py    # Command-line interface
 │   └── utils/                  # Utility functions
 │       ├── __init__.py         
-│       └── helpers.py          # Helper functions and utilities
-├── tests/                      # Comprehensive test suite
-│   └── test_weather_dashboard.py
-├── main.py                     # Thin application launcher
-├── config.py                   # Legacy config (for backward compatibility)
-├── requirements.txt            # Dependencies
-├── .env.example               # Environment template
+│       ├── formatters.py       # Data formatting utilities
+│       └── validators.py       # Input validation utilities
+├── docs/                       # Documentation
+│   ├── README.md              
+│   └── user_guide.md          
+├── main.py                     # Application entry point
+├── requirements.txt            # Python dependencies
+├── settings.json              # Application settings
+├── .env                       # Environment variables (not tracked)
 ├── .gitignore                 # Git ignore rules
+├── LICENSE                    # MIT License
+├── ARCHITECTURE.md            # This architecture documentation
 ├── SECURITY.md                # Security documentation
-└── docs/                      # Documentation
-    ├── README.md              
-    └── user_guide.md          
+└── README.md                  # Project documentation
 ```
 
 ## Architecture Principles Implemented
@@ -79,7 +81,7 @@ weather_dashboard_E_Hunter_Petross/
 
 #### **Application Layer**
 
-- `src/core/weather_business.py`: Use cases and application-specific business rules
+- `src/core/weather_service.py`: Use cases and application-specific business rules
 - `src/interfaces/`: Port definitions for external services
 
 #### **Infrastructure Layer**
@@ -117,11 +119,12 @@ weather_dashboard_E_Hunter_Petross/
 - Type-safe enums for weather conditions
 - Validation and business rules embedded in models
 
-### 4. **Comprehensive Testing**
+### 4. **Testing Framework Ready**
 
-- Unit tests for all major components
-- Test coverage for models, services, and utilities
-- Mocking for external dependencies
+- Project structure supports comprehensive testing
+- Clean architecture enables easy unit testing and mocking
+- Modular design allows for isolated component testing
+- Future test implementation can cover models, services, and utilities
 
 ### 5. **Professional Error Handling**
 
@@ -171,22 +174,17 @@ weather_dashboard_E_Hunter_Petross/
 python main.py
 ```
 
-### Running Tests
-
-```bash
-python -m pytest tests/ -v
-```
-
 ### Configuration
 
-1. Copy `.env.example` to `.env`
+1. Configure environment variables in `.env` file
 2. Set your OpenWeatherMap API key
-3. Customize other settings as needed
+3. Customize application settings in `settings.json` as needed
 
 ## Future Extensions
 
 The clean architecture makes it easy to add:
 
+- Comprehensive test suite (pytest, unit tests, integration tests)
 - GUI interface (tkinter, PyQt, web interface)
 - Additional weather APIs (WeatherAPI, Visual Crossing)
 - Database storage (PostgreSQL, SQLite)
