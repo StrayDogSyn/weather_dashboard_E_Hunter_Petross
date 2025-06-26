@@ -34,8 +34,18 @@ A comprehensive weather dashboard application built as a capstone project.
    ```
 
 3. **Set up your API key**:
+
+   **Option A**: Using .env file (recommended for security)
+
+   ```bash
+   # Copy the environment template
+   copy .env.example .env
    
-   **Option A**: Environment variable (recommended)
+   # Edit .env file and set your API key
+   OPENWEATHER_API_KEY=your_actual_api_key_here
+   ```
+
+   **Option B**: Environment variable (temporary)
 
    ```bash
    # Windows PowerShell
@@ -47,10 +57,6 @@ A comprehensive weather dashboard application built as a capstone project.
    # Linux/Mac
    export OPENWEATHER_API_KEY="your_api_key_here"
    ```
-   
-   **Option B**: Edit `config.py`
-   - Open `config.py`
-   - Replace `'your_api_key_here'` with your actual API key
 
 ### Running the Application
 
@@ -63,34 +69,49 @@ python main.py
 ```txt
 weather-dashboard-E_Hunter_Petross/
 ├── main.py              # Main application logic
-├── config.py            # Configuration settings
+├── config.py            # Secure configuration system
 ├── requirements.txt     # Python dependencies
-├── features/            # Feature modules (to be added)
-├── data/               # Data storage and cache
-├── docs/               # Documentation
-│   ├── README.md       # This file
-│   └── user_guide.md   # Detailed user guide
-└── screenshots/        # Application screenshots
+├── .env.example         # Environment variables template
+├── .gitignore          # Git ignore rules (protects .env)
+├── SECURITY.md         # Security guidelines
+├── setup.py            # Automated setup script
+├── features/           # Feature modules
+│   └── weather_api.py  # Weather API integration
+├── data/              # Data storage and cache
+├── docs/              # Documentation
+│   ├── README.md      # This file
+│   └── user_guide.md  # Detailed user guide
+└── screenshots/       # Application screenshots
 ```
 
 ## 🔧 Configuration
 
-The application can be configured through `config.py`:
+The application uses a modern, secure configuration system:
 
-- **API Settings**: Configure weather API endpoints and keys
-- **Display Options**: Customize themes, colors, and window settings
-- **Feature Toggles**: Enable/disable specific features
-- **Data Storage**: Configure cache duration and data directory
+- **Environment Variables**: Secure API key storage in `.env` file
+- **Feature Flags**: Enable/disable specific features via environment variables
+- **Logging Configuration**: Configurable log levels and output options
+- **UI Settings**: Customizable themes, window sizes, and display options
+- **Security Settings**: API key masking, privacy mode, and audit logging
+
+### Configuration Files
+
+- `.env` - Your personal environment variables (never commit this!)
+- `.env.example` - Template with all available options
+- `settings.json` - Non-sensitive application settings
+- `SECURITY.md` - Security guidelines and best practices
 
 ## 🎯 Development Roadmap
 
 ### Week 16: Foundation
 
 - [x] Project structure setup
-- [x] Basic configuration system
+- [x] Secure configuration system with .env support
+- [x] Modern, type-safe configuration management
+- [x] Security implementation (API key masking, .gitignore)
 - [x] Core application framework
-- [ ] API integration
-- [ ] Basic CLI interface
+- [x] Basic CLI interface with configuration display
+- [ ] Full API integration with real weather data
 
 ### Week 17: Core Features
 
@@ -135,6 +156,25 @@ This application uses the OpenWeatherMap API:
 - **Current Weather**: `https://api.openweathermap.org/data/2.5/weather`
 - **5-Day Forecast**: `https://api.openweathermap.org/data/2.5/forecast`
 - **Weather Maps**: `https://api.openweathermap.org/data/2.5/map` (coming soon)
+
+## 🔒 Security
+
+This project implements enterprise-level security practices:
+
+- **API Key Protection**: Never stored in code, only in environment variables
+- **Environment Variables**: Secure `.env` file management with templates
+- **Git Security**: Comprehensive `.gitignore` prevents sensitive data commits
+- **Configuration Validation**: Automatic API key format and security validation
+- **Audit Logging**: Masked API keys in logs, optional API response logging
+- **Security Documentation**: Complete guidelines in `SECURITY.md`
+
+### Security Checklist
+
+- [ ] Get your API key from [OpenWeatherMap](https://openweathermap.org/api)
+- [ ] Copy `.env.example` to `.env`
+- [ ] Add your API key to `.env` file
+- [ ] Never commit your `.env` file to version control
+- [ ] Review `SECURITY.md` for best practices
 
 ## 🤝 Contributing
 
