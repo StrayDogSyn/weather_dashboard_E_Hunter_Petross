@@ -1,0 +1,54 @@
+# Core dependencies for Weather Dashboard
+# HTTP requests for API calls
+requests>=2.31.0
+
+# GUI framework (choose one based on your preference)
+# Option 1: Tkinter (built into Python, no installation needed)
+# Option 2: PyQt5 for more advanced GUI
+# PyQt5>=5.15.0
+
+# Option 3: Kivy for modern UI
+# kivy>=2.1.0
+
+# Option 4: Streamlit for web-based dashboard
+# streamlit>=1.28.0
+
+# Data handling and visualization
+pandas>=2.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+numpy>=1.24.0
+
+# For plotting weather maps and charts
+plotly>=5.15.0
+
+# Date and time handling
+python-dateutil>=2.8.0
+
+# Configuration and environment variables
+python-dotenv>=1.0.0
+
+# JSON handling (built into Python)
+# Image processing for weather icons
+Pillow>=10.0.0
+
+# Optional: For weather data caching
+# redis>=4.5.0
+
+# Optional: For database storage
+# sqlite3 (built into Python)
+
+# Optional: For advanced weather visualization
+# folium>=0.14.0  # For interactive maps
+# geopy>=2.3.0    # For geocoding
+
+# Development and testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Code quality
+flake8>=6.0.0
+black>=23.0.0
+
+# Documentation
+sphinx>=7.1.0
