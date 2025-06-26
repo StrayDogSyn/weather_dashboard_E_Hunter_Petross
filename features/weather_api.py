@@ -9,14 +9,15 @@ from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 import json
 
-from config import WeatherAPIConfig, ErrorConfig
+from config import config_manager
 
 class WeatherAPI:
     """Weather API handler for OpenWeatherMap"""
     
     def __init__(self):
-        self.api_key = WeatherAPIConfig.OPENWEATHER_API_KEY
-        self.base_url = WeatherAPIConfig.OPENWEATHER_BASE_URL
+        self.config = config_manager.config.api
+        self.api_key = self.config.api_key
+        self.base_url = self.config.base_url
         self.session = requests.Session()
         
         # Setup session headers
@@ -44,7 +45,7 @@ class WeatherAPI:
             response = self.session.get(
                 url, 
                 params=params, 
-                timeout=ErrorConfig.TIMEOUT
+                timeout=self.config.timeout
             )
             response.raise_for_status()
             return response.json()

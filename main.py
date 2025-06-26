@@ -16,7 +16,7 @@ from typing import Optional, Dict, Any
 project_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, project_dir)
 
-from config import WeatherAPIConfig, AppConfig, UIConfig, validate_config
+from config import config_manager, validate_config, setup_environment
 
 class WeatherDashboard:
     """Main Weather Dashboard Application Class"""
@@ -27,6 +27,9 @@ class WeatherDashboard:
         self.weather_data = {}
         self.favorite_cities = []
         
+        # Setup environment first
+        setup_environment()
+        
         # Setup logging
         self.setup_logging()
         
@@ -34,13 +37,13 @@ class WeatherDashboard:
         self.config_valid = validate_config()
         
         # Create data directory if it doesn't exist
-        os.makedirs(AppConfig.DATA_DIR, exist_ok=True)
+        os.makedirs("data", exist_ok=True)
         
         logging.info("Weather Dashboard initialized")
     
     def setup_logging(self):
         """Setup logging configuration"""
-        log_level = getattr(logging, AppConfig.__dict__.get('LOG_LEVEL', 'INFO'))
+        log_level = getattr(logging, config_manager.config.logging.log_level)
         
         logging.basicConfig(
             level=log_level,
@@ -131,7 +134,7 @@ class WeatherDashboard:
     
     def save_data(self, data: Dict[str, Any], filename: str):
         """Save data to file in data directory"""
-        filepath = os.path.join(AppConfig.DATA_DIR, filename)
+        filepath = os.path.join("data", filename)
         try:
             import json
             with open(filepath, 'w') as f:
@@ -142,7 +145,7 @@ class WeatherDashboard:
     
     def load_data(self, filename: str) -> Optional[Dict[str, Any]]:
         """Load data from file in data directory"""
-        filepath = os.path.join(AppConfig.DATA_DIR, filename)
+        filepath = os.path.join("data", filename)
         try:
             import json
             with open(filepath, 'r') as f:
@@ -164,9 +167,9 @@ class WeatherDashboard:
             print("⚠️  Configuration Error:")
             print("Please set up your weather API key before running the application.")
             print("1. Get a free API key from https://openweathermap.org/api")
-            print("2. Set the OPENWEATHER_API_KEY environment variable")
-            print("   OR")
-            print("3. Edit config.py and replace 'your_api_key_here' with your key")
+            print("2. Copy .env.example to .env")
+            print("3. Edit .env and set OPENWEATHER_API_KEY=your_actual_api_key")
+            print("4. Restart the application")
             return
         
         # For now, just run a simple CLI demo
@@ -174,8 +177,14 @@ class WeatherDashboard:
     
     def run_cli_demo(self):
         """Run a simple command-line demo"""
-        print(f"\n🌤️  Welcome to {UIConfig.WINDOW_TITLE}!")
+        print(f"\n🌤️  Welcome to {config_manager.config.ui.window_title}!")
         print("=" * 50)
+        
+        # Show configuration status
+        debug_info = config_manager.get_debug_info()
+        print(f"📍 Default city: {debug_info['default_city']}")
+        print(f"🔑 API key: {debug_info['api_key_masked']}")
+        print(f"🎨 Theme: {debug_info['theme']}")
         
         while True:
             print("\nOptions:")
@@ -183,9 +192,10 @@ class WeatherDashboard:
             print("2. Get weather forecast")
             print("3. View favorite cities")
             print("4. Add favorite city")
-            print("5. Exit")
+            print("5. Show configuration")
+            print("6. Exit")
             
-            choice = input("\nEnter your choice (1-5): ").strip()
+            choice = input("\nEnter your choice (1-6): ").strip()
             
             if choice == '1':
                 city = input("Enter city name: ").strip()
@@ -219,6 +229,17 @@ class WeatherDashboard:
                     print(f"✅ Added {city} to favorites!")
             
             elif choice == '5':
+                print("\n🔧 Configuration:")
+                debug_info = config_manager.get_debug_info()
+                for key, value in debug_info.items():
+                    if key != 'features_enabled':
+                        print(f"   {key}: {value}")
+                    else:
+                        print(f"   features_enabled:")
+                        for feature, enabled in value.items():
+                            print(f"     {feature}: {enabled}")
+            
+            elif choice == '6':
                 print("\n👋 Thank you for using Weather Dashboard!")
                 break
             

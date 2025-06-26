@@ -1,54 +1,31 @@
-# Core dependencies for Weather Dashboard
-# HTTP requests for API calls
+# Weather Dashboard - Core Dependencies
+# =======================================
+
+# GUI Framework
+ttkbootstrap>=1.10.1
+
+# HTTP Requests
 requests>=2.31.0
 
-# GUI framework (choose one based on your preference)
-# Option 1: Tkinter (built into Python, no installation needed)
-# Option 2: PyQt5 for more advanced GUI
-# PyQt5>=5.15.0
-
-# Option 3: Kivy for modern UI
-# kivy>=2.1.0
-
-# Option 4: Streamlit for web-based dashboard
-# streamlit>=1.28.0
-
-# Data handling and visualization
-pandas>=2.0.0
-matplotlib>=3.7.0
-seaborn>=0.12.0
-numpy>=1.24.0
-
-# For plotting weather maps and charts
-plotly>=5.15.0
-
-# Date and time handling
-python-dateutil>=2.8.0
-
-# Configuration and environment variables
+# Environment Variables
 python-dotenv>=1.0.0
 
-# JSON handling (built into Python)
-# Image processing for weather icons
-Pillow>=10.0.0
+# Data Validation & Modern Python
+pydantic>=2.0.0
 
-# Optional: For weather data caching
-# redis>=4.5.0
+# Professional Logging
+loguru>=0.7.0
 
-# Optional: For database storage
-# sqlite3 (built into Python)
+# Type Extensions
+typing-extensions>=4.0.0
 
-# Optional: For advanced weather visualization
-# folium>=0.14.0  # For interactive maps
-# geopy>=2.3.0    # For geocoding
+# Data Analysis
+pandas>=2.0.0
 
-# Development and testing
-pytest>=7.4.0
-pytest-cov>=4.1.0
-
-# Code quality
-flake8>=6.0.0
-black>=23.0.0
-
-# Documentation
-sphinx>=7.1.0
+# Development Dependencies (install with: pip install -e ".[dev]")
+# black>=23.0.0
+# flake8>=6.0.0  
+# mypy>=1.0.0
+# pytest>=7.0.0
+# pytest-cov>=4.0.0
+# pre-commit>=3.0.0
