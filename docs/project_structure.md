@@ -2,7 +2,7 @@
 
 ## 📁 Clean Project Layout
 
-```
+```text
 weather_dashboard_E_Hunter_Petross/
 ├── 📄 main.py                    # Main application entry point
 ├── 📄 run_gui.py                 # Simplified GUI launcher (always works)
@@ -45,19 +45,29 @@ weather_dashboard_E_Hunter_Petross/
 │       └── 📄 formatters.py           # Data formatting
 ├── 📁 docs/                     # Documentation
 │   ├── 📄 README.md
-│   └── 📄 user_guide.md
+│   ├── 📄 user_guide.md
+│   ├── � architecture.md         # Architecture documentation
+│   ├── 📄 security.md             # Security guidelines
+│   ├── � project_structure.md    # This file - project organization
+│   ├── 📄 refactor_complete.md    # Refactoring summary
+│   └── 📄 Week11_Reflection.md    # Capstone reflection
 ├── 📁 cache/                    # Application cache (runtime)
 ├── 📁 data/                     # Application data (runtime)
-├── 📁 logs/                     # Application logs (runtime)
-├── 📁 exports/                  # Data exports (runtime)
-├── 📄 architecture.md           # Architecture documentation
-├── 📄 security.md               # Security guidelines
-└── 📄 refactor_complete.md      # Refactoring summary
+├── � logs/                     # Application logs (runtime)
+└── � exports/                  # Data exports (runtime)
 ```
 
-## 🧹 Cleanup Completed
+## 🧹 Cleanup & Organization Completed
+
+### 📁 Moved to /docs/
+
+- `architecture.md` - Architecture documentation
+- `security.md` - Security guidelines
+- `project_structure.md` - This project structure documentation
+- `refactor_complete.md` - Refactoring summary
 
 ### ❌ Removed Files
+
 - `src/app.py` - Old CLI application controller
 - `src/ui/cli_interface.py` - CLI interface (GUI-only focus)
 - `launch_gui.py` - Duplicate launcher
@@ -69,15 +79,18 @@ weather_dashboard_E_Hunter_Petross/
 - `.pytest_cache/` - Test cache files
 
 ### ✅ Cleaned Up
+
 - Removed all CLI references from code
 - Updated `src/ui/__init__.py` to only export GUI interface
 - Fixed file structure documentation in README.md
-- Renamed documentation files to lowercase conventions:
-  - `REFACTOR_COMPLETE.md` → `refactor_complete.md`
-  - `ARCHITECTURE.md` → `architecture.md` 
-  - `SECURITY.md` → `security.md`
+- Moved documentation files to /docs/ folder for better organization:
+  - `architecture.md` → `docs/architecture.md`
+  - `security.md` → `docs/security.md`
+  - `project_structure.md` → `docs/project_structure.md`
+  - `refactor_complete.md` → `docs/refactor_complete.md`
 
 ### 📏 Naming Conventions Applied
+
 - **Python files**: `snake_case.py` ✅
 - **Documentation files**: `lowercase.md` ✅
 - **Directory names**: `lowercase/` ✅
@@ -86,6 +99,7 @@ weather_dashboard_E_Hunter_Petross/
 ## 🎯 Current Project Status
 
 ### ✅ Ready for Use
+
 - Clean, focused TKinter GUI application
 - No CLI dependencies or legacy code
 - Professional file organization
@@ -94,6 +108,7 @@ weather_dashboard_E_Hunter_Petross/
 - Minimal dependencies
 
 ### 🚀 Launch Commands
+
 ```bash
 # Recommended: Simplified launcher (always works)
 python run_gui.py
@@ -103,6 +118,7 @@ python main.py
 ```
 
 ## 🌟 Features Available
+
 - **Modern Glassmorphic GUI** - Dark theme with glass effects
 - **Weather Data** - Current conditions and forecasts
 - **City Comparison** - Side-by-side weather comparison
@@ -112,6 +128,7 @@ python main.py
 - **Data Management** - Caching and persistence
 
 ## 📦 Dependencies (Minimal)
+
 - `requests` - HTTP client for weather API
 - `python-dotenv` - Environment variable management
 - `pydantic` - Data validation and modeling

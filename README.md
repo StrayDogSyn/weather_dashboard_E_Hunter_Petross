@@ -168,21 +168,27 @@ This project implements Clean Architecture with clear separation of concerns:
 - **`src/interfaces/`** - Abstract interfaces for dependency inversion
 - **`src/config/`** - Configuration management
 - **`src/ui/`** - User interface layer
-- **`tests/`** - Comprehensive test suite
+- **`src/utils/`** - Utility functions and helpers
 
 ## 🧪 Testing
 
-Run the test suite:
+Testing framework setup is ready for future implementation:
 
 ```bash
+# Install testing dependencies (when needed)
+pip install pytest pytest-cov
+
+# Run tests (when test suite is implemented)
 python -m pytest tests/ -v
 ```
 
 ## 📚 Documentation
 
-- [Architecture Documentation](ARCHITECTURE.md) - Detailed architecture overview
-- [Security Guidelines](SECURITY.md) - Security best practices
+- [Architecture Documentation](docs/architecture.md) - Detailed architecture overview
+- [Security Guidelines](docs/security.md) - Security best practices
 - [User Guide](docs/user_guide.md) - Detailed usage instructions
+- [Project Structure](docs/project_structure.md) - Complete project organization
+- [Refactor Summary](docs/refactor_complete.md) - Recent improvements and changes
 
 ## 🔐 Security
 
