@@ -14,7 +14,7 @@ import threading
 # Removed PIL import for now - can be added back later for advanced features
 import json
 
-from interfaces.weather_interfaces import IUserInterface
+from src.interfaces.weather_interfaces import IUserInterface
 from models import CurrentWeather, WeatherForecast, FavoriteCity
 from models.capstone_models import (
     WeatherComparison, JournalEntry, ActivitySuggestion, WeatherPoem, MoodType

@@ -10,14 +10,14 @@ import threading
 from typing import Optional
 from datetime import datetime, date
 
-from core import WeatherService
-from core.comparison_service import CityComparisonService
-from core.journal_service import WeatherJournalService
-from core.activity_service import ActivitySuggestionService
-from services import OpenWeatherMapAPI, FileDataStorage, MemoryCacheService
-from services.poetry_service import WeatherPoetryService
-from ui import WeatherDashboardGUI
-from config import config_manager, validate_config, setup_environment
+from src.core import WeatherService
+from src.core.comparison_service import CityComparisonService
+from src.core.journal_service import WeatherJournalService
+from src.core.activity_service import ActivitySuggestionService
+from src.services import OpenWeatherMapAPI, FileDataStorage, MemoryCacheService
+from src.services.poetry_service import WeatherPoetryService
+from src.ui import WeatherDashboardGUI
+from src.config import config_manager, validate_config, setup_environment
 from utils import validate_city_name, sanitize_input
 from models.capstone_models import MoodType
 
