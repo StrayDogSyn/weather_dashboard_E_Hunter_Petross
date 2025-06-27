@@ -4,14 +4,12 @@ import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timedelta
 
-from ..models import (
+from src.models.weather_models import (
     CurrentWeather, WeatherForecast, Location, FavoriteCity
 )
-from ..interfaces.weather_interfaces import IWeatherAPI, IDataStorage, ICacheService
-from ..utils import (
-    validate_city_name, clean_city_name, sanitize_input,
-    WeatherDataValidator
-)
+from src.interfaces.weather_interfaces import IWeatherAPI, IDataStorage, ICacheService
+from src.utils.formatters import validate_city_name, clean_city_name
+from src.utils.validators import sanitize_input, WeatherDataValidator
 
 # Type aliases
 WeatherData = CurrentWeather

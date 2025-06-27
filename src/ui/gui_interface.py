@@ -15,11 +15,11 @@ import threading
 import json
 
 from src.interfaces.weather_interfaces import IUserInterface
-from models import CurrentWeather, WeatherForecast, FavoriteCity
-from models.capstone_models import (
+from src.models.weather_models import CurrentWeather, WeatherForecast, FavoriteCity
+from src.models.capstone_models import (
     WeatherComparison, JournalEntry, ActivitySuggestion, WeatherPoem, MoodType
 )
-from config import config_manager
+from src.config.config import config_manager
 
 
 class GlassmorphicStyle:

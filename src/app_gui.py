@@ -10,16 +10,19 @@ import threading
 from typing import Optional
 from datetime import datetime, date
 
-from src.core import WeatherService
+from src.core.weather_service import WeatherService
 from src.core.comparison_service import CityComparisonService
 from src.core.journal_service import WeatherJournalService
 from src.core.activity_service import ActivitySuggestionService
-from src.services import OpenWeatherMapAPI, FileDataStorage, MemoryCacheService
+from src.services.weather_api import OpenWeatherMapAPI
+from src.services.data_storage import FileDataStorage
+from src.services.cache_service import MemoryCacheService
 from src.services.poetry_service import WeatherPoetryService
-from src.ui import WeatherDashboardGUI
-from src.config import config_manager, validate_config, setup_environment
-from utils import validate_city_name, sanitize_input
-from models.capstone_models import MoodType
+from src.ui.gui_interface import WeatherDashboardGUI
+from src.config.config import config_manager, validate_config, setup_environment
+from src.utils.formatters import validate_city_name, clean_city_name
+from src.utils.validators import sanitize_input
+from src.models.capstone_models import MoodType
 
 
 class WeatherDashboardGUIApp:
