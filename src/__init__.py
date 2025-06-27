@@ -8,9 +8,9 @@ __version__ = "1.0.0"
 __author__ = "E Hunter Petross"
 __description__ = "A comprehensive weather dashboard with secure API integration"
 
-from .app import WeatherDashboardApp, main
-
-__all__ = [
-    'WeatherDashboardApp',
-    'main'
-]
+# Import main application components
+try:
+    from .app_gui import WeatherDashboardGUI
+    __all__ = ['WeatherDashboardGUI']
+except ImportError:
+    __all__ = []
