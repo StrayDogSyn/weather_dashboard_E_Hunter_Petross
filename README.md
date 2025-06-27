@@ -120,10 +120,10 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 ```text
 weather_dashboard_E_Hunter_Petross/
 ├── main.py                 # Main application entry point
+├── run_gui.py              # Simplified GUI launcher
 ├── src/
 │   ├── ui/
-│   │   ├── gui_interface.py # TKinter GUI implementation
-│   │   └── cli_interface.py # Command-line interface
+│   │   └── gui_interface.py # TKinter GUI implementation
 │   ├── core/               # Core business logic
 │   ├── services/           # External service integrations
 │   ├── models/            # Data models and schemas
