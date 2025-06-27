@@ -188,6 +188,7 @@ python -m pytest tests/ -v
 - [Security Guidelines](docs/security.md) - Security best practices and API key management
 - [Project Structure](docs/project_structure.md) - Complete project organization and file structure
 - [Week 11 Reflection](docs/Week11_Reflection.md) - Capstone project reflection and planning
+- [Works Cited](docs/README.md#-works-cited) - Bibliography of tools, documentation, and educational resources
 
 ## 🔐 Security
 

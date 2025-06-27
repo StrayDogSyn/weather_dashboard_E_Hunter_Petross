@@ -135,3 +135,7 @@ python main.py
 - `tkinter` - GUI framework (built into Python)
 
 The project is now clean, focused, and ready for professional use or demonstration! 🎉
+
+## Resources & Attribution
+
+For a complete list of development tools, libraries, and learning resources used in this project, please refer to the [Works Cited section](README.md#works-cited) in the documentation index.

@@ -110,3 +110,7 @@ Before deploying or sharing code:
 
 **Last Updated**: June 26, 2025
 **Review Schedule**: Monthly security review recommended
+
+## Resources & Attribution
+
+For information about security tools, extensions, and best practices resources used in this project, please refer to the [Works Cited section](README.md#works-cited) in the documentation index.

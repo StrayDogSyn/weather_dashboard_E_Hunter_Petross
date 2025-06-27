@@ -227,3 +227,7 @@ The clean architecture makes it easy to add:
 - Weather widget integration
 
 This implementation provides a solid foundation for a professional weather dashboard application that can grow and evolve while maintaining clean code principles.
+
+## Resources & Attribution
+
+For a complete list of tools, libraries, frameworks, and learning resources used in developing this architecture, please refer to the [Works Cited section](README.md#works-cited) in the documentation index.

@@ -157,3 +157,7 @@ def get_activity_suggestions(weather_data, user_preferences):
 
 - [x] **Commit and push a first-draft README.md**: Comprehensive documentation with setup instructions and feature descriptions
 - [x] **Ready for intensive development phase**: All core infrastructure is in place for Week 12 development
+
+## Resources & Learning Support
+
+For a comprehensive list of development tools, learning resources, documentation, and educational materials used throughout this capstone project, please refer to the [Works Cited section](README.md#works-cited) in the documentation index.
