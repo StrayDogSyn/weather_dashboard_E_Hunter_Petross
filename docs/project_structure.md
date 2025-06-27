@@ -71,7 +71,7 @@ weather_dashboard_E_Hunter_Petross/
 - `src/app.py` - Old CLI application controller
 - `src/ui/cli_interface.py` - CLI interface (GUI-only focus)
 - `launch_gui.py` - Duplicate launcher
-- `main_gui.py` - Duplicate launcher  
+- `main_gui.py` - Duplicate launcher
 - `simple_gui.py` - Duplicate launcher
 - `README_old.md` - Backup file
 - `weather_dashboard.log` - Old log file

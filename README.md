@@ -7,7 +7,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 ### Core Weather Features
 
 - **🌡️ Current Weather**: Real-time weather conditions for any city
-- **📅 Weather Forecast**: Detailed multi-day weather forecasts  
+- **📅 Weather Forecast**: Detailed multi-day weather forecasts
 - **⭐ Favorite Cities**: Save and manage your preferred locations
 
 ### Advanced Capstone Features
@@ -78,7 +78,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 ### Design Elements
 
 - **Dark glassmorphic theme** with transparency effects
-- **Custom styled buttons** with hover animations  
+- **Custom styled buttons** with hover animations
 - **Modern typography** using Segoe UI font
 - **Responsive layout** that adapts to window size
 - **Color-coded information** for easy reading
@@ -154,8 +154,8 @@ Potential additions:
 
 ---
 
-**Author**: E Hunter Petross  
-**Project**: Weather Dashboard Capstone  
+**Author**: E Hunter Petross
+**Project**: Weather Dashboard Capstone
 **Technology**: Python, TKinter, OpenWeatherMap API
 
 ## 🏗️ Architecture
@@ -184,11 +184,10 @@ python -m pytest tests/ -v
 
 ## 📚 Documentation
 
-- [Architecture Documentation](docs/architecture.md) - Detailed architecture overview
-- [Security Guidelines](docs/security.md) - Security best practices
-- [User Guide](docs/user_guide.md) - Detailed usage instructions
-- [Project Structure](docs/project_structure.md) - Complete project organization
-- [Refactor Summary](docs/refactor_complete.md) - Recent improvements and changes
+- [Architecture Documentation](docs/architecture.md) - Detailed architecture overview and design principles
+- [Security Guidelines](docs/security.md) - Security best practices and API key management
+- [Project Structure](docs/project_structure.md) - Complete project organization and file structure
+- [Week 11 Reflection](docs/Week11_Reflection.md) - Capstone project reflection and planning
 
 ## 🔐 Security
 
