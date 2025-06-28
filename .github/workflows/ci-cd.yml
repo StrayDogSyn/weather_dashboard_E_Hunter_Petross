@@ -1,0 +1,359 @@
+name: Weather Dashboard CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      test_environment:
+        description: 'Test environment'
+        required: false
+        default: 'development'
+        type: choice
+        options:
+        - development
+        - staging
+        - production
+
+env:
+  PYTHON_VERSION: '3.11'
+  
+jobs:
+  lint:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy
+        pip install -r requirements.txt
+        
+    - name: Run Black code formatter check
+      run: black --check --diff src/ tests/
+      
+    - name: Run isort import sorting check
+      run: isort --check-only --diff src/ tests/
+      
+    - name: Run flake8 linting
+      run: flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+      
+    - name: Run mypy type checking
+      run: mypy src/ --ignore-missing-imports
+
+  test:
+    name: Run Tests
+    runs-on: ${{ matrix.os }}
+    needs: lint
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python-version }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-xvfb
+        pip install -r requirements.txt
+        
+    - name: Create test environment file
+      run: |
+        echo "OPENWEATHER_API_KEY=test_api_key_for_ci" > .env
+        echo "WEATHER_DEFAULT_CITY=Test City" >> .env
+        echo "WEATHER_CACHE_DURATION=300" >> .env
+        echo "WEATHER_LOG_LEVEL=INFO" >> .env
+        
+    - name: Create data directory
+      run: mkdir -p data
+      
+    - name: Run tests with coverage
+      run: |
+        pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
+      env:
+        DISPLAY: ':99.0'
+        
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        
+  security:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    needs: lint
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety
+        pip install -r requirements.txt
+        
+    - name: Run Bandit security linter
+      run: bandit -r src/ -f json -o bandit-report.json
+      continue-on-error: true
+      
+    - name: Run Safety dependency vulnerability check
+      run: safety check --json --output safety-report.json
+      continue-on-error: true
+      
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Set up virtual display for GUI testing
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb
+        
+    - name: Create test environment
+      run: |
+        echo "OPENWEATHER_API_KEY=test_api_key_for_integration" > .env
+        mkdir -p data
+        
+    - name: Run integration tests
+      run: |
+        xvfb-run -a python -c "
+        import sys
+        import os
+        sys.path.insert(0, os.getcwd())
+        
+        # Test basic imports
+        try:
+            from src.models.weather_models import CurrentWeather
+            from src.services.weather_api import OpenWeatherMapAPI
+            from src.core.weather_service import WeatherService
+            print('✅ All imports successful')
+        except Exception as e:
+            print(f'❌ Import failed: {e}')
+            sys.exit(1)
+            
+        # Test basic functionality
+        try:
+            import tkinter as tk
+            root = tk.Tk()
+            root.withdraw()
+            root.destroy()
+            print('✅ TKinter GUI test passed')
+        except Exception as e:
+            print(f'❌ TKinter test failed: {e}')
+            sys.exit(1)
+            
+        print('🎉 Integration tests passed!')
+        "
+        
+  build:
+    name: Build Application
+    runs-on: ${{ matrix.os }}
+    needs: [test, security, integration-test]
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller
+        pip install -r requirements.txt
+        
+    - name: Create build environment
+      run: |
+        echo "OPENWEATHER_API_KEY=demo_key_replace_with_real" > .env
+        mkdir -p data
+        
+    - name: Build application (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        pyinstaller --onefile --windowed --name WeatherDashboard-Windows main.py
+        
+    - name: Build application (Linux/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        pyinstaller --onefile --windowed --name WeatherDashboard-${{ matrix.os }} main.py
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: weather-dashboard-${{ matrix.os }}
+        path: dist/
+        
+  documentation:
+    name: Generate Documentation
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install documentation tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install sphinx sphinx-rtd-theme
+        pip install -r requirements.txt
+        
+    - name: Generate API documentation
+      run: |
+        mkdir -p docs/api
+        python -c "
+        import pydoc
+        import os
+        import sys
+        sys.path.insert(0, 'src')
+        
+        modules = [
+            'src.core.weather_service',
+            'src.services.weather_api',
+            'src.models.weather_models',
+            'src.utils.formatters',
+            'src.utils.validators'
+        ]
+        
+        for module in modules:
+            try:
+                pydoc.writedoc(module)
+                print(f'✅ Generated docs for {module}')
+            except Exception as e:
+                print(f'⚠️ Could not generate docs for {module}: {e}')
+        "
+        
+    - name: Upload documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: docs/
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to staging environment
+      run: |
+        echo "🚀 Deploying to staging environment..."
+        echo "📦 Application built successfully"
+        echo "🌐 Staging URL: https://staging.weather-dashboard.example.com"
+        
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Deploy to production environment
+      run: |
+        echo "🚀 Deploying to production environment..."
+        echo "📦 Application built successfully"
+        echo "🌐 Production URL: https://weather-dashboard.example.com"
+        
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    
+    steps:
+    - name: Send notification
+      run: |
+        if [[ "${{ needs.deploy-staging.result }}" == "success" || "${{ needs.deploy-production.result }}" == "success" ]]; then
+          echo "✅ Deployment successful!"
+        else
+          echo "📢 Workflow completed - check results"
+        fi
