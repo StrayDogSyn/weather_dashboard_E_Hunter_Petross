@@ -5,30 +5,35 @@
 **Current Status:** ✅ GitHub CLI installed, ✅ Authentication working, ✅ Workflows detected!
 
 **Ready to test workflows! Available workflows:**
+
 - Weather Dashboard CI/CD (ID: 171239379)
-- PR Validation (ID: 171239380) 
+- PR Validation (ID: 171239380)
 - Python application (ID: 171239268)
 - Quick Test (ID: 171239381)
 
 **Run your first workflow test now:**
 
 1. **Quick basic test:**
+
    ```powershell
    gh workflow run quick-test.yml --ref main -f test_type=basic
    ```
 
 2. **Watch the progress:**
+
    ```powershell
    gh run list
    gh run watch
    ```
 
 3. **Run full CI/CD pipeline:**
+
    ```powershell
    gh workflow run ci-cd.yml --ref main
    ```
 
 **OR use the batch script:**
+
 ```powershell
 .\test-workflows.bat
 ```
@@ -38,9 +43,11 @@
 ## 🚀 Quick Installation Options
 
 ### ✅ GitHub CLI Status: INSTALLED
+
 GitHub CLI version 2.74.2 is already installed on your system!
 
 ### 🔐 Next Step: Authentication Required
+
 You need to authenticate with GitHub to use workflows:
 
 ```powershell
@@ -49,6 +56,7 @@ gh auth login
 ```
 
 ### Alternative Installation Methods (if needed)
+
 ```powershell
 # Windows Package Manager (already completed)
 winget install GitHub.cli
@@ -180,12 +188,14 @@ Invoke-RestMethod -Uri "https://api.github.com/repos/$owner/$repo/actions/workfl
 ## 📊 Monitoring Workflow Results
 
 ### Via Web Interface
+
 1. Go to repository → Actions tab
 2. View recent runs and their status
 3. Click on runs to see detailed logs
 4. Download artifacts if needed
 
 ### Via CLI (After Installation)
+
 ```powershell
 # List recent runs
 gh run list
@@ -204,21 +214,25 @@ gh run rerun [RUN_ID] --failed
 
 ### Common Issues
 
-**1. GitHub CLI not found after installation**
+#### 1. GitHub CLI not found after installation
+
 - Restart your terminal/PowerShell
 - Check if `gh` is in your PATH: `where gh`
 
-**2. Authentication fails**
+#### 2. Authentication fails
+
 - Ensure you have proper GitHub permissions
 - Try `gh auth refresh`
 - Use personal access token if needed
 
-**3. Workflow doesn't trigger**
+#### 3. Workflow doesn't trigger
+
 - Check branch name matches workflow configuration
 - Verify you have write access to repository
 - Check workflow file syntax
 
-**4. Permission denied**
+#### 4. Permission denied
+
 - Ensure repository has Actions enabled
 - Check if you have admin/write access
 - Verify GitHub token permissions
@@ -249,6 +263,7 @@ python -c "from src.models.weather_models import CurrentWeather; print('✅ Impo
 ## 🆘 Need Help?
 
 If you encounter issues:
+
 1. Check the GitHub Actions documentation
 2. Review workflow logs for error details
 3. Test locally first to isolate issues

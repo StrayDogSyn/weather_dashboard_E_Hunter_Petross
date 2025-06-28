@@ -314,7 +314,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/develop'
-    environment: staging
+    # Note: Remove 'environment: staging' line until staging environment is configured in repository settings
     
     steps:
     - name: Checkout code
@@ -331,7 +331,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main'
-    environment: production
+    # Note: Remove 'environment: production' line until production environment is configured in repository settings
     
     steps:
     - name: Checkout code
