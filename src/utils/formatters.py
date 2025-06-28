@@ -26,8 +26,9 @@ def validate_city_name(city: str) -> bool:
     if len(city) < 2 or len(city) > 100:
         return False
     
-    # Allow letters, spaces, hyphens, apostrophes, and periods
-    pattern = r'^[a-zA-Z\s\-\'.]+$'
+    # Allow letters, spaces, hyphens, apostrophes, periods, and unicode characters
+    # This pattern allows international city names with accents and special characters
+    pattern = r'^[a-zA-ZÀ-ÿ\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\s\-\'.]+$'
     return bool(re.match(pattern, city))
 
 
@@ -137,7 +138,12 @@ def format_pressure(pressure: float, unit: str = "hPa") -> str:
     Returns:
         Formatted pressure string
     """
-    return f"{pressure:.1f} {unit}"
+    # Format to preserve decimal places as given
+    if pressure == int(pressure):
+        return f"{pressure:.1f} {unit}"
+    else:
+        # Use the original precision
+        return f"{pressure:g} {unit}"
 
 
 def format_visibility(visibility: float, unit: str = "km") -> str:

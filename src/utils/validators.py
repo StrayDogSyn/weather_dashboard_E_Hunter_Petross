@@ -55,8 +55,9 @@ def validate_temperature_range(temp: float, unit: str = "C") -> bool:
         elif unit.upper() == "K":
             temp = temp - 273.15
         
-        # Reasonable Earth temperature range: -100°C to +60°C
-        return -100 <= temp <= 60
+        # Reasonable Earth temperature range: -89°C to +60°C
+        # (-89°C is Antarctica record, +60°C is extreme heat)
+        return -89 <= temp <= 60
         
     except (ValueError, TypeError):
         return False
