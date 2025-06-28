@@ -95,13 +95,17 @@ jobs:
         
     - name: Create test environment file
       run: |
-        echo "OPENWEATHER_API_KEY=test_api_key_for_ci" > .env
-        echo "WEATHER_DEFAULT_CITY=Test City" >> .env
-        echo "WEATHER_CACHE_DURATION=300" >> .env
-        echo "WEATHER_LOG_LEVEL=INFO" >> .env
+        python -c "
+        with open('.env', 'w') as f:
+            f.write('OPENWEATHER_API_KEY=test_api_key_for_ci\n')
+            f.write('WEATHER_DEFAULT_CITY=Test City\n')
+            f.write('WEATHER_CACHE_DURATION=300\n')
+            f.write('WEATHER_LOG_LEVEL=INFO\n')
+        "
         
     - name: Create data directory
-      run: mkdir -p data
+      run: |
+        python -c "import os; os.makedirs('data', exist_ok=True)"
       
     - name: Run tests with coverage
       run: |
@@ -179,8 +183,11 @@ jobs:
         
     - name: Create test environment
       run: |
-        echo "OPENWEATHER_API_KEY=test_api_key_for_integration" > .env
-        mkdir -p data
+        python -c "
+        with open('.env', 'w') as f:
+            f.write('OPENWEATHER_API_KEY=test_api_key_for_integration\n')
+        "
+        python -c "import os; os.makedirs('data', exist_ok=True)"
         
     - name: Run integration tests
       run: |
@@ -239,8 +246,11 @@ jobs:
         
     - name: Create build environment
       run: |
-        echo "OPENWEATHER_API_KEY=demo_key_replace_with_real" > .env
-        mkdir -p data
+        python -c "
+        with open('.env', 'w') as f:
+            f.write('OPENWEATHER_API_KEY=demo_key_replace_with_real\n')
+        "
+        python -c "import os; os.makedirs('data', exist_ok=True)"
         
     - name: Build application (Windows)
       if: matrix.os == 'windows-latest'
@@ -280,7 +290,7 @@ jobs:
         
     - name: Generate API documentation
       run: |
-        mkdir -p docs/api
+        python -c "import os; os.makedirs('docs/api', exist_ok=True)"
         python -c "
         import pydoc
         import os

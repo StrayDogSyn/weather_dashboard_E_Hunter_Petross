@@ -34,8 +34,11 @@ jobs:
         
     - name: Create test environment
       run: |
-        echo "OPENWEATHER_API_KEY=test_key" > .env
-        mkdir -p data
+        python -c "
+        with open('.env', 'w') as f:
+            f.write('OPENWEATHER_API_KEY=test_key\n')
+        "
+        python -c "import os; os.makedirs('data', exist_ok=True)"
         
     - name: Run basic tests
       if: github.event.inputs.test_type == 'basic'
