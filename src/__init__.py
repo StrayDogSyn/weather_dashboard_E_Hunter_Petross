@@ -11,6 +11,7 @@ __description__ = "A comprehensive weather dashboard with secure API integration
 # Import main application components
 try:
     from .app_gui import WeatherDashboardGUI
-    __all__ = ['WeatherDashboardGUI']
+
+    __all__ = ["WeatherDashboardGUI"]
 except ImportError:
     __all__ = []

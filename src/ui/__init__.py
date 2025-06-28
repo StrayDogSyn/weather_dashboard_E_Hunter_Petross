@@ -2,6 +2,4 @@
 
 from .gui_interface import WeatherDashboardGUI
 
-__all__ = [
-    'WeatherDashboardGUI'
-]
+__all__ = ["WeatherDashboardGUI"]

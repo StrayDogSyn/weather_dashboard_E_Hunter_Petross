@@ -1,85 +1,67 @@
 """Models package for the Weather Dashboard application."""
 
-from .weather_models import (
-    # Enums
-    WeatherCondition,
-    TemperatureUnit,
-    
-    # Core entities
-    Location,
-    Temperature,
-    Wind,
-    Precipitation,
-    AtmosphericPressure,
-    CurrentWeather,
-    WeatherForecastDay,
-    WeatherForecast,
-    WeatherAlert,
-    FavoriteCity,
-    
-    # API Response models
-    APIResponse,
-    WeatherAPIResponse,
-    ForecastAPIResponse,
-    
-    # Type aliases
-    WeatherData,
-    ForecastData,
-    LocationData
-)
-
-from .capstone_models import (
-    # Enums
-    ActivityType,
-    MoodType,
-    
-    # Capstone entities
-    WeatherComparison,
-    JournalEntry,
+from .capstone_models import (  # Enums; Capstone entities; Default data
+    DEFAULT_ACTIVITIES,
     Activity,
     ActivitySuggestion,
+    ActivityType,
+    JournalEntry,
+    MoodType,
+    WeatherComparison,
     WeatherPoem,
-    
-    # Default data
-    DEFAULT_ACTIVITIES
+)
+from .weather_models import (  # Enums; Core entities; API Response models; Type aliases
+    APIResponse,
+    AtmosphericPressure,
+    CurrentWeather,
+    FavoriteCity,
+    ForecastAPIResponse,
+    ForecastData,
+    Location,
+    LocationData,
+    Precipitation,
+    Temperature,
+    TemperatureUnit,
+    WeatherAlert,
+    WeatherAPIResponse,
+    WeatherCondition,
+    WeatherData,
+    WeatherForecast,
+    WeatherForecastDay,
+    Wind,
 )
 
 __all__ = [
     # Enums
-    'WeatherCondition',
-    'TemperatureUnit',
-    'ActivityType',
-    'MoodType',
-    
+    "WeatherCondition",
+    "TemperatureUnit",
+    "ActivityType",
+    "MoodType",
     # Core entities
-    'Location',
-    'Temperature',
-    'Wind',
-    'Precipitation',
-    'AtmosphericPressure',
-    'CurrentWeather',
-    'WeatherForecastDay',
-    'WeatherForecast',
-    'WeatherAlert',
-    'FavoriteCity',
-    
+    "Location",
+    "Temperature",
+    "Wind",
+    "Precipitation",
+    "AtmosphericPressure",
+    "CurrentWeather",
+    "WeatherForecastDay",
+    "WeatherForecast",
+    "WeatherAlert",
+    "FavoriteCity",
     # Capstone entities
-    'WeatherComparison',
-    'JournalEntry',
-    'Activity',
-    'ActivitySuggestion',
-    'WeatherPoem',
-    
+    "WeatherComparison",
+    "JournalEntry",
+    "Activity",
+    "ActivitySuggestion",
+    "WeatherPoem",
     # API Response models
-    'APIResponse',
-    'WeatherAPIResponse',
-    'ForecastAPIResponse',
-    
+    "APIResponse",
+    "WeatherAPIResponse",
+    "ForecastAPIResponse",
     # Type aliases
-    'WeatherData',
-    'ForecastData',
-    'LocationData',
-    
+    "WeatherData",
+    "ForecastData",
+    "LocationData",
     # Default data
-    'DEFAULT_ACTIVITIES'
+    "DEFAULT_ACTIVITIES",
 ]
