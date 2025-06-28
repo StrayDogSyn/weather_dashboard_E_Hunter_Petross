@@ -241,7 +241,7 @@ class OpenWeatherMapAPI(IWeatherAPI):
             # Group forecasts by day
             forecast_days = []
             current_date = None
-            daily_forecasts = []
+            daily_forecasts: List[Dict[str, Any]] = []
 
             for forecast in data["list"]:
                 forecast_time = datetime.fromtimestamp(forecast["dt"])

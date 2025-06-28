@@ -271,8 +271,8 @@ class ActivitySuggestionService:
         if not weather_history:
             return {}
 
-        activity_counts = {}
-        condition_counts = {}
+        activity_counts: Dict[str, int] = {}
+        condition_counts: Dict[str, int] = {}
 
         for weather in weather_history:
             suggestions = self.get_activity_suggestions(weather, max_suggestions=3)

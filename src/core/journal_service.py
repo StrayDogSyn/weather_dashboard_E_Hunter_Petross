@@ -183,7 +183,7 @@ class WeatherJournalService:
         if not self.entries:
             return {}
 
-        mood_counts = {}
+        mood_counts: Dict[str, int] = {}
         for entry in self.entries:
             mood_counts[entry.mood.value] = mood_counts.get(entry.mood.value, 0) + 1
 
