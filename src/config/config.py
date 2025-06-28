@@ -2,14 +2,15 @@
 Enhanced configuration management for the Weather Dashboard application.
 
 This module provides a modern, type-safe configuration system with validation,
-environment variable support, and proper error handling following security best practices.
+environment variable support, and proper error handling following security
+best practices.
 """
 
 import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from dotenv import load_dotenv
 

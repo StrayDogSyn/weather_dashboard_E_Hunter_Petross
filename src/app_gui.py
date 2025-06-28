@@ -7,8 +7,6 @@ of the Weather Dashboard with all capstone features.
 
 import logging
 import threading
-from datetime import date, datetime
-from typing import Optional
 
 from src.config.config import config_manager, setup_environment, validate_config
 from src.core.activity_service import ActivitySuggestionService
@@ -21,7 +19,7 @@ from src.services.data_storage import FileDataStorage
 from src.services.poetry_service import WeatherPoetryService
 from src.services.weather_api import OpenWeatherMapAPI
 from src.ui.gui_interface import WeatherDashboardGUI
-from src.utils.formatters import clean_city_name, validate_city_name
+from src.utils.formatters import validate_city_name
 from src.utils.validators import sanitize_input
 
 
@@ -368,7 +366,11 @@ class WeatherDashboardGUIApp:
 
             # Simple dialog for journal entry (could be enhanced with custom dialog)
             mood_input = self.gui.get_user_input(
-                "Enter your mood (1-10): 1=happy, 2=sad, 3=energetic, 4=relaxed, 5=excited, 6=peaceful, 7=anxious, 8=content, 9=motivated, 10=cozy"
+                (
+                    "Enter your mood (1-10): 1=happy, 2=sad, 3=energetic, "
+                    "4=relaxed, 5=excited, 6=peaceful, 7=anxious, 8=content, "
+                    "9=motivated, 10=cozy"
+                )
             )
             if not mood_input:
                 return
@@ -427,8 +429,10 @@ class WeatherDashboardGUIApp:
             entries_text = "\n".join(
                 [
                     f"📅 {entry.formatted_date} | {entry.location}\n"
-                    f"   {entry.mood_emoji} {entry.mood.value.title()} | {entry.weather_summary}\n"
-                    f"   📝 {entry.notes[:60]}{'...' if len(entry.notes) > 60 else ''}\n"
+                    f"   {entry.mood_emoji} {entry.mood.value.title()} | "
+                    f"{entry.weather_summary}\n"
+                    f"   📝 {entry.notes[:60]}"
+                    f"{'...' if len(entry.notes) > 60 else ''}\n"
                     for entry in entries
                 ]
             )
@@ -492,7 +496,8 @@ class WeatherDashboardGUIApp:
             if activities:
                 activities_text = "\n".join(
                     [
-                        f"{'🏠' if activity.indoor else '🌞'} {activity.name} (Score: {score:.1f})\n"
+                        f"{'🏠' if activity.indoor else '🌞'} {activity.name} "
+                        f"(Score: {score:.1f})\n"
                         f"   {activity.description}"
                         for activity, score in activities[:10]
                     ]
@@ -622,7 +627,8 @@ class WeatherDashboardGUIApp:
                     if weather:
                         temp = weather.temperature.to_celsius()
                         weather_text.append(
-                            f"📍 {city_name}: {temp:.1f}°C - {weather.description.title()}"
+                            f"📍 {city_name}: {temp:.1f}°C - "
+                            f"{weather.description.title()}"
                         )
                     else:
                         weather_text.append(f"📍 {city_name}: Weather data unavailable")
@@ -630,7 +636,7 @@ class WeatherDashboardGUIApp:
                 self.gui.root.after(
                     0,
                     lambda: self.gui.show_message(
-                        f"Weather for Favorites:\n\n" + "\n".join(weather_text)
+                        "Weather for Favorites:\n\n" + "\n".join(weather_text)
                     ),
                 )
 
