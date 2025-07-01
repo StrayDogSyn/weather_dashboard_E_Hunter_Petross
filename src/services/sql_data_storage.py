@@ -2,14 +2,14 @@
 
 import json
 import logging
-import sys
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from ..interfaces.weather_interfaces import IDataStorage
 
@@ -23,14 +23,14 @@ try:
 
     # Import from data/database.py (static analysis may complain, but this works at runtime)
     from database import (  # type: ignore
-        get_db_session,
-        close_db_session,
-        init_database,
-        UserPreferences,
-        FavoriteCities,
-        WeatherHistory,
-        JournalEntries,
         ActivityRecommendations,
+        FavoriteCities,
+        JournalEntries,
+        UserPreferences,
+        WeatherHistory,
+        close_db_session,
+        get_db_session,
+        init_database,
     )
 except ImportError as e:
     logging.error(f"Failed to import database module: {e}")
