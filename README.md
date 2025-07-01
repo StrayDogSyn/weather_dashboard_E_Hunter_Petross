@@ -24,6 +24,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **📔 Weather Journal**: Track daily weather with mood and activity logging
 - **🎯 Activity Suggestions**: Weather-based activity recommendations
 - **🎨 Weather Poetry**: AI-generated poems inspired by current weather
+- **🗃️ SQL Database**: Modern SQLite database storage for improved performance
 - **💾 Data Management**: Intelligent caching and data storage
 
 ### Modern GUI Design
@@ -65,7 +66,17 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
    OPENWEATHER_API_KEY=your_actual_api_key_here
    ```
 
-4. **Launch the GUI**
+4. **Set up SQL Database (Optional but Recommended)**
+
+   ```bash
+   # Run database setup script
+   python setup_sql_database.py
+   
+   # Verify setup
+   python verify_sql_setup.py
+   ```
+
+5. **Launch the GUI**
 
    ```bash
    python main.py
@@ -161,6 +172,19 @@ Potential additions:
 - **Export functionality** for journal and data
 - **Customizable themes** and color schemes
 - **Weather widgets** for desktop integration
+- **Cloud database sync** with remote SQL databases
+- **Advanced analytics** with SQL-powered insights
+
+## 🗃️ Database Features
+
+The Weather Dashboard includes optional SQL database support:
+
+- **SQLite Integration**: Modern database storage with better performance
+- **Automatic Migration**: Seamlessly migrate from JSON to SQL storage
+- **Data Integrity**: ACID transactions and relational data structure
+- **Backward Compatibility**: Continue using JSON files if preferred
+
+See [SQL Database Documentation](docs/SQL_DATABASE.md) for detailed setup instructions.
 
 ---
 

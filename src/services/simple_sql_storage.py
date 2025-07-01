@@ -7,13 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Import interfaces and sqlite helper using absolute imports
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-
-from interfaces.weather_interfaces import IDataStorage
-from services.sqlite_helper import SQLiteHelper
+from ..interfaces.weather_interfaces import IDataStorage
 
 
 class SimpleSQLDataStorage(IDataStorage):
@@ -21,10 +15,10 @@ class SimpleSQLDataStorage(IDataStorage):
 
     def __init__(self, db_path: str = "data/weather_dashboard.db"):
         """Initialize simple SQL data storage."""
-        self.db_helper = SQLiteHelper(db_path)
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(exist_ok=True)
         try:
-            self.db_helper.init_database()
-            self.db_helper.insert_default_data()
+            self._init_database()
             logging.info("Simple SQL data storage initialized successfully")
         except Exception as e:
             logging.error(f"Error initializing simple SQL storage: {e}")
@@ -44,7 +38,7 @@ class SimpleSQLDataStorage(IDataStorage):
         try:
             table_name = self._filename_to_table(filename)
             if table_name:
-                return self.db_helper.migrate_json_data(data, table_name)
+                return self._migrate_json_data(data, table_name)
             else:
                 logging.warning(f"Unknown filename for SQL storage: {filename}")
                 return False
@@ -233,6 +227,87 @@ class SimpleSQLDataStorage(IDataStorage):
                 "entries": entries,
                 "last_updated": datetime.utcnow().isoformat() + "Z"
             }
+
+    def _init_database(self):
+        """Initialize database with required tables."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # User preferences table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS user_preferences (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    activity_types TEXT,
+                    preferred_units TEXT DEFAULT 'imperial',
+                    cache_enabled BOOLEAN DEFAULT 1,
+                    notifications_enabled BOOLEAN DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            # Favorite cities table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS favorite_cities (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    city_name TEXT NOT NULL,
+                    country_code TEXT,
+                    latitude REAL,
+                    longitude REAL,
+                    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            # Weather history table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS weather_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    city_id INTEGER,
+                    city_name TEXT NOT NULL,
+                    country TEXT,
+                    temperature REAL NOT NULL,
+                    condition TEXT NOT NULL,
+                    humidity REAL,
+                    wind_speed REAL,
+                    wind_direction REAL,
+                    pressure REAL,
+                    visibility REAL,
+                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (city_id) REFERENCES favorite_cities (id)
+                )
+            """)
+            
+            # Journal entries table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS journal_entries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    weather_conditions TEXT,
+                    location TEXT,
+                    mood TEXT,
+                    activities TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            # Activity recommendations table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS activity_recommendations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    activity_name TEXT NOT NULL,
+                    description TEXT,
+                    category TEXT NOT NULL,
+                    min_temperature REAL,
+                    max_temperature REAL,
+                    suitable_conditions TEXT,
+                    unsuitable_conditions TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            
+            conn.commit()
 
     # Additional methods for compatibility with existing interface
     def list_files(self) -> List[str]:

@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 26.4,
+      "condition": "mist",
+      "timestamp": "2025-07-01T19:09:47"
+    },
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 26.4,
+      "condition": "mist",
+      "timestamp": "2025-07-01T19:09:47"
+    }
+  ],
+  "last_updated": "2025-07-01T19:13:51.721090"
+}
