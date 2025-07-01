@@ -20,16 +20,23 @@ try:
     data_dir = project_root / "data"
     if str(data_dir) not in sys.path:
         sys.path.insert(0, str(data_dir))
-    
+
     # Import from data/database.py (static analysis may complain, but this works at runtime)
     from database import (  # type: ignore
-        get_db_session, close_db_session, init_database,
-        UserPreferences, FavoriteCities, WeatherHistory, 
-        JournalEntries, ActivityRecommendations
+        get_db_session,
+        close_db_session,
+        init_database,
+        UserPreferences,
+        FavoriteCities,
+        WeatherHistory,
+        JournalEntries,
+        ActivityRecommendations,
     )
 except ImportError as e:
     logging.error(f"Failed to import database module: {e}")
-    raise ImportError("Database module not found. Ensure database.py exists in the data directory.")
+    raise ImportError(
+        "Database module not found. Ensure database.py exists in the data directory."
+    )
 
 
 class SQLDataStorage(IDataStorage):
@@ -47,11 +54,11 @@ class SQLDataStorage(IDataStorage):
     def save_data(self, data: Dict[str, Any], filename: str) -> bool:
         """
         Save data to SQL database.
-        
+
         Args:
             data: Data to save
             filename: Determines which table to save to
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -68,7 +75,7 @@ class SQLDataStorage(IDataStorage):
             else:
                 logging.warning(f"Unknown filename for SQL storage: {filename}")
                 return False
-                
+
         except SQLAlchemyError as e:
             logging.error(f"Database error saving {filename}: {e}")
             session.rollback()
@@ -83,10 +90,10 @@ class SQLDataStorage(IDataStorage):
     def load_data(self, filename: str) -> Optional[Dict[str, Any]]:
         """
         Load data from SQL database.
-        
+
         Args:
             filename: Determines which table to load from
-            
+
         Returns:
             Loaded data or None if error
         """
@@ -103,7 +110,7 @@ class SQLDataStorage(IDataStorage):
             else:
                 logging.warning(f"Unknown filename for SQL storage: {filename}")
                 return None
-                
+
         except SQLAlchemyError as e:
             logging.error(f"Database error loading {filename}: {e}")
             return None
@@ -116,10 +123,10 @@ class SQLDataStorage(IDataStorage):
     def delete_data(self, filename: str) -> bool:
         """
         Delete data from SQL database.
-        
+
         Args:
             filename: Determines which table to clear
-            
+
         Returns:
             True if successful, False otherwise
         """
@@ -136,11 +143,11 @@ class SQLDataStorage(IDataStorage):
             else:
                 logging.warning(f"Unknown filename for SQL deletion: {filename}")
                 return False
-                
+
             session.commit()
             logging.info(f"Data cleared for {filename}")
             return True
-            
+
         except SQLAlchemyError as e:
             logging.error(f"Database error deleting {filename}: {e}")
             session.rollback()
@@ -156,12 +163,12 @@ class SQLDataStorage(IDataStorage):
         """Save user preferences to database."""
         # Delete existing preferences and insert new ones
         session.query(UserPreferences).delete()
-        
+
         prefs = UserPreferences(
             activity_types=data.get("activity_types", []),
             preferred_units=data.get("preferred_units", "imperial"),
             cache_enabled=data.get("cache_enabled", True),
-            notifications_enabled=data.get("notifications_enabled", True)
+            notifications_enabled=data.get("notifications_enabled", True),
         )
         session.add(prefs)
         session.commit()
@@ -175,7 +182,7 @@ class SQLDataStorage(IDataStorage):
                 "activity_types": prefs.activity_types,
                 "preferred_units": prefs.preferred_units,
                 "cache_enabled": prefs.cache_enabled,
-                "notifications_enabled": prefs.notifications_enabled
+                "notifications_enabled": prefs.notifications_enabled,
             }
         else:
             # Return defaults if no preferences found
@@ -183,26 +190,26 @@ class SQLDataStorage(IDataStorage):
                 "activity_types": ["outdoor", "indoor", "sports", "relaxation"],
                 "preferred_units": "imperial",
                 "cache_enabled": True,
-                "notifications_enabled": True
+                "notifications_enabled": True,
             }
 
     def _save_favorite_cities(self, session: Session, data: Dict[str, Any]) -> bool:
         """Save favorite cities to database."""
         favorites = data.get("favorites", [])
-        
+
         # Clear existing favorites
         session.query(FavoriteCities).delete()
-        
+
         # Add new favorites
         for fav in favorites:
             city = FavoriteCities(
                 city_name=fav.get("city", ""),
                 country_code=fav.get("country", ""),
                 latitude=fav.get("latitude"),
-                longitude=fav.get("longitude")
+                longitude=fav.get("longitude"),
             )
             session.add(city)
-            
+
         session.commit()
         return True
 
@@ -210,35 +217,41 @@ class SQLDataStorage(IDataStorage):
         """Load favorite cities from database."""
         cities = session.query(FavoriteCities).all()
         favorites = []
-        
+
         for city in cities:
             fav = {
                 "city": city.city_name,
                 "country": city.country_code,
-                "added_at": city.added_at.isoformat() if city.added_at else None
+                "added_at": city.added_at.isoformat() if city.added_at else None,
             }
             if city.latitude:
                 fav["latitude"] = city.latitude
             if city.longitude:
                 fav["longitude"] = city.longitude
             favorites.append(fav)
-            
+
         return {
             "favorites": favorites,
-            "last_updated": datetime.utcnow().isoformat() + "Z"
+            "last_updated": datetime.utcnow().isoformat() + "Z",
         }
 
     def _save_weather_history(self, session: Session, data: Dict[str, Any]) -> bool:
         """Save weather history to database."""
         entries = data.get("entries", [])
-        
+
         for entry in entries:
             # Check if entry already exists (avoid duplicates)
-            existing = session.query(WeatherHistory).filter_by(
-                city_name=entry.get("city", ""),
-                timestamp=datetime.fromisoformat(entry.get("timestamp", "").replace("Z", ""))
-            ).first()
-            
+            existing = (
+                session.query(WeatherHistory)
+                .filter_by(
+                    city_name=entry.get("city", ""),
+                    timestamp=datetime.fromisoformat(
+                        entry.get("timestamp", "").replace("Z", "")
+                    ),
+                )
+                .first()
+            )
+
             if not existing:
                 weather_entry = WeatherHistory(
                     city_name=entry.get("city", ""),
@@ -250,17 +263,23 @@ class SQLDataStorage(IDataStorage):
                     wind_direction=entry.get("wind_direction"),
                     pressure=entry.get("pressure"),
                     visibility=entry.get("visibility"),
-                    timestamp=datetime.fromisoformat(entry.get("timestamp", "").replace("Z", ""))
+                    timestamp=datetime.fromisoformat(
+                        entry.get("timestamp", "").replace("Z", "")
+                    ),
                 )
                 session.add(weather_entry)
-                
+
         session.commit()
         return True
 
     def _load_weather_history(self, session: Session) -> Dict[str, Any]:
         """Load weather history from database."""
-        entries = session.query(WeatherHistory).order_by(WeatherHistory.timestamp.desc()).all()
-        
+        entries = (
+            session.query(WeatherHistory)
+            .order_by(WeatherHistory.timestamp.desc())
+            .all()
+        )
+
         weather_entries = []
         for entry in entries:
             weather_data = {
@@ -268,9 +287,9 @@ class SQLDataStorage(IDataStorage):
                 "country": entry.country,
                 "temperature": entry.temperature,
                 "condition": entry.condition,
-                "timestamp": entry.timestamp.isoformat()
+                "timestamp": entry.timestamp.isoformat(),
             }
-            
+
             # Add optional fields if they exist
             if entry.humidity is not None:
                 weather_data["humidity"] = entry.humidity
@@ -282,25 +301,31 @@ class SQLDataStorage(IDataStorage):
                 weather_data["pressure"] = entry.pressure
             if entry.visibility is not None:
                 weather_data["visibility"] = entry.visibility
-                
+
             weather_entries.append(weather_data)
-            
+
         return {
             "entries": weather_entries,
-            "last_updated": datetime.utcnow().isoformat()
+            "last_updated": datetime.utcnow().isoformat(),
         }
 
     def _save_journal_entries(self, session: Session, data: Dict[str, Any]) -> bool:
         """Save journal entries to database."""
         entries = data.get("entries", [])
-        
+
         for entry in entries:
             # Check if entry already exists
-            existing = session.query(JournalEntries).filter_by(
-                title=entry.get("title", ""),
-                created_at=datetime.fromisoformat(entry.get("created_at", "").replace("Z", ""))
-            ).first()
-            
+            existing = (
+                session.query(JournalEntries)
+                .filter_by(
+                    title=entry.get("title", ""),
+                    created_at=datetime.fromisoformat(
+                        entry.get("created_at", "").replace("Z", "")
+                    ),
+                )
+                .first()
+            )
+
             if not existing:
                 journal_entry = JournalEntries(
                     title=entry.get("title", ""),
@@ -309,27 +334,35 @@ class SQLDataStorage(IDataStorage):
                     location=entry.get("location"),
                     mood=entry.get("mood"),
                     activities=entry.get("activities", []),
-                    created_at=datetime.fromisoformat(entry.get("created_at", "").replace("Z", "")),
-                    updated_at=datetime.fromisoformat(entry.get("updated_at", "").replace("Z", ""))
+                    created_at=datetime.fromisoformat(
+                        entry.get("created_at", "").replace("Z", "")
+                    ),
+                    updated_at=datetime.fromisoformat(
+                        entry.get("updated_at", "").replace("Z", "")
+                    ),
                 )
                 session.add(journal_entry)
-                
+
         session.commit()
         return True
 
     def _load_journal_entries(self, session: Session) -> Dict[str, Any]:
         """Load journal entries from database."""
-        entries = session.query(JournalEntries).order_by(JournalEntries.created_at.desc()).all()
-        
+        entries = (
+            session.query(JournalEntries)
+            .order_by(JournalEntries.created_at.desc())
+            .all()
+        )
+
         journal_entries = []
         for entry in entries:
             journal_data = {
                 "title": entry.title,
                 "content": entry.content,
                 "created_at": entry.created_at.isoformat() + "Z",
-                "updated_at": entry.updated_at.isoformat() + "Z"
+                "updated_at": entry.updated_at.isoformat() + "Z",
             }
-            
+
             # Add optional fields if they exist
             if entry.weather_conditions:
                 journal_data["weather_conditions"] = entry.weather_conditions
@@ -339,12 +372,12 @@ class SQLDataStorage(IDataStorage):
                 journal_data["mood"] = entry.mood
             if entry.activities:
                 journal_data["activities"] = entry.activities
-                
+
             journal_entries.append(journal_data)
-            
+
         return {
             "entries": journal_entries,
-            "last_updated": datetime.utcnow().isoformat() + "Z"
+            "last_updated": datetime.utcnow().isoformat() + "Z",
         }
 
     # Additional methods for compatibility with existing interface
@@ -352,9 +385,9 @@ class SQLDataStorage(IDataStorage):
         """List available data types."""
         return [
             "user_preferences.json",
-            "favorite_cities.json", 
+            "favorite_cities.json",
             "weather_history.json",
-            "journal_entries.json"
+            "journal_entries.json",
         ]
 
     def file_exists(self, filename: str) -> bool:

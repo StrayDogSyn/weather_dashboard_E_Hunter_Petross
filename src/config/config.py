@@ -173,15 +173,19 @@ class DatabaseConfiguration:
         default_factory=lambda: os.getenv("WEATHER_DATABASE_URL", "")
     )
     database_path: str = field(
-        default_factory=lambda: os.getenv("WEATHER_DATABASE_PATH", "data/weather_dashboard.db")
+        default_factory=lambda: os.getenv(
+            "WEATHER_DATABASE_PATH", "data/weather_dashboard.db"
+        )
     )
     enable_migrations: bool = field(
-        default_factory=lambda: os.getenv("WEATHER_ENABLE_MIGRATIONS", "true").lower() == "true"
+        default_factory=lambda: os.getenv("WEATHER_ENABLE_MIGRATIONS", "true").lower()
+        == "true"
     )
     backup_database: bool = field(
-        default_factory=lambda: os.getenv("WEATHER_BACKUP_DATABASE", "true").lower() == "true"
+        default_factory=lambda: os.getenv("WEATHER_BACKUP_DATABASE", "true").lower()
+        == "true"
     )
-    
+
     # Legacy file storage settings (for backward compatibility)
     data_directory: str = field(
         default_factory=lambda: os.getenv("WEATHER_DATA_DIR", "data")

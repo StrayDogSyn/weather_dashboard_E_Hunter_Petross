@@ -72,11 +72,12 @@ class WeatherDashboardGUIApp:
         try:
             # Initialize services
             weather_api = OpenWeatherMapAPI()
-            
+
             # Use storage factory to create appropriate storage implementation
             from .services.storage_factory import DataStorageFactory
+
             storage = DataStorageFactory.create_storage()
-            
+
             cache = MemoryCacheService()
 
             # Initialize core service
