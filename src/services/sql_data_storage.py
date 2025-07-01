@@ -2,18 +2,34 @@
 
 import json
 import logging
+import sys
+import os
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
 from ..interfaces.weather_interfaces import IDataStorage
-from ..data.database import (
-    get_db_session, close_db_session, init_database,
-    UserPreferences, FavoriteCities, WeatherHistory, 
-    JournalEntries, ActivityRecommendations
-)
+
+# Import database module from data directory
+try:
+    # Add the data directory to the Python path for database imports
+    project_root = Path(__file__).parent.parent.parent
+    data_dir = project_root / "data"
+    if str(data_dir) not in sys.path:
+        sys.path.insert(0, str(data_dir))
+    
+    # Import from data/database.py (static analysis may complain, but this works at runtime)
+    from database import (  # type: ignore
+        get_db_session, close_db_session, init_database,
+        UserPreferences, FavoriteCities, WeatherHistory, 
+        JournalEntries, ActivityRecommendations
+    )
+except ImportError as e:
+    logging.error(f"Failed to import database module: {e}")
+    raise ImportError("Database module not found. Ensure database.py exists in the data directory.")
 
 
 class SQLDataStorage(IDataStorage):
