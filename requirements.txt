@@ -14,7 +14,7 @@ pydantic>=2.0.0
 loguru>=0.7.0
 
 # Database support
-sqlite3  # Built-in with Python
+# sqlite3 is built-in with Python
 sqlalchemy>=2.0.0  # ORM for database operations
 
 # Note: TKinter is included with Python by default
