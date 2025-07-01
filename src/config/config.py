@@ -163,15 +163,43 @@ class FeatureConfiguration:
 
 
 @dataclass
+class DatabaseConfiguration:
+    """Database configuration settings."""
+
+    storage_type: str = field(
+        default_factory=lambda: os.getenv("WEATHER_STORAGE_TYPE", "sql")  # sql or file
+    )
+    database_url: str = field(
+        default_factory=lambda: os.getenv("WEATHER_DATABASE_URL", "")
+    )
+    database_path: str = field(
+        default_factory=lambda: os.getenv("WEATHER_DATABASE_PATH", "data/weather_dashboard.db")
+    )
+    enable_migrations: bool = field(
+        default_factory=lambda: os.getenv("WEATHER_ENABLE_MIGRATIONS", "true").lower() == "true"
+    )
+    backup_database: bool = field(
+        default_factory=lambda: os.getenv("WEATHER_BACKUP_DATABASE", "true").lower() == "true"
+    )
+    
+    # Legacy file storage settings (for backward compatibility)
+    data_directory: str = field(
+        default_factory=lambda: os.getenv("WEATHER_DATA_DIR", "data")
+    )
+
+
+@dataclass
 class ApplicationConfiguration:
     """Main application configuration."""
 
     api: APIConfiguration = field(default_factory=APIConfiguration)
     ui: UIConfiguration = field(default_factory=UIConfiguration)
     data: DataConfiguration = field(default_factory=DataConfiguration)
+    database: DatabaseConfiguration = field(default_factory=DatabaseConfiguration)
     logging: LoggingConfiguration = field(default_factory=LoggingConfiguration)
     security: SecurityConfiguration = field(default_factory=SecurityConfiguration)
     features: FeatureConfiguration = field(default_factory=FeatureConfiguration)
+    database: DatabaseConfiguration = field(default_factory=DatabaseConfiguration)
 
     # User preferences
     default_city: str = field(
