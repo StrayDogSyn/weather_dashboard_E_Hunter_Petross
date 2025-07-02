@@ -455,7 +455,9 @@ class WeatherCard(GlassmorphicFrame):
         # Temperature with color-coded display
         if self.gui_ref:
             temp_value, temp_unit = self.gui_ref.convert_temperature(temp_celsius)
-            temp_text = f"{temp_value:.1f}°{temp_unit}"
+            temp_text = (
+                f"{temp_value:.1f}{temp_unit}"  # Fixed: removed extra degree symbol
+            )
         else:
             temp_text = f"{temp_celsius:.1f}°C"
             temp_value = temp_celsius
@@ -936,12 +938,46 @@ class WeatherDashboardGUI(IUserInterface):
             side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10
         )
 
-        # Enhanced side panel with controls
+        # Enhanced side panel with controls and scrollbar
         side_panel = GlassmorphicFrame(weather_frame, elevated=True, gradient=True)
         side_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
 
+        # Create scrollable content area for the side panel
+        canvas = tk.Canvas(
+            side_panel,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
+            highlightthickness=0,
+            width=300,  # Set fixed width for the side panel
+        )
+        scrollable_frame = tk.Frame(canvas, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        scrollbar = tk.Scrollbar(side_panel, orient="vertical", command=canvas.yview)
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+        canvas_window = canvas.create_window(
+            (0, 0), window=scrollable_frame, anchor="nw"
+        )
+
+        def configure_scroll_region(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+            # Update the width of the frame to match the canvas
+            canvas.itemconfig(canvas_window, width=canvas.winfo_width())
+
+        scrollable_frame.bind("<Configure>", configure_scroll_region)
+        canvas.bind(
+            "<Configure>",
+            lambda e: canvas.itemconfig(canvas_window, width=canvas.winfo_width()),
+        )
+
+        # Mouse wheel scrolling
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
+        canvas.bind("<MouseWheel>", _on_mousewheel)
+
         # Header for side panel
-        panel_header = tk.Frame(side_panel, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        panel_header = tk.Frame(scrollable_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         panel_header.pack(fill=tk.X, pady=(20, 15))
 
         header_icon = tk.Label(
@@ -968,7 +1004,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # City input section with enhanced styling
         input_section = GlassmorphicFrame(
-            side_panel, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+            scrollable_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
         )
         input_section.pack(fill=tk.X, padx=15, pady=(0, 15))
 
@@ -1006,7 +1042,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.city_entry.bind("<FocusOut>", on_entry_leave)
 
         # Action buttons with enhanced styling
-        button_section = tk.Frame(side_panel, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        button_section = tk.Frame(scrollable_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         button_section.pack(fill=tk.X, padx=15)
 
         # Get weather button
@@ -1029,7 +1065,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.add_favorite_btn.pack(fill=tk.X, pady=(0, 10))
 
         # Quick access section
-        quick_access = tk.Frame(side_panel, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        quick_access = tk.Frame(scrollable_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         quick_access.pack(fill=tk.X, padx=15, pady=(15, 0))
 
         quick_label = tk.Label(
