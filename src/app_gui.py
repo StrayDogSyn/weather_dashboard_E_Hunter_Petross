@@ -725,7 +725,7 @@ class WeatherDashboardGUIApp:
         except Exception as e:
             logging.error(f"Error in fetch_current_location_weather: {e}")
             self.gui.root.after(
-                0, lambda: self.gui.show_error(f"Error retrieving weather: {str(e)}")
+                0, lambda exc=e: self.gui.show_error(f"Error retrieving weather: {str(exc)}")
             )
 def main_gui():
     """Main entry point for GUI application."""
