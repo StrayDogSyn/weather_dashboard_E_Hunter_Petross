@@ -853,7 +853,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Quick actions - main buttons (top row) with enhanced styling
         actions_frame = tk.Frame(right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        actions_frame.pack()
+        actions_frame.pack(fill=tk.X, pady=(0, 10))  # Add some bottom padding
 
         self.search_btn = ModernButton(
             actions_frame, text="Search City", icon="🔍", command=self.show_city_search
@@ -868,12 +868,13 @@ class WeatherDashboardGUI(IUserInterface):
         )
         self.refresh_btn.pack(side=tk.LEFT, padx=(0, 10))
 
-        # Auto-refresh toggle button
+        # Auto-refresh toggle button with consistent styling
         self.auto_refresh_btn = ModernButton(
             actions_frame,
             text="Auto-Refresh: OFF",
             icon="⏱️",
             command=self.toggle_auto_refresh,
+            style="primary",  # Match primary button style for consistency
         )
         self.auto_refresh_btn.pack(side=tk.LEFT)
 
@@ -881,13 +882,13 @@ class WeatherDashboardGUI(IUserInterface):
         temp_toggle_frame = tk.Frame(
             right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT
         )
-        temp_toggle_frame.pack(pady=(10, 0))
+        temp_toggle_frame.pack(fill=tk.X)
 
         # Create a more visual temperature toggle
         temp_toggle_container = GlassmorphicFrame(
             temp_toggle_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
         )
-        temp_toggle_container.pack()
+        temp_toggle_container.pack(fill=tk.X)
 
         temp_icon = tk.Label(
             temp_toggle_container,
@@ -908,15 +909,6 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
-
-        # Auto-refresh control button - new addition
-        self.auto_refresh_btn = ModernButton(
-            right_container,
-            text="Auto-Refresh: OFF",
-            style="warning",
-            command=self.toggle_auto_refresh,
-        )
-        self.auto_refresh_btn.pack(side=tk.RIGHT, padx=10, pady=5)
 
         # Add impressive animation effects to the compact header elements
         AnimationHelper.pulse_effect(
