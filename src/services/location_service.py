@@ -98,8 +98,6 @@ class LocationDetectionService:
 </body>
 </html>
             """
-
-
             # Write HTML to temp file
             import os
             import tempfile
