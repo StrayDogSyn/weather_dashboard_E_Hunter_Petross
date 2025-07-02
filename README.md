@@ -10,6 +10,29 @@
 
 A modern weather dashboard application with glassmorphic design, built using Python TKinter. Features comprehensive weather data, capstone functionality, and an intuitive graphical interface.
 
+## 📱 Application Preview
+
+![Weather Dashboard Main Interface](data/screenshots/Main.png)
+
+*The modern glassmorphic interface of the Weather Dashboard showcasing current weather, forecast, and navigation tabs.*
+
+## 👥 Contributors
+
+This project was developed as a collaborative capstone project by:
+
+- **Eric 'Hunter' Petross** (@Eric-H-Petross) - Project Lead & Primary Developer 🏠  
+  *Student TP-s25*
+  
+- **Dunasha Payne** (@Dunasha-P) - Team Member 💬
+  
+- **Elizabeth Howard** (@Elizabeth-Howard) - Team Member
+  
+- **Shomari Thompson** (@Shomari-Thompson) - Team Member
+  
+- **Tobi (Tee) Odika** (@Tobi-Odika) - Team Member
+
+*Special thanks to all team members for their contributions to the design, testing, and development of this weather dashboard application.*
+
 ## 🌟 Capstone Features
 
 ### Core Weather Features
@@ -188,8 +211,9 @@ See [SQL Database Documentation](docs/SQL_DATABASE.md) for detailed setup instru
 
 ---
 
-**Author**: E Hunter Petross
-**Project**: Weather Dashboard Capstone
+**Team**: JTC Capstone - Team 5  
+**Lead Developer**: Eric 'Hunter' Petross  
+**Project**: Weather Dashboard Capstone  
 **Technology**: Python, TKinter, OpenWeatherMap API
 
 ## 🏗️ Architecture
