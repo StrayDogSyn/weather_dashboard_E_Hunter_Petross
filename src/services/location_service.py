@@ -100,8 +100,8 @@ class LocationDetectionService:
             """
 
             # Write HTML to temp file
-            import tempfile
             import os
+            import tempfile
 
             with tempfile.NamedTemporaryFile(
                 mode="w", suffix=".html", delete=False
