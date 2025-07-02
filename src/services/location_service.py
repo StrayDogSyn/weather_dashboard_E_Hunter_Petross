@@ -99,6 +99,7 @@ class LocationDetectionService:
 </html>
             """
 
+
             # Write HTML to temp file
             import os
             import tempfile
@@ -114,12 +115,11 @@ class LocationDetectionService:
                 # For now, we'll skip this method as it's complex in a desktop app
                 logging.info("Browser geolocation requires user interaction - skipping")
                 return None
-
             finally:
                 # Clean up temp file
                 try:
                     os.unlink(html_file)
-                except:
+                except Exception:
                     pass
 
         except Exception as e:
