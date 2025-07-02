@@ -395,13 +395,13 @@ class WeatherCard(GlassmorphicFrame):
 
     def setup_layout(self):
         """Setup the enhanced card layout with better visual hierarchy."""
-        # Main container with padding
+        # Main container with reduced padding for better fit
         main_container = tk.Frame(self, bg=self.bg_color)
-        main_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
         # Title with icon
         title_frame = tk.Frame(main_container, bg=self.bg_color)
-        title_frame.pack(fill=tk.X, pady=(0, 15))
+        title_frame.pack(fill=tk.X, pady=(0, 10))
 
         self.title_label = tk.Label(
             title_frame,
@@ -432,11 +432,11 @@ class WeatherCard(GlassmorphicFrame):
         icon_label = tk.Label(
             self.content_frame,
             text=icon,
-            font=(GlassmorphicStyle.FONT_FAMILY, 64),
+            font=(GlassmorphicStyle.FONT_FAMILY, 56),  # Slightly smaller icon
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=self.bg_color,
         )
-        icon_label.pack(pady=(10, 15))
+        icon_label.pack(pady=(5, 10))  # Reduced padding
 
         # Location with enhanced styling
         location_label = tk.Label(
@@ -450,7 +450,7 @@ class WeatherCard(GlassmorphicFrame):
             fg=GlassmorphicStyle.TEXT_ACCENT,
             bg=self.bg_color,
         )
-        location_label.pack(pady=(0, 10))
+        location_label.pack(pady=(0, 8))  # Reduced padding
 
         # Temperature with color-coded display
         if self.gui_ref:
@@ -474,7 +474,7 @@ class WeatherCard(GlassmorphicFrame):
             fg=temp_color,
             bg=self.bg_color,
         )
-        temp_label.pack(pady=(0, 5))
+        temp_label.pack(pady=(0, 3))  # Reduced padding
 
         # Condition with better formatting
         condition_label = tk.Label(
@@ -488,24 +488,24 @@ class WeatherCard(GlassmorphicFrame):
             fg=GlassmorphicStyle.TEXT_SECONDARY,
             bg=self.bg_color,
         )
-        condition_label.pack(pady=(0, 20))
+        condition_label.pack(pady=(0, 15))  # Reduced padding
 
         # Enhanced weather details in a grid-like layout
         details_frame = GlassmorphicFrame(
             self.content_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
         )
-        details_frame.pack(fill=tk.X, pady=(10, 0))
+        details_frame.pack(fill=tk.X, pady=(5, 0))  # Reduced top padding
 
         # Create two columns for details
         left_details = tk.Frame(details_frame, bg=details_frame.bg_color)
-        left_details.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=15, pady=15)
+        left_details.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=12, pady=12)
 
         right_details = tk.Frame(details_frame, bg=details_frame.bg_color)
-        right_details.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=15, pady=15)
+        right_details.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=12, pady=12)
 
         # Humidity with enhanced styling
         humidity_frame = tk.Frame(left_details, bg=details_frame.bg_color)
-        humidity_frame.pack(fill=tk.X, pady=(0, 10))
+        humidity_frame.pack(fill=tk.X, pady=(0, 8))  # Reduced spacing
 
         humidity_icon = tk.Label(
             humidity_frame,
@@ -540,7 +540,7 @@ class WeatherCard(GlassmorphicFrame):
 
         # Wind with enhanced styling
         wind_frame = tk.Frame(right_details, bg=details_frame.bg_color)
-        wind_frame.pack(fill=tk.X, pady=(0, 10))
+        wind_frame.pack(fill=tk.X, pady=(0, 8))  # Reduced spacing
 
         wind_icon = tk.Label(
             wind_frame,
@@ -718,15 +718,15 @@ class WeatherDashboardGUI(IUserInterface):
     def setup_window(self):
         """Setup main window properties."""
         self.root.title("JTC Capstone - Team 5")
-        self.root.geometry("1200x800")
-        self.root.minsize(1000, 600)
+        self.root.geometry("1300x900")  # Increased height for better content fit
+        self.root.minsize(1100, 700)  # Increased minimum size
         self.root.configure(bg=GlassmorphicStyle.BACKGROUND)
 
         # Center window on screen
         self.root.update_idletasks()
-        x = (self.root.winfo_screenwidth() // 2) - (1200 // 2)
-        y = (self.root.winfo_screenheight() // 2) - (800 // 2)
-        self.root.geometry(f"1200x800+{x}+{y}")
+        x = (self.root.winfo_screenwidth() // 2) - (1300 // 2)
+        y = (self.root.winfo_screenheight() // 2) - (900 // 2)
+        self.root.geometry(f"1300x900+{x}+{y}")
 
     def setup_styles(self):
         """Setup custom styles."""
@@ -859,7 +859,9 @@ class WeatherDashboardGUI(IUserInterface):
         self.refresh_btn.pack(side=tk.LEFT)
 
         # Temperature unit toggle - below the main buttons with enhanced styling
-        temp_toggle_frame = tk.Frame(right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        temp_toggle_frame = tk.Frame(
+            right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT
+        )
         temp_toggle_frame.pack(pady=(10, 0))
 
         # Create a more visual temperature toggle
@@ -873,7 +875,7 @@ class WeatherDashboardGUI(IUserInterface):
             text="🌡️",
             font=(GlassmorphicStyle.FONT_FAMILY, 16),
             fg=GlassmorphicStyle.ACCENT_SECONDARY,
-            bg=temp_toggle_container.bg_color,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
         temp_icon.pack(side=tk.LEFT, padx=(10, 5), pady=8)
 
@@ -939,7 +941,7 @@ class WeatherDashboardGUI(IUserInterface):
         side_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
 
         # Header for side panel
-        panel_header = tk.Frame(side_panel, bg=side_panel.bg_color)
+        panel_header = tk.Frame(side_panel, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         panel_header.pack(fill=tk.X, pady=(20, 15))
 
         header_icon = tk.Label(
@@ -947,7 +949,7 @@ class WeatherDashboardGUI(IUserInterface):
             text="🏙️",
             font=(GlassmorphicStyle.FONT_FAMILY, 24),
             fg=GlassmorphicStyle.ACCENT,
-            bg=side_panel.bg_color,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
         header_icon.pack()
 
@@ -960,7 +962,7 @@ class WeatherDashboardGUI(IUserInterface):
                 "bold",
             ),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=side_panel.bg_color,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
         header_text.pack(pady=(5, 0))
 
@@ -1004,7 +1006,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.city_entry.bind("<FocusOut>", on_entry_leave)
 
         # Action buttons with enhanced styling
-        button_section = tk.Frame(side_panel, bg=side_panel.bg_color)
+        button_section = tk.Frame(side_panel, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         button_section.pack(fill=tk.X, padx=15)
 
         # Get weather button
@@ -1027,7 +1029,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.add_favorite_btn.pack(fill=tk.X, pady=(0, 10))
 
         # Quick access section
-        quick_access = tk.Frame(side_panel, bg=side_panel.bg_color)
+        quick_access = tk.Frame(side_panel, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         quick_access.pack(fill=tk.X, padx=15, pady=(15, 0))
 
         quick_label = tk.Label(
@@ -1039,7 +1041,7 @@ class WeatherDashboardGUI(IUserInterface):
                 "bold",
             ),
             fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=side_panel.bg_color,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
         quick_label.pack(pady=(0, 10))
 
