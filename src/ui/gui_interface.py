@@ -631,26 +631,63 @@ class WeatherDashboardGUI(IUserInterface):
         controls_frame = GlassmorphicFrame(poetry_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
+        # First row - Main generate buttons
+        main_buttons_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        main_buttons_frame.pack(pady=(15, 5))
+
         self.generate_poetry_btn = ModernButton(
-            controls_frame, text="🎨 Generate Poetry", command=self.generate_poetry
+            main_buttons_frame,
+            text="🎨 Generate Random Poetry",
+            command=self.generate_poetry,
         )
-        self.generate_poetry_btn.pack(side=tk.LEFT, padx=20, pady=15)
+        self.generate_poetry_btn.pack(side=tk.LEFT, padx=10)
+
+        self.generate_collection_btn = ModernButton(
+            main_buttons_frame,
+            text="📚 Generate Collection",
+            style="success",
+            command=self.generate_poetry_collection,
+        )
+        self.generate_collection_btn.pack(side=tk.LEFT, padx=10)
+
+        # Second row - Specific poetry type buttons
+        specific_buttons_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        specific_buttons_frame.pack(pady=(5, 15))
+
+        tk.Label(
+            specific_buttons_frame,
+            text="Generate Specific Type:",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=controls_frame.bg_color,
+        ).pack(pady=(0, 5))
+
+        buttons_row = tk.Frame(specific_buttons_frame, bg=controls_frame.bg_color)
+        buttons_row.pack()
 
         self.haiku_btn = ModernButton(
-            controls_frame,
+            buttons_row,
             text="🌸 Haiku",
             style="secondary",
             command=lambda: self.generate_specific_poetry("haiku"),
         )
-        self.haiku_btn.pack(side=tk.LEFT, padx=10, pady=15)
+        self.haiku_btn.pack(side=tk.LEFT, padx=5)
 
         self.phrase_btn = ModernButton(
-            controls_frame,
+            buttons_row,
             text="💭 Phrase",
             style="secondary",
             command=lambda: self.generate_specific_poetry("phrase"),
         )
-        self.phrase_btn.pack(side=tk.LEFT, padx=10, pady=15)
+        self.phrase_btn.pack(side=tk.LEFT, padx=5)
+
+        self.limerick_btn = ModernButton(
+            buttons_row,
+            text="🎵 Limerick",
+            style="secondary",
+            command=lambda: self.generate_specific_poetry("limerick"),
+        )
+        self.limerick_btn.pack(side=tk.LEFT, padx=5)
 
         # Poetry content
         self.poetry_content = GlassmorphicFrame(poetry_frame)
@@ -895,6 +932,11 @@ class WeatherDashboardGUI(IUserInterface):
         if "generate_specific_poetry" in self.callbacks:
             self.callbacks["generate_specific_poetry"](poetry_type)
 
+    def generate_poetry_collection(self):
+        """Generate a collection of different poetry types."""
+        if "generate_poetry_collection" in self.callbacks:
+            self.callbacks["generate_poetry_collection"]()
+
     def refresh_favorites(self):
         """Refresh favorites list."""
         if "refresh_favorites" in self.callbacks:
@@ -1101,75 +1143,180 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=all_frame.bg_color,
             ).pack(side=tk.RIGHT)
 
-    def display_weather_poem(self, poem: WeatherPoem) -> None:
-        """Display weather poem."""
-        # Clear existing content
+    def display_weather_poem(self, poem) -> None:
+        """Display weather poem in the poetry tab."""
+        # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():
             widget.destroy()
 
-        # Poem type title
-        if poem.poem_type == "haiku":
-            title = "🌸 Weather Haiku"
-        elif poem.poem_type == "phrase":
-            title = "💭 Weather Wisdom"
-        elif poem.poem_type == "limerick":
-            title = "🎵 Weather Limerick"
+        # Create poem display
+        poem_frame = tk.Frame(self.poetry_content, bg=self.poetry_content.bg_color)
+        poem_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # Poem type and title
+        if hasattr(poem, "poem_type"):
+            type_icons = {"haiku": "🌸", "phrase": "💭", "limerick": "🎵"}
+            icon = type_icons.get(poem.poem_type, "🎨")
+            title_text = f"{icon} {poem.title}"
         else:
-            title = "🎨 Weather Poetry"
+            title_text = poem.title if hasattr(poem, "title") else "Weather Poetry"
 
         title_label = tk.Label(
-            self.poetry_content,
-            text=title,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=self.poetry_content.bg_color,
-        )
-        title_label.pack(pady=(20, 10))
-
-        # Poem text
-        if poem.poem_type == "haiku" and " / " in poem.text:
-            lines = poem.text.split(" / ")
-            for line in lines:
-                line_label = tk.Label(
-                    self.poetry_content,
-                    text=line,
-                    font=(
-                        GlassmorphicStyle.FONT_FAMILY,
-                        GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                    ),
-                    fg=GlassmorphicStyle.TEXT_SECONDARY,
-                    bg=self.poetry_content.bg_color,
-                )
-                line_label.pack()
-        else:
-            poem_label = tk.Label(
-                self.poetry_content,
-                text=poem.text,
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                ),
-                fg=GlassmorphicStyle.TEXT_SECONDARY,
-                bg=self.poetry_content.bg_color,
-                wraplength=400,
-                justify=tk.CENTER,
-            )
-            poem_label.pack(pady=20)
-
-        # Inspiration info
-        info_label = tk.Label(
-            self.poetry_content,
-            text=f"📍 Inspired by: {poem.weather_condition.value.title()} weather\n🌡️ Temperature: {poem.temperature_range.title()}",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            poem_frame,
+            text=title_text,
+            font=(GlassmorphicStyle.FONT_FAMILY, 18, "bold"),
             fg=GlassmorphicStyle.ACCENT,
             bg=self.poetry_content.bg_color,
             justify=tk.CENTER,
         )
-        info_label.pack(pady=(20, 0))
+        title_label.pack(pady=(0, 15))
+
+        # Poem text
+        poem_text = poem.text if hasattr(poem, "text") else str(poem)
+
+        # Create text widget for better display of multi-line poems
+        text_widget = tk.Text(
+            poem_frame,
+            font=(GlassmorphicStyle.FONT_FAMILY, 14),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg="#2a2a2a",
+            relief="ridge",
+            borderwidth=2,
+            wrap=tk.WORD,
+            height=8,
+            state=tk.DISABLED,
+            cursor="arrow",
+        )
+
+        # Configure text widget appearance
+        text_widget.configure(
+            highlightbackground="#555555",
+            highlightcolor=GlassmorphicStyle.ACCENT,
+            selectbackground=GlassmorphicStyle.ACCENT,
+            selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
+        )
+
+        # Insert poem text
+        text_widget.configure(state=tk.NORMAL)
+        text_widget.insert(tk.END, poem_text)
+        text_widget.configure(state=tk.DISABLED)
+
+        text_widget.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+
+        # Poem metadata
+        if hasattr(poem, "created_at") and poem.created_at:
+            timestamp = poem.created_at.strftime("%B %d, %Y at %I:%M %p")
+            meta_label = tk.Label(
+                poem_frame,
+                text=f"Created: {timestamp}",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                fg=GlassmorphicStyle.TEXT_SECONDARY,
+                bg=self.poetry_content.bg_color,
+                justify=tk.CENTER,
+            )
+            meta_label.pack()
+
+        self.update_status("Poetry generated successfully!")
+
+    def display_weather_poem_collection(self, poems) -> None:
+        """Display a collection of weather poems in the poetry tab."""
+        # Clear existing poetry content
+        for widget in self.poetry_content.winfo_children():
+            widget.destroy()
+
+        # Create scrollable area for multiple poems
+        collection_scroll = ModernScrollableFrame(self.poetry_content)
+        collection_scroll.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Collection header
+        header_frame = tk.Frame(
+            collection_scroll.scrollable_frame, bg=GlassmorphicStyle.BACKGROUND
+        )
+        header_frame.pack(fill=tk.X, pady=(0, 20))
+
+        title_label = tk.Label(
+            header_frame,
+            text="📚 Poetry Collection",
+            font=(GlassmorphicStyle.FONT_FAMILY, 20, "bold"),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=GlassmorphicStyle.BACKGROUND,
+            justify=tk.CENTER,
+        )
+        title_label.pack()
+
+        subtitle_label = tk.Label(
+            header_frame,
+            text=f"A collection of {len(poems)} weather-inspired poems",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=GlassmorphicStyle.BACKGROUND,
+            justify=tk.CENTER,
+        )
+        subtitle_label.pack(pady=(5, 0))
+
+        # Display each poem in a separate card
+        for i, poem in enumerate(poems):
+            # Create poem card
+            poem_card = GlassmorphicFrame(
+                collection_scroll.scrollable_frame, elevated=True
+            )
+            poem_card.pack(fill=tk.X, pady=10, padx=5)
+
+            # Poem type and title
+            if hasattr(poem, "poem_type"):
+                type_icons = {"haiku": "🌸", "phrase": "💭", "limerick": "🎵"}
+                icon = type_icons.get(poem.poem_type, "🎨")
+                title_text = f"{icon} {poem.title}"
+            else:
+                title_text = (
+                    poem.title if hasattr(poem, "title") else f"Weather Poetry {i+1}"
+                )
+
+            title_label = tk.Label(
+                poem_card,
+                text=title_text,
+                font=(GlassmorphicStyle.FONT_FAMILY, 16, "bold"),
+                fg=GlassmorphicStyle.ACCENT,
+                bg=poem_card.bg_color,
+                justify=tk.CENTER,
+            )
+            title_label.pack(pady=(15, 10))
+
+            # Poem text
+            poem_text = poem.text if hasattr(poem, "text") else str(poem)
+
+            # Create text widget for poem display
+            text_widget = tk.Text(
+                poem_card,
+                font=(GlassmorphicStyle.FONT_FAMILY, 12),
+                fg=GlassmorphicStyle.TEXT_PRIMARY,
+                bg="#2a2a2a",
+                relief="ridge",
+                borderwidth=1,
+                wrap=tk.WORD,
+                height=6,
+                state=tk.DISABLED,
+                cursor="arrow",
+            )
+
+            # Configure text widget appearance
+            text_widget.configure(
+                highlightbackground="#555555",
+                highlightcolor=GlassmorphicStyle.ACCENT,
+                selectbackground=GlassmorphicStyle.ACCENT,
+                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
+            )
+
+            # Insert poem text
+            text_widget.configure(state=tk.NORMAL)
+            text_widget.insert(tk.END, poem_text)
+            text_widget.configure(state=tk.DISABLED)
+
+            text_widget.pack(fill=tk.X, padx=15, pady=(0, 15))
+
+        self.update_status(
+            f"Poetry collection generated successfully! ({len(poems)} poems)"
+        )
 
     def toggle_temperature_unit(self):
         """Toggle between Celsius and Fahrenheit."""

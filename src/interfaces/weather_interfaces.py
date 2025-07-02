@@ -147,3 +147,8 @@ class IUserInterface(ABC):
     def show_message(self, message: str) -> None:
         """Show message to user."""
         pass
+
+    @abstractmethod
+    def display_weather_poem(self, poem) -> None:
+        """Display weather poem."""
+        pass

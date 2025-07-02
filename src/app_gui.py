@@ -124,6 +124,9 @@ class WeatherDashboardGUIApp:
         self.gui.set_callback(
             "generate_specific_poetry", self._handle_generate_specific_poetry
         )
+        self.gui.set_callback(
+            "generate_poetry_collection", self._handle_generate_poetry_collection
+        )
 
         # Favorites callbacks
         self.gui.set_callback("refresh_favorites", self._handle_refresh_favorites)
@@ -576,6 +579,37 @@ class WeatherDashboardGUIApp:
                 )
 
         threading.Thread(target=generate_specific_async, daemon=True).start()
+
+    def _handle_generate_poetry_collection(self):
+        """Handle generate poetry collection request."""
+
+        def generate_collection_async():
+            try:
+                if not self.gui.current_weather:
+                    self.gui.show_error(
+                        "Please get weather data first to generate poetry collection"
+                    )
+                    return
+
+                self.gui.update_status("Generating poetry collection...")
+                collection = self.poetry_service.create_poetry_collection(
+                    self.gui.current_weather, 3
+                )
+
+                self.gui.root.after(
+                    0, lambda: self.gui.display_weather_poem_collection(collection)
+                )
+
+            except Exception as e:
+                logging.error(f"Error generating poetry collection: {e}")
+                self.gui.root.after(
+                    0,
+                    lambda exc=e: self.gui.show_error(
+                        f"Error generating poetry collection: {exc}"
+                    ),
+                )
+
+        threading.Thread(target=generate_collection_async, daemon=True).start()
 
     def _handle_refresh_favorites(self):
         """Handle refresh favorites request."""
