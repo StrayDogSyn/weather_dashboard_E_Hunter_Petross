@@ -2266,6 +2266,8 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=GlassmorphicStyle.SUCCESS,
                 activebackground=GlassmorphicStyle.SUCCESS_LIGHT
             )
+            # Make the button icon change to show active state
+            self.auto_refresh_btn.configure(text="Auto-Refresh: ON ✓")
             self.update_status("Auto-refresh enabled (5 minutes)")
         else:
             self.stop_auto_refresh()
