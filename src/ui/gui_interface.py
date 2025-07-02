@@ -168,8 +168,9 @@ class ModernButton(tk.Button):
 class WeatherCard(GlassmorphicFrame):
     """Weather information card with glassmorphic styling."""
 
-    def __init__(self, parent, **kwargs):
+    def __init__(self, parent, gui_ref=None, **kwargs):
         super().__init__(parent, **kwargs)
+        self.gui_ref = gui_ref  # Reference to main GUI for temperature unit
         self.setup_layout()
 
     def setup_layout(self):
@@ -213,7 +214,13 @@ class WeatherCard(GlassmorphicFrame):
         location_label.pack(pady=(0, 10))
 
         # Temperature
-        temp_text = f"{weather.temperature.to_celsius():.1f}°C"
+        temp_celsius = weather.temperature.to_celsius()
+        if self.gui_ref:
+            temp_value, temp_unit = self.gui_ref.convert_temperature(temp_celsius)
+            temp_text = f"{temp_value:.1f}{temp_unit}"
+        else:
+            temp_text = f"{temp_celsius:.1f}°C"
+
         temp_label = tk.Label(
             self.content_frame,
             text=temp_text,
@@ -308,6 +315,10 @@ class WeatherDashboardGUI(IUserInterface):
         self.root = tk.Tk()
         self.config = config_manager.config
         self.current_weather = None
+        self.current_forecast_data = (
+            None  # Store forecast data for temperature unit changes
+        )
+        self.temperature_unit = "C"  # Default to Celsius, can be "C" or "F"
         self.setup_window()
         self.setup_styles()
         self.create_layout()
@@ -390,9 +401,13 @@ class WeatherDashboardGUI(IUserInterface):
         )
         title_label.pack(side=tk.LEFT, padx=20, pady=15)
 
-        # Quick actions
-        actions_frame = tk.Frame(header_frame, bg=header_frame.bg_color)
-        actions_frame.pack(side=tk.RIGHT, padx=20, pady=15)
+        # Right side container for buttons
+        right_container = tk.Frame(header_frame, bg=header_frame.bg_color)
+        right_container.pack(side=tk.RIGHT, padx=20, pady=15)
+
+        # Quick actions - main buttons (top row)
+        actions_frame = tk.Frame(right_container, bg=header_frame.bg_color)
+        actions_frame.pack()
 
         self.refresh_btn = ModernButton(
             actions_frame, text="🔄 Refresh", command=self.refresh_current_weather
@@ -403,6 +418,21 @@ class WeatherDashboardGUI(IUserInterface):
             actions_frame, text="🔍 Search City", command=self.show_city_search
         )
         self.search_btn.pack(side=tk.RIGHT)
+
+        # Temperature unit toggle - below the main buttons
+        temp_toggle_frame = tk.Frame(right_container, bg=header_frame.bg_color)
+        temp_toggle_frame.pack(pady=(10, 0))
+
+        self.temp_toggle_btn = ModernButton(
+            temp_toggle_frame,
+            text="°C / °F",
+            style="secondary",
+            command=self.toggle_temperature_unit,
+        )
+        self.temp_toggle_btn.pack()
+
+        # Update toggle button text to show current unit
+        self.update_temp_toggle_text()
 
     def create_main_content(self):
         """Create main content area with tabbed interface."""
@@ -437,7 +467,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.notebook.add(weather_frame, text="🌤️ Current Weather")
 
         # Main weather card
-        self.main_weather_card = WeatherCard(weather_frame)
+        self.main_weather_card = WeatherCard(weather_frame, gui_ref=self)
         self.main_weather_card.pack(
             side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10
         )
@@ -690,6 +720,9 @@ class WeatherDashboardGUI(IUserInterface):
 
     def display_forecast(self, forecast_data: WeatherForecast) -> None:
         """Display forecast data."""
+        # Store forecast data for temperature unit changes
+        self.current_forecast_data = forecast_data
+
         # Clear existing forecast
         for widget in self.forecast_scroll.scrollable_frame.winfo_children():
             widget.destroy()
@@ -726,8 +759,15 @@ class WeatherDashboardGUI(IUserInterface):
         temp_frame = tk.Frame(card, bg=card.bg_color)
         temp_frame.pack()
 
-        high_temp = f"{day_data.temperature_high.to_celsius():.1f}°C"
-        low_temp = f"{day_data.temperature_low.to_celsius():.1f}°C"
+        # Convert temperatures to current unit
+        high_temp_celsius = day_data.temperature_high.to_celsius()
+        low_temp_celsius = day_data.temperature_low.to_celsius()
+
+        high_temp_value, temp_unit = self.convert_temperature(high_temp_celsius)
+        low_temp_value, _ = self.convert_temperature(low_temp_celsius)
+
+        high_temp = f"{high_temp_value:.1f}{temp_unit}"
+        low_temp = f"{low_temp_value:.1f}{temp_unit}"
 
         tk.Label(
             temp_frame,
@@ -909,7 +949,7 @@ class WeatherDashboardGUI(IUserInterface):
         comparison_frame.pack(fill=tk.BOTH, expand=True, padx=20)
 
         # City 1 card
-        card1 = WeatherCard(comparison_frame)
+        card1 = WeatherCard(comparison_frame, gui_ref=self)
         card1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
         card1.update_weather(city1)
 
@@ -924,7 +964,7 @@ class WeatherDashboardGUI(IUserInterface):
         vs_label.pack(side=tk.LEFT, padx=20)
 
         # City 2 card
-        card2 = WeatherCard(comparison_frame)
+        card2 = WeatherCard(comparison_frame, gui_ref=self)
         card2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10, 0))
         card2.update_weather(city2)
 
@@ -1130,6 +1170,58 @@ class WeatherDashboardGUI(IUserInterface):
             justify=tk.CENTER,
         )
         info_label.pack(pady=(20, 0))
+
+    def toggle_temperature_unit(self):
+        """Toggle between Celsius and Fahrenheit."""
+        self.temperature_unit = "F" if self.temperature_unit == "C" else "C"
+        self.update_temp_toggle_text()
+        self.refresh_temperature_displays()
+
+    def update_temp_toggle_text(self):
+        """Update the temperature toggle button text."""
+        if self.temperature_unit == "C":
+            self.temp_toggle_btn.configure(text="°C → °F")
+        else:
+            self.temp_toggle_btn.configure(text="°F → °C")
+
+    def refresh_temperature_displays(self):
+        """Refresh all temperature displays with new unit."""
+        # Refresh main weather card if current weather is displayed
+        if self.current_weather:
+            self.main_weather_card.update_weather(self.current_weather)
+
+        # Refresh forecast if available
+        self.refresh_forecast_temperatures()
+
+        # Refresh comparison if available
+        self.refresh_comparison_temperatures()
+
+    def refresh_forecast_temperatures(self):
+        """Refresh forecast temperature displays."""
+        # Clear and recreate forecast cards if forecast data exists
+        if hasattr(self, "current_forecast_data") and self.current_forecast_data:
+            self.display_forecast(self.current_forecast_data)
+
+    def refresh_comparison_temperatures(self):
+        """Refresh comparison temperature displays."""
+        # This will be called when comparison data is available
+        # The comparison display will be updated with the correct temperature unit
+        pass
+
+    def convert_temperature(self, temp_celsius: float) -> tuple[float, str]:
+        """Convert temperature to the current unit.
+
+        Args:
+            temp_celsius: Temperature in Celsius
+
+        Returns:
+            Tuple of (converted_temperature, unit_symbol)
+        """
+        if self.temperature_unit == "F":
+            temp_fahrenheit = (temp_celsius * 9 / 5) + 32
+            return temp_fahrenheit, "°F"
+        else:
+            return temp_celsius, "°C"
 
 
 class ModernEntry(tk.Entry):
