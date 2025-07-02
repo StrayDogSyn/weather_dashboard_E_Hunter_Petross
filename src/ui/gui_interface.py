@@ -2185,7 +2185,7 @@ class WeatherDashboardGUI(IUserInterface):
         except Exception as e:
             logging.error(f"Error in location detection: {e}")
             self.show_error(f"Location detection failed: {str(e)}")
-            
+
 
 class ModernEntry(tk.Entry):
     """Modern styled entry with enhanced visibility and 3D effects."""

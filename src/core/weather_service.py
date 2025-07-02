@@ -455,10 +455,14 @@ class WeatherService:
                 if use_cache:
                     self.cache.set(cache_key, weather_data, ttl=300)  # 5 minutes
 
-                logging.info(f"Successfully retrieved weather for {weather_data.location.name}")
+                logging.info(
+                    f"Successfully retrieved weather for {weather_data.location.name}"
+                )
                 return weather_data
             else:
-                logging.error(f"Failed to retrieve weather for coordinates ({latitude}, {longitude})")
+                logging.error(
+                    f"Failed to retrieve weather for coordinates ({latitude}, {longitude})"
+                )
                 return None
 
         except Exception as e:

@@ -107,7 +107,9 @@ class WeatherDashboardGUIApp:
         self.gui.set_callback("get_weather", self._handle_get_weather)
         self.gui.set_callback("search_locations", self._handle_search_locations)
         self.gui.set_callback("add_favorite", self._handle_add_favorite)
-        self.gui.set_callback("get_current_location_weather", self._handle_current_location_weather)
+        self.gui.set_callback(
+            "get_current_location_weather", self._handle_current_location_weather
+        )
 
         # Comparison callback
         self.gui.set_callback("compare_cities", self._handle_compare_cities)
@@ -136,7 +138,9 @@ class WeatherDashboardGUIApp:
         )
 
         # Current location callback
-        self.gui.set_callback("get_current_location_weather", self._handle_current_location_weather)
+        self.gui.set_callback(
+            "get_current_location_weather", self._handle_current_location_weather
+        )
 
     def run(self):
         """Main application entry point."""
@@ -697,36 +701,41 @@ class WeatherDashboardGUIApp:
     def _handle_current_location_weather(self):
         """Handle request for current location weather."""
         logging.info("Handling current location weather request")
-        
+
         # Start weather retrieval in a separate thread
         threading.Thread(
             target=self._fetch_current_location_weather,
             daemon=True,
         ).start()
-        
+
     def _fetch_current_location_weather(self):
         """Fetch current location weather in background thread."""
         try:
             # Get weather data for current location
             weather_data = self.weather_service.get_current_location_weather()
-            
+
             if weather_data:
                 # Update the UI with the weather data
                 self.gui.root.after(0, lambda: self.gui.display_weather(weather_data))
             else:
                 # Show error message
                 self.gui.root.after(
-                    0, 
+                    0,
                     lambda: self.gui.show_error(
                         "Could not detect location or retrieve weather data"
-                    )
+                    ),
                 )
-                
+
         except Exception as e:
             logging.error(f"Error in fetch_current_location_weather: {e}")
             self.gui.root.after(
-                0, lambda exc=e: self.gui.show_error(f"Error retrieving weather: {str(exc)}")
+                0,
+                lambda exc=e: self.gui.show_error(
+                    f"Error retrieving weather: {str(exc)}"
+                ),
             )
+
+
 def main_gui():
     """Main entry point for GUI application."""
     try:
