@@ -383,7 +383,8 @@ class ModernButton(tk.Button):
     def _on_leave(self, event):
         self.is_hovered = False
         self.configure(bg=self.default_bg)
-        self.configure(highlightbackground="")
+        # Restore to a neutral color instead of empty string to avoid TclError
+        self.configure(highlightbackground=GlassmorphicStyle.ACCENT_LIGHT)
 
 
 class WeatherCard(GlassmorphicFrame):
@@ -1915,8 +1916,14 @@ class WeatherDashboardGUI(IUserInterface):
         # Poem type and title
         if hasattr(poem, "poem_type"):
             type_icons = {"haiku": "🌸", "phrase": "💭", "limerick": "🎵"}
-            icon = type_icons.get(poem.poem_type, "🎨")
-            title_text = f"{icon} {poem.title}"
+            icon = type_icons.get(getattr(poem, "poem_type", ""), "🎨")
+            # Use .title if it exists, else fallback to .poem_type or class name
+            if hasattr(poem, "title"):
+                title_text = f"{icon} {poem.title}"
+            elif hasattr(poem, "poem_type"):
+                title_text = f"{icon} {poem.poem_type.title()}"
+            else:
+                title_text = f"{icon} Weather Poetry"
         else:
             title_text = poem.title if hasattr(poem, "title") else "Weather Poetry"
 
