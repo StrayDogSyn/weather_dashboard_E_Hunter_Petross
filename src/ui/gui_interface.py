@@ -1941,6 +1941,14 @@ class WeatherDashboardGUI(IUserInterface):
         poem_text = poem.text if hasattr(poem, "text") else str(poem)
 
         # Create text widget for better display of multi-line poems
+        # Adjust height based on poem type for better display
+        poem_height = 8  # Default height
+        if hasattr(poem, "poem_type"):
+            if poem.poem_type == "haiku":
+                poem_height = 10
+            elif poem.poem_type == "limerick":
+                poem_height = 12
+        
         text_widget = tk.Text(
             poem_frame,
             font=(GlassmorphicStyle.FONT_FAMILY, 14),
@@ -1949,7 +1957,7 @@ class WeatherDashboardGUI(IUserInterface):
             relief="ridge",
             borderwidth=2,
             wrap=tk.WORD,
-            height=8,
+            height=poem_height,
             state=tk.DISABLED,
             cursor="arrow",
         )
@@ -1962,9 +1970,20 @@ class WeatherDashboardGUI(IUserInterface):
             selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
         )
 
-        # Insert poem text
+        # Insert poem text with proper formatting
         text_widget.configure(state=tk.NORMAL)
-        text_widget.insert(tk.END, poem_text)
+        
+        # Use formatted_text for haikus (line breaks instead of slashes)
+        if hasattr(poem, "poem_type") and poem.poem_type == "haiku" and hasattr(poem, "formatted_text"):
+            text_widget.insert(tk.END, poem.formatted_text)
+        # Format limerick text with line breaks at / characters
+        elif hasattr(poem, "poem_type") and poem.poem_type == "limerick":
+            limerick_lines = poem_text.split(" / ")
+            formatted_limerick = "\n".join(limerick_lines)
+            text_widget.insert(tk.END, formatted_limerick)
+        else:
+            text_widget.insert(tk.END, poem_text)
+            
         text_widget.configure(state=tk.DISABLED)
 
         text_widget.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
@@ -2032,7 +2051,12 @@ class WeatherDashboardGUI(IUserInterface):
             if hasattr(poem, "poem_type"):
                 type_icons = {"haiku": "🌸", "phrase": "💭", "limerick": "🎵"}
                 icon = type_icons.get(poem.poem_type, "🎨")
-                title_text = f"{icon} {poem.title}"
+                
+                # Use title if exists, else use poem_type
+                if hasattr(poem, "title") and poem.title:
+                    title_text = f"{icon} {poem.title}"
+                else:
+                    title_text = f"{icon} {poem.poem_type.title()}"
             else:
                 title_text = (
                     poem.title if hasattr(poem, "title") else f"Weather Poetry {i+1}"
@@ -2052,6 +2076,14 @@ class WeatherDashboardGUI(IUserInterface):
             poem_text = poem.text if hasattr(poem, "text") else str(poem)
 
             # Create text widget for poem display
+            # Adjust height based on poem type for better display
+            poem_height = 6  # Default height
+            if hasattr(poem, "poem_type"):
+                if poem.poem_type == "haiku":
+                    poem_height = 8
+                elif poem.poem_type == "limerick":
+                    poem_height = 10
+            
             text_widget = tk.Text(
                 poem_card,
                 font=(GlassmorphicStyle.FONT_FAMILY, 12),
@@ -2060,7 +2092,7 @@ class WeatherDashboardGUI(IUserInterface):
                 relief="ridge",
                 borderwidth=1,
                 wrap=tk.WORD,
-                height=6,
+                height=poem_height,
                 state=tk.DISABLED,
                 cursor="arrow",
             )
@@ -2073,9 +2105,23 @@ class WeatherDashboardGUI(IUserInterface):
                 selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
             )
 
-            # Insert poem text
+            # Insert poem text with proper formatting
             text_widget.configure(state=tk.NORMAL)
-            text_widget.insert(tk.END, poem_text)
+            
+            # Use formatted_text for haikus and limericks
+            if hasattr(poem, "poem_type") and hasattr(poem, "formatted_text"):
+                if poem.poem_type in ["haiku", "limerick"]:
+                    text_widget.insert(tk.END, poem.formatted_text)
+                else:
+                    text_widget.insert(tk.END, poem_text)
+            # Format limerick text with line breaks at / characters if not using formatted_text
+            elif hasattr(poem, "poem_type") and poem.poem_type == "limerick":
+                limerick_lines = poem_text.split(" / ")
+                formatted_limerick = "\n".join(limerick_lines)
+                text_widget.insert(tk.END, formatted_limerick)
+            else:
+                text_widget.insert(tk.END, poem_text)
+                
             text_widget.configure(state=tk.DISABLED)
 
             text_widget.pack(fill=tk.X, padx=15, pady=(0, 15))

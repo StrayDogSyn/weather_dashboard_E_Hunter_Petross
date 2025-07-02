@@ -266,7 +266,7 @@ class WeatherPoem:
     @property
     def formatted_text(self) -> str:
         """Get formatted poem text with proper line breaks."""
-        if self.poem_type == "haiku":
+        if self.poem_type in ["haiku", "limerick"]:
             lines = self.text.split(" / ")
             return "\n".join(lines)
         return self.text
