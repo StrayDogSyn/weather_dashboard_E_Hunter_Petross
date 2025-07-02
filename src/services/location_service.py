@@ -82,17 +82,17 @@ class LocationDetectionService:
                 document.getElementById("result").innerHTML = "ERROR: Geolocation not supported";
             }
         }
-        
+
         function showPosition(position) {
             var lat = position.coords.latitude;
             var lon = position.coords.longitude;
             document.getElementById("result").innerHTML = "SUCCESS:" + lat + "," + lon;
         }
-        
+
         function showError(error) {
             document.getElementById("result").innerHTML = "ERROR: " + error.message;
         }
-        
+
         getLocation();
     </script>
 </body>
