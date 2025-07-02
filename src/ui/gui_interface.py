@@ -54,25 +54,42 @@ class GlassmorphicStyle:
 
 
 class GlassmorphicFrame(tk.Frame):
-    """Custom frame with glassmorphic styling."""
+    """Custom frame with enhanced glassmorphic styling and 3D effects."""
 
-    def __init__(self, parent, bg_color=None, border_color=None, **kwargs):
+    def __init__(
+        self, parent, bg_color=None, border_color=None, elevated=False, **kwargs
+    ):
         super().__init__(parent, **kwargs)
 
         self.bg_color = bg_color or GlassmorphicStyle.GLASS_BG
         self.border_color = border_color or GlassmorphicStyle.GLASS_BORDER
+        self.elevated = elevated
 
-        self.configure(
-            bg=self.bg_color,
-            highlightbackground=self.border_color,
-            highlightcolor=self.border_color,
-            highlightthickness=1,
-            relief="flat",
-        )
+        # Enhanced styling with 3D effect
+        if elevated:
+            # Create elevated/raised appearance with shadow effect
+            self.configure(
+                bg=self.bg_color,
+                highlightbackground="#777777",  # Brighter border for elevation
+                highlightcolor="#999999",  # Even brighter highlight
+                highlightthickness=3,  # Thicker border
+                relief="raised",
+                borderwidth=4,  # Thicker border for more depth
+            )
+        else:
+            # Enhanced standard glassmorphic styling with subtle 3D
+            self.configure(
+                bg=self.bg_color,
+                highlightbackground="#555555",  # More visible border
+                highlightcolor="#666666",
+                highlightthickness=2,
+                relief="ridge",  # Ridge effect for subtle 3D
+                borderwidth=2,
+            )
 
 
 class ModernButton(tk.Button):
-    """Modern styled button with hover effects."""
+    """Modern styled button with enhanced hover effects and 3D appearance."""
 
     def __init__(self, parent, style="primary", **kwargs):
         self.style = style
@@ -83,17 +100,33 @@ class ModernButton(tk.Button):
             parent,
             bg=self.default_bg,
             fg=GlassmorphicStyle.TEXT_PRIMARY,
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            relief="flat",
-            borderwidth=0,
-            padx=20,
-            pady=10,
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                "bold",
+            ),
+            relief="raised",  # 3D raised effect
+            borderwidth=3,  # Thicker border for 3D effect
+            padx=25,
+            pady=12,
             cursor="hand2",
+            activebackground=self.hover_bg,
+            activeforeground=GlassmorphicStyle.TEXT_PRIMARY,
             **kwargs,
         )
 
         self.bind("<Enter>", self._on_enter)
         self.bind("<Leave>", self._on_leave)
+        self.bind("<Button-1>", self._on_click)
+        self.bind("<ButtonRelease-1>", self._on_release)
+
+    def _on_click(self, event):
+        """Handle button click for pressed effect."""
+        self.configure(relief="sunken", borderwidth=2)
+
+    def _on_release(self, event):
+        """Handle button release to restore appearance."""
+        self.configure(relief="raised", borderwidth=3)
 
     def _get_bg_color(self):
         if self.style == "primary":
@@ -284,7 +317,7 @@ class WeatherDashboardGUI(IUserInterface):
 
     def setup_window(self):
         """Setup main window properties."""
-        self.root.title("Weather Dashboard")
+        self.root.title("JTC Capstone - Team 5")
         self.root.geometry("1200x800")
         self.root.minsize(1000, 600)
         self.root.configure(bg=GlassmorphicStyle.BACKGROUND)
@@ -300,18 +333,35 @@ class WeatherDashboardGUI(IUserInterface):
         style = ttk.Style()
         style.theme_use("clam")
 
-        # Configure ttk styles for dark theme
+        # Configure ttk styles for dark theme with enhanced 3D effects
         style.configure("TNotebook", background=GlassmorphicStyle.BACKGROUND)
         style.configure(
             "TNotebook.Tab",
             background=GlassmorphicStyle.GLASS_BG,
             foreground=GlassmorphicStyle.TEXT_SECONDARY,
-            padding=[20, 10],
+            padding=[20, 12],  # Increased padding for better appearance
+            relief="raised",  # 3D raised effect for tabs
+            borderwidth=2,  # Border for 3D effect
+            focuscolor="none",  # Remove focus outline
         )
         style.map(
             "TNotebook.Tab",
-            background=[("selected", GlassmorphicStyle.ACCENT)],
-            foreground=[("selected", GlassmorphicStyle.TEXT_PRIMARY)],
+            background=[
+                ("selected", GlassmorphicStyle.ACCENT),
+                ("active", "#555555"),  # Hover effect
+            ],
+            foreground=[
+                ("selected", GlassmorphicStyle.TEXT_PRIMARY),
+                ("active", GlassmorphicStyle.TEXT_PRIMARY),
+            ],
+            relief=[
+                ("selected", "sunken"),  # Pressed effect for active tab
+                ("active", "raised"),
+            ],
+            borderwidth=[
+                ("selected", 3),  # Thicker border for active tab
+                ("active", 2),
+            ],
         )
 
     def create_layout(self):
@@ -327,13 +377,13 @@ class WeatherDashboardGUI(IUserInterface):
 
     def create_header(self):
         """Create header section."""
-        header_frame = GlassmorphicFrame(self.root)
+        header_frame = GlassmorphicFrame(self.root, elevated=True)
         header_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
 
         # Title
         title_label = tk.Label(
             header_frame,
-            text="🌤️ Weather Dashboard",
+            text="JTC Capstone - Team 5",
             font=(GlassmorphicStyle.FONT_FAMILY, 24, "bold"),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=header_frame.bg_color,
@@ -393,7 +443,7 @@ class WeatherDashboardGUI(IUserInterface):
         )
 
         # Side panel with controls
-        side_panel = GlassmorphicFrame(weather_frame)
+        side_panel = GlassmorphicFrame(weather_frame, elevated=True)
         side_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
 
         # City input
@@ -405,15 +455,8 @@ class WeatherDashboardGUI(IUserInterface):
             bg=side_panel.bg_color,
         ).pack(pady=(20, 5))
 
-        self.city_entry = tk.Entry(
-            side_panel,
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            bg=GlassmorphicStyle.GLASS_BG,
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            relief="flat",
-            borderwidth=1,
-        )
-        self.city_entry.pack(pady=(0, 10), padx=20, fill=tk.X)
+        self.city_entry = ModernEntry(side_panel)
+        self.city_entry.pack(pady=(0, 15), padx=20, fill=tk.X, ipady=8)
 
         # Get weather button
         self.get_weather_btn = ModernButton(
@@ -448,7 +491,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.notebook.add(comparison_frame, text="🌍 Compare Cities")
 
         # Controls
-        controls_frame = GlassmorphicFrame(comparison_frame)
+        controls_frame = GlassmorphicFrame(comparison_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
         # City inputs
@@ -463,15 +506,8 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=0, padx=(20, 10), pady=5, sticky="e")
 
-        self.city1_entry = tk.Entry(
-            input_frame,
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            bg=GlassmorphicStyle.GLASS_BG,
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            relief="flat",
-            width=20,
-        )
-        self.city1_entry.grid(row=0, column=1, padx=10, pady=5)
+        self.city1_entry = ModernEntry(input_frame, width=20)
+        self.city1_entry.grid(row=0, column=1, padx=10, pady=8, ipady=6)
 
         tk.Label(
             input_frame,
@@ -481,15 +517,8 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=2, padx=(30, 10), pady=5, sticky="e")
 
-        self.city2_entry = tk.Entry(
-            input_frame,
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            bg=GlassmorphicStyle.GLASS_BG,
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            relief="flat",
-            width=20,
-        )
-        self.city2_entry.grid(row=0, column=3, padx=10, pady=5)
+        self.city2_entry = ModernEntry(input_frame, width=20)
+        self.city2_entry.grid(row=0, column=3, padx=10, pady=8, ipady=6)
 
         self.compare_btn = ModernButton(
             input_frame, text="🌍 Compare", command=self.compare_cities
@@ -497,7 +526,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.compare_btn.grid(row=0, column=4, padx=(20, 20), pady=5)
 
         # Comparison results
-        self.comparison_results = GlassmorphicFrame(comparison_frame)
+        self.comparison_results = GlassmorphicFrame(comparison_frame, elevated=True)
         self.comparison_results.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
 
     def create_journal_tab(self):
@@ -506,7 +535,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.notebook.add(journal_frame, text="📔 Journal")
 
         # Controls
-        controls_frame = GlassmorphicFrame(journal_frame)
+        controls_frame = GlassmorphicFrame(journal_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
         self.new_entry_btn = ModernButton(
@@ -532,7 +561,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.notebook.add(activities_frame, text="🎯 Activities")
 
         # Controls
-        controls_frame = GlassmorphicFrame(activities_frame)
+        controls_frame = GlassmorphicFrame(activities_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
         self.get_activities_btn = ModernButton(
@@ -569,7 +598,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.notebook.add(poetry_frame, text="🎨 Poetry")
 
         # Controls
-        controls_frame = GlassmorphicFrame(poetry_frame)
+        controls_frame = GlassmorphicFrame(poetry_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
         self.generate_poetry_btn = ModernButton(
@@ -603,7 +632,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.notebook.add(favorites_frame, text="⭐ Favorites")
 
         # Controls
-        controls_frame = GlassmorphicFrame(favorites_frame)
+        controls_frame = GlassmorphicFrame(favorites_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
         self.refresh_favorites_btn = ModernButton(
@@ -625,7 +654,7 @@ class WeatherDashboardGUI(IUserInterface):
 
     def create_status_bar(self):
         """Create status bar."""
-        self.status_frame = GlassmorphicFrame(self.root)
+        self.status_frame = GlassmorphicFrame(self.root, elevated=True)
         self.status_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
         self.status_label = tk.Label(
@@ -674,7 +703,7 @@ class WeatherDashboardGUI(IUserInterface):
 
     def create_forecast_card(self, parent, day_data, index):
         """Create a forecast day card."""
-        card = GlassmorphicFrame(parent)
+        card = GlassmorphicFrame(parent, elevated=True)
 
         # Day header
         day_name = day_data.date.strftime("%A")
@@ -1101,3 +1130,55 @@ class WeatherDashboardGUI(IUserInterface):
             justify=tk.CENTER,
         )
         info_label.pack(pady=(20, 0))
+
+
+class ModernEntry(tk.Entry):
+    """Modern styled entry with enhanced visibility and 3D effects."""
+
+    def __init__(self, parent, **kwargs):
+        super().__init__(
+            parent,
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                "bold",
+            ),
+            bg="#404040",  # Much lighter background for better visibility
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            insertbackground=GlassmorphicStyle.ACCENT,  # Cursor color
+            relief="raised",  # 3D raised effect
+            borderwidth=3,  # Thicker border for 3D effect
+            highlightthickness=3,
+            highlightcolor=GlassmorphicStyle.ACCENT,
+            highlightbackground="#666666",  # More visible border
+            selectbackground=GlassmorphicStyle.ACCENT,  # Selection background
+            selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
+            **kwargs,
+        )
+
+        # Add padding and better height
+        self.configure(width=25)
+
+        # Bind focus events for enhanced interactivity
+        self.bind("<FocusIn>", self._on_focus_in)
+        self.bind("<FocusOut>", self._on_focus_out)
+        self.bind("<Button-1>", self._on_click)
+
+    def _on_focus_in(self, event):
+        """Handle focus in event."""
+        self.configure(
+            highlightbackground=GlassmorphicStyle.ACCENT,
+            bg="#555555",  # Even lighter when focused
+            relief="sunken",  # Pressed effect when focused
+            borderwidth=2,
+        )
+
+    def _on_focus_out(self, event):
+        """Handle focus out event."""
+        self.configure(
+            highlightbackground="#666666", bg="#404040", relief="raised", borderwidth=3
+        )
+
+    def _on_click(self, event):
+        """Handle click event for additional feedback."""
+        self.focus_set()
