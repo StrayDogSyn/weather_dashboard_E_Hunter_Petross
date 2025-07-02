@@ -1,28 +1,28 @@
-"""Database initialization and models for Weather Dashboard."""
+"""Database models for Weather Dashboard using SQLAlchemy ORM."""
 
-import os
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     DateTime,
     Float,
+    ForeignKey,
     Integer,
     String,
     Text,
     create_engine,
-    ForeignKey,
-    JSON,
 )
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship, Session
+from sqlalchemy.orm import Session, relationship, sessionmaker
 
 # Database configuration
-DATABASE_PATH = Path(__file__).parent / "weather_dashboard.db"
+DATABASE_PATH = Path(__file__).parent.parent.parent / "data" / "weather_dashboard.db"
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 # SQLAlchemy setup

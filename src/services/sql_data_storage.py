@@ -3,7 +3,6 @@
 import json
 import logging
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -13,16 +12,9 @@ from sqlalchemy.orm import Session
 
 from ..interfaces.weather_interfaces import IDataStorage
 
-# Import database module from data directory
+# Import database models from src.models
 try:
-    # Add the data directory to the Python path for database imports
-    project_root = Path(__file__).parent.parent.parent
-    data_dir = project_root / "data"
-    if str(data_dir) not in sys.path:
-        sys.path.insert(0, str(data_dir))
-
-    # Import from data/database.py (static analysis may complain, but this works at runtime)
-    from database import (  # type: ignore
+    from ..models.database_models import (
         ActivityRecommendations,
         FavoriteCities,
         JournalEntries,
@@ -222,11 +214,11 @@ class SQLDataStorage(IDataStorage):
             fav = {
                 "city": city.city_name,
                 "country": city.country_code,
-                "added_at": city.added_at.isoformat() if city.added_at else None,
+                "added_at": city.added_at.isoformat() if city.added_at is not None else None,
             }
-            if city.latitude:
+            if city.latitude is not None:
                 fav["latitude"] = city.latitude
-            if city.longitude:
+            if city.longitude is not None:
                 fav["longitude"] = city.longitude
             favorites.append(fav)
 
@@ -364,13 +356,13 @@ class SQLDataStorage(IDataStorage):
             }
 
             # Add optional fields if they exist
-            if entry.weather_conditions:
+            if entry.weather_conditions is not None:
                 journal_data["weather_conditions"] = entry.weather_conditions
-            if entry.location:
+            if entry.location is not None:
                 journal_data["location"] = entry.location
-            if entry.mood:
+            if entry.mood is not None:
                 journal_data["mood"] = entry.mood
-            if entry.activities:
+            if entry.activities is not None:
                 journal_data["activities"] = entry.activities
 
             journal_entries.append(journal_data)
