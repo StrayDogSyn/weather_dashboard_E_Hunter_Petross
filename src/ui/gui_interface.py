@@ -999,13 +999,49 @@ class WeatherDashboardGUI(IUserInterface):
         self.city_entry.bind("<Return>", lambda e: self.get_weather_for_city())
 
     def create_forecast_tab(self):
-        """Create forecast tab."""
+        """Create enhanced forecast tab with better layout."""
         forecast_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
         self.notebook.add(forecast_frame, text="📅 Forecast")
 
-        # Scrollable forecast area
-        self.forecast_scroll = ModernScrollableFrame(forecast_frame)
-        self.forecast_scroll.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Header with title and info
+        header_frame = GlassmorphicFrame(forecast_frame, elevated=True, gradient=True)
+        header_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
+
+        # Header content
+        header_content = tk.Frame(header_frame, bg=header_frame.bg_color)
+        header_content.pack(fill=tk.X, padx=20, pady=15)
+
+        # Title with icon
+        title_label = tk.Label(
+            header_content,
+            text="📅 7-Day Weather Forecast",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=header_frame.bg_color,
+        )
+        title_label.pack(side=tk.LEFT)
+
+        # Info label
+        info_label = tk.Label(
+            header_content,
+            text="Detailed weather predictions for the upcoming week",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=header_frame.bg_color,
+        )
+        info_label.pack(side=tk.RIGHT)
+
+        # Main forecast container
+        forecast_container = GlassmorphicFrame(forecast_frame, elevated=True)
+        forecast_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+
+        # Scrollable forecast area with better organization
+        self.forecast_scroll = ModernScrollableFrame(forecast_container)
+        self.forecast_scroll.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
     def create_comparison_tab(self):
         """Create city comparison tab."""
@@ -1248,7 +1284,7 @@ class WeatherDashboardGUI(IUserInterface):
             self.update_time_label.configure(text=f"Updated: {time_str}")
 
     def display_forecast(self, forecast_data: WeatherForecast) -> None:
-        """Display forecast data."""
+        """Display forecast data with enhanced grid layout."""
         # Store forecast data for temperature unit changes
         self.current_forecast_data = forecast_data
 
@@ -1256,37 +1292,102 @@ class WeatherDashboardGUI(IUserInterface):
         for widget in self.forecast_scroll.scrollable_frame.winfo_children():
             widget.destroy()
 
-        # Create forecast cards
+        # Create main container for grid layout
+        main_container = tk.Frame(
+            self.forecast_scroll.scrollable_frame, bg=GlassmorphicStyle.BACKGROUND
+        )
+        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Create forecast cards in a responsive grid
+        num_days = len(forecast_data.forecast_days)
+
+        # For better layout, use 3 columns for desktop view to fill window better
+        max_cols = 3
+
         for i, day in enumerate(forecast_data.forecast_days):
-            day_card = self.create_forecast_card(
-                self.forecast_scroll.scrollable_frame, day, i
+            row = i // max_cols
+            col = i % max_cols
+
+            day_card = self.create_forecast_card(main_container, day, i)
+            day_card.grid(
+                row=row, column=col, padx=12, pady=10, sticky="nsew", ipadx=3, ipady=3
             )
-            day_card.pack(fill=tk.X, padx=10, pady=5)
+
+        # Configure grid weights for responsive behavior
+        for col in range(max_cols):
+            main_container.grid_columnconfigure(col, weight=1)
+        for row in range((num_days + max_cols - 1) // max_cols):
+            main_container.grid_rowconfigure(row, weight=1)
 
     def create_forecast_card(self, parent, day_data, index):
-        """Create a forecast day card."""
-        card = GlassmorphicFrame(parent, elevated=True)
+        """Create an enhanced forecast day card with better visual design."""
+        card = GlassmorphicFrame(parent, elevated=True, gradient=True)
+        card.configure(
+            width=350, height=200
+        )  # Slightly smaller width for 3-column layout
 
-        # Day header
+        # Main card container
+        card_content = tk.Frame(card, bg=card.bg_color)
+        card_content.pack(fill=tk.BOTH, expand=True, padx=15, pady=12)
+
+        # Top section - Date and weather icon
+        top_section = tk.Frame(card_content, bg=card.bg_color)
+        top_section.pack(fill=tk.X, pady=(0, 10))
+
+        # Date section (left side)
+        date_section = tk.Frame(top_section, bg=card.bg_color)
+        date_section.pack(side=tk.LEFT, fill=tk.Y)
+
+        # Day name
         day_name = day_data.date.strftime("%A")
-        date_str = day_data.date.strftime("%m/%d")
-
-        header_label = tk.Label(
-            card,
-            text=f"{day_name}, {date_str}",
+        day_label = tk.Label(
+            date_section,
+            text=day_name,
             font=(
                 GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
                 "bold",
             ),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=card.bg_color,
         )
-        header_label.pack(pady=(10, 5))
+        day_label.pack(anchor=tk.W)
 
-        # Temperature range
-        temp_frame = tk.Frame(card, bg=card.bg_color)
-        temp_frame.pack()
+        # Date
+        date_str = day_data.date.strftime("%B %d")
+        date_label = tk.Label(
+            date_section,
+            text=date_str,
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+            fg=GlassmorphicStyle.TEXT_ACCENT,
+            bg=card.bg_color,
+        )
+        date_label.pack(anchor=tk.W)
+
+        # Weather icon (right side)
+        icon = WeatherIcons.get_icon(
+            day_data.description, day_data.temperature_high.value
+        )
+        icon_label = tk.Label(
+            top_section,
+            text=icon,
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                42,
+            ),  # Slightly smaller for 3-column layout
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=card.bg_color,
+        )
+        icon_label.pack(side=tk.RIGHT)
+
+        # Middle section - Temperature range
+        temp_section = GlassmorphicFrame(
+            card_content, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+        )
+        temp_section.pack(fill=tk.X, pady=(0, 10))
+
+        temp_content = tk.Frame(temp_section, bg=temp_section.bg_color)
+        temp_content.pack(padx=15, pady=10)
 
         # Convert temperatures to current unit
         high_temp_celsius = day_data.temperature_high.to_celsius()
@@ -1295,47 +1396,93 @@ class WeatherDashboardGUI(IUserInterface):
         high_temp_value, temp_unit = self.convert_temperature(high_temp_celsius)
         low_temp_value, _ = self.convert_temperature(low_temp_celsius)
 
-        high_temp = f"{high_temp_value:.1f}{temp_unit}"
-        low_temp = f"{low_temp_value:.1f}{temp_unit}"
+        # High temperature
+        high_temp_frame = tk.Frame(temp_content, bg=temp_section.bg_color)
+        high_temp_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         tk.Label(
-            temp_frame,
-            text=f"H: {high_temp}",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=card.bg_color,
-        ).pack(side=tk.LEFT, padx=10)
+            high_temp_frame,
+            text="HIGH",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_TINY,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_TERTIARY,
+            bg=temp_section.bg_color,
+        ).pack()
+
+        high_temp_color = GlassmorphicStyle.get_temperature_color(high_temp_value)
+        tk.Label(
+            high_temp_frame,
+            text=f"{high_temp_value:.0f}°{temp_unit[-1]}",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
+                "bold",
+            ),
+            fg=high_temp_color,
+            bg=temp_section.bg_color,
+        ).pack()
+
+        # Separator
+        tk.Label(
+            temp_content,
+            text="|",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_LARGE),
+            fg=GlassmorphicStyle.TEXT_TERTIARY,
+            bg=temp_section.bg_color,
+        ).pack(side=tk.LEFT, padx=20)
+
+        # Low temperature
+        low_temp_frame = tk.Frame(temp_content, bg=temp_section.bg_color)
+        low_temp_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
         tk.Label(
-            temp_frame,
-            text=f"L: {low_temp}",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=card.bg_color,
-        ).pack(side=tk.LEFT, padx=10)
+            low_temp_frame,
+            text="LOW",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_TINY,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_TERTIARY,
+            bg=temp_section.bg_color,
+        ).pack()
 
-        # Condition
+        low_temp_color = GlassmorphicStyle.get_temperature_color(low_temp_value)
+        tk.Label(
+            low_temp_frame,
+            text=f"{low_temp_value:.0f}°{temp_unit[-1]}",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
+                "bold",
+            ),
+            fg=low_temp_color,
+            bg=temp_section.bg_color,
+        ).pack()
+
+        # Bottom section - Weather condition
+        condition_frame = tk.Frame(card_content, bg=card.bg_color)
+        condition_frame.pack(fill=tk.X)
+
         condition_label = tk.Label(
-            card,
+            condition_frame,
             text=day_data.description.title(),
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                "italic",
+            ),
             fg=GlassmorphicStyle.TEXT_SECONDARY,
             bg=card.bg_color,
+            justify=tk.CENTER,
         )
-        condition_label.pack(pady=(5, 10))
+        condition_label.pack()
 
-        # Weather icon
-        icon = WeatherIcons.get_icon(
-            day_data.description, day_data.temperature_high.value
-        )
-        icon_label = tk.Label(
-            card,
-            text=icon,
-            font=(GlassmorphicStyle.FONT_FAMILY, 24),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=card.bg_color,
-        )
-        icon_label.pack(pady=(5, 10))
+        # Add subtle animation for the icon
+        AnimationHelper.fade_in(icon_label)
 
         return card
 
