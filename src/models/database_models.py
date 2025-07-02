@@ -31,7 +31,7 @@ engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-class UserPreferences(Base):
+class UserPreferences(Base):  # type: ignore[misc,valid-type]
     """User preferences table."""
 
     __tablename__ = "user_preferences"
@@ -45,7 +45,7 @@ class UserPreferences(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class FavoriteCities(Base):
+class FavoriteCities(Base):  # type: ignore[misc,valid-type]
     """Favorite cities table."""
 
     __tablename__ = "favorite_cities"
@@ -61,7 +61,7 @@ class FavoriteCities(Base):
     weather_entries = relationship("WeatherHistory", back_populates="city")
 
 
-class WeatherHistory(Base):
+class WeatherHistory(Base):  # type: ignore[misc,valid-type]
     """Weather history table."""
 
     __tablename__ = "weather_history"
@@ -83,7 +83,7 @@ class WeatherHistory(Base):
     city = relationship("FavoriteCities", back_populates="weather_entries")
 
 
-class JournalEntries(Base):
+class JournalEntries(Base):  # type: ignore[misc,valid-type]
     """Journal entries table."""
 
     __tablename__ = "journal_entries"
@@ -99,7 +99,7 @@ class JournalEntries(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class ActivityRecommendations(Base):
+class ActivityRecommendations(Base):  # type: ignore[misc,valid-type]
     """Activity recommendations table."""
 
     __tablename__ = "activity_recommendations"

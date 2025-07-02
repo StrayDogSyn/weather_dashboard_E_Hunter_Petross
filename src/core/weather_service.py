@@ -11,6 +11,7 @@ from src.models.weather_models import (
     Location,
     WeatherForecast,
 )
+from src.services.location_service import LocationDetectionService
 from src.utils.formatters import clean_city_name, validate_city_name
 from src.utils.validators import WeatherDataValidator, sanitize_input
 
@@ -38,6 +39,7 @@ class WeatherService:
         self.storage = storage
         self.cache = cache
         self.validator = WeatherDataValidator()
+        self.location_service = LocationDetectionService()
 
         # Load favorite cities
         self.favorite_cities: List[FavoriteCity] = self._load_favorite_cities()
@@ -401,3 +403,126 @@ class WeatherService:
 
         except Exception as e:
             logging.error(f"Error saving weather history: {e}")
+
+    def get_current_location_weather(
+        self, units: str = "metric", use_cache: bool = True
+    ) -> Optional[WeatherData]:
+        """
+        Get weather for current detected location.
+
+        Args:
+            units: Temperature units (metric, imperial, standard)
+            use_cache: Whether to use cache
+
+        Returns:
+            WeatherData or None if error
+        """
+        logging.info("Attempting to detect current location")
+
+        try:
+            # Get current location coordinates using location service
+            location_data = self.location_service.get_current_location()
+
+            if not location_data:
+                logging.error("Failed to detect current location")
+                return None
+
+            latitude, longitude, city_name = location_data
+            logging.info(f"Location detected: {city_name} ({latitude}, {longitude})")
+
+            # Generate cache key
+            cache_key = self.cache.get_cache_key(
+                "weather_coords", str(latitude), str(longitude), units
+            )
+
+            # Check cache
+            if use_cache:
+                cached_data = self.cache.get(cache_key)
+                if cached_data:
+                    logging.info(f"Using cached weather for {city_name}")
+                    return cached_data
+
+            # Fetch from API
+            logging.info(
+                f"Fetching current weather for {city_name} at coordinates ({latitude}, {longitude})"
+            )
+            weather_data = self.weather_api.get_current_weather_by_coordinates(
+                latitude, longitude, units
+            )
+
+            if weather_data:
+                # Cache the result
+                if use_cache:
+                    self.cache.set(cache_key, weather_data, ttl=300)  # 5 minutes
+
+                logging.info(f"Successfully retrieved weather for {weather_data.location.name}")
+                return weather_data
+            else:
+                logging.error(f"Failed to retrieve weather for coordinates ({latitude}, {longitude})")
+                return None
+
+        except Exception as e:
+            logging.error(f"Error in current location weather: {e}")
+            return None
+
+    def get_current_location_forecast(
+        self, days: int = 5, units: str = "metric", use_cache: bool = True
+    ) -> Optional[ForecastData]:
+        """
+        Get weather forecast for user's detected location.
+
+        Args:
+            days: Number of days for forecast
+            units: Temperature units (metric, imperial, standard)
+            use_cache: Whether to use cached data
+
+        Returns:
+            Forecast data or None if location detection fails
+        """
+        try:
+            # Detect current location
+            location_data = self.location_service.get_current_location()
+            if not location_data:
+                logging.error("Failed to detect current location for forecast")
+                return None
+
+            latitude, longitude, city_name = location_data
+            logging.info(
+                f"Getting forecast for detected location: {city_name} ({latitude}, {longitude})"
+            )
+
+            # Check cache first
+            cache_key = self.cache.get_cache_key(
+                "forecast_coords", latitude, longitude, days, units
+            )
+            if use_cache:
+                cached_data = self.cache.get(cache_key)
+                if cached_data:
+                    logging.info(
+                        f"Using cached forecast data for coordinates ({latitude}, {longitude})"
+                    )
+                    return cached_data
+
+            # Fetch forecast using coordinates
+            forecast_data = self.weather_api.get_forecast_by_coordinates(
+                latitude, longitude, days, units
+            )
+
+            if forecast_data:
+                # Cache the result
+                if use_cache:
+                    self.cache.set(cache_key, forecast_data, ttl=600)  # 10 minutes
+
+                logging.info(
+                    f"Successfully retrieved forecast for detected location: {city_name}"
+                )
+                return forecast_data
+            else:
+                logging.error(
+                    f"Failed to retrieve forecast for coordinates ({latitude}, {longitude})"
+                )
+                return None
+
+        except Exception as e:
+            logging.error(f"Error getting current location forecast: {e}")
+            return None

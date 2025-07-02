@@ -363,3 +363,125 @@ class OpenWeatherMapAPI(IWeatherAPI):
         except Exception as e:
             logging.error(f"Error searching locations: {e}")
             return []
+
+    def get_current_weather_by_coordinates(
+        self, latitude: float, longitude: float, units: str = "metric"
+    ) -> Optional[WeatherData]:
+        """
+        Get current weather for specific coordinates.
+
+        Args:
+            latitude: Latitude coordinate
+            longitude: Longitude coordinate
+            units: Temperature units (metric, imperial, standard)
+
+        Returns:
+            WeatherData or None if error
+        """
+        params = {"lat": latitude, "lon": longitude, "units": units}
+
+        data = self._make_request("weather", params)
+        if not data:
+            return None
+
+        try:
+            location = self._parse_location(data)
+            temperature = self._parse_temperature(data["main"], units)
+            condition = self._parse_weather_condition(data)
+            description = data["weather"][0]["description"]
+
+            pressure = AtmosphericPressure(
+                value=data["main"]["pressure"],
+                sea_level=data["main"].get("sea_level"),
+                ground_level=data["main"].get("grnd_level"),
+            )
+
+            wind = self._parse_wind(data.get("wind", {}))
+            precipitation = self._parse_precipitation(data)
+
+            return CurrentWeather(
+                location=location,
+                temperature=temperature,
+                condition=condition,
+                description=description,
+                humidity=data["main"]["humidity"],
+                pressure=pressure,
+                wind=wind,
+                precipitation=precipitation,
+                timestamp=datetime.fromtimestamp(data["dt"]),
+                visibility=data.get("visibility", 0) / 1000,  # Convert to km
+            )
+
+        except (KeyError, ValueError) as e:
+            logging.error(f"Error parsing weather data: {e}")
+            return None
+
+    def get_forecast_by_coordinates(
+        self, latitude: float, longitude: float, days: int = 5, units: str = "metric"
+    ) -> Optional[ForecastData]:
+        """
+        Get weather forecast for specific coordinates.
+
+        Args:
+            latitude: Latitude coordinate
+            longitude: Longitude coordinate
+            days: Number of days for forecast
+            units: Temperature units
+
+        Returns:
+            ForecastData or None if error
+        """
+        params = {
+            "lat": latitude,
+            "lon": longitude,
+            "units": units,
+            "cnt": days * 8,  # 8 forecasts per day (3-hour intervals)
+        }
+
+        data = self._make_request("forecast", params)
+        if not data:
+            return None
+
+        try:
+            location = Location(
+                name=data["city"]["name"],
+                country=data["city"]["country"],
+                latitude=data["city"]["coord"]["lat"],
+                longitude=data["city"]["coord"]["lon"],
+            )
+
+            # Group forecasts by day
+            forecast_days = []
+            current_date = None
+            daily_forecasts: List[Dict[str, Any]] = []
+
+            for forecast in data["list"]:
+                forecast_time = datetime.fromtimestamp(forecast["dt"])
+                forecast_date = forecast_time.date()
+
+                if current_date != forecast_date:
+                    if daily_forecasts:
+                        # Process previous day
+                        forecast_day = self._create_forecast_day(daily_forecasts, units)
+                        if forecast_day:
+                            forecast_days.append(forecast_day)
+
+                    current_date = forecast_date
+                    daily_forecasts = []
+
+                daily_forecasts.append(forecast)
+
+            # Process last day
+            if daily_forecasts:
+                forecast_day = self._create_forecast_day(daily_forecasts, units)
+                if forecast_day:
+                    forecast_days.append(forecast_day)
+
+            return WeatherForecast(
+                location=location,
+                forecast_days=forecast_days[:days],  # Limit to requested days
+            )
+
+        except (KeyError, ValueError) as e:
+            logging.error(f"Error parsing forecast data: {e}")
+            return None

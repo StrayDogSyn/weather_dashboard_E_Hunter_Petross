@@ -61,6 +61,41 @@ class IWeatherAPI(ABC):
         """
         pass
 
+    @abstractmethod
+    def get_current_weather_by_coordinates(
+        self, latitude: float, longitude: float, units: str = "metric"
+    ) -> Optional[WeatherData]:
+        """
+        Get current weather for specific coordinates.
+
+        Args:
+            latitude: Latitude coordinate
+            longitude: Longitude coordinate
+            units: Temperature units (metric, imperial, standard)
+
+        Returns:
+            WeatherData or None if error
+        """
+        pass
+
+    @abstractmethod
+    def get_forecast_by_coordinates(
+        self, latitude: float, longitude: float, days: int = 5, units: str = "metric"
+    ) -> Optional[ForecastData]:
+        """
+        Get weather forecast for specific coordinates.
+
+        Args:
+            latitude: Latitude coordinate
+            longitude: Longitude coordinate
+            days: Number of days for forecast
+            units: Temperature units
+
+        Returns:
+            ForecastData or None if error
+        """
+        pass
+
 
 class IDataStorage(ABC):
     """Interface for data storage services."""

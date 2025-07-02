@@ -8,6 +8,7 @@ animations, and enhanced visual effects.
 
 # Removed PIL import for now - can be added back later for advanced features
 import json
+import logging
 import threading
 import tkinter as tk
 import tkinter.font as tkFont
@@ -1087,10 +1088,7 @@ class WeatherDashboardGUI(IUserInterface):
             text="Current Location",
             icon="📍",
             style="success",
-            command=lambda: messagebox.showinfo(
-                "Feature Coming Soon",
-                "Location detection will be available in a future update.",
-            ),
+            command=self.get_current_location_weather,
         )
         location_btn.pack(fill=tk.X, pady=(0, 5))
 
@@ -2169,6 +2167,25 @@ class WeatherDashboardGUI(IUserInterface):
         # Get the weather for the random city
         self.get_weather_for_city()
 
+    def get_current_location_weather(self):
+        """Get weather for current detected location."""
+        try:
+            # Show loading message
+            self.status_label.configure(
+                text="Detecting location...", fg=GlassmorphicStyle.ACCENT
+            )
+            self.root.update()
+
+            # Call the location weather callback
+            if "get_current_location_weather" in self.callbacks:
+                self.callbacks["get_current_location_weather"]()
+            else:
+                self.show_error("Location detection service not available")
+
+        except Exception as e:
+            logging.error(f"Error in location detection: {e}")
+            self.show_error(f"Location detection failed: {str(e)}")
+            
 
 class ModernEntry(tk.Entry):
     """Modern styled entry with enhanced visibility and 3D effects."""
