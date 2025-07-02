@@ -20,16 +20,16 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 
 This project was developed as a collaborative capstone project by:
 
-- **Eric 'Hunter' Petross** (@Eric-H-Petross) - Project Lead & Primary Developer 🏠  
+- **Eric 'Hunter' Petross** (Eric H Petross) - Project Lead & Primary Developer 🏠  
   *Student TP-s25*
   
-- **Dunasha Payne** (@Dunasha-P) - Team Member 💬
+- **Dunasha Payne** (Dunasha P) - Team Member 💬
   
-- **Elizabeth Howard** (@Elizabeth-Howard) - Team Member
+- **Elizabeth Howard** - Team Member
   
-- **Shomari Thompson** (@Shomari-Thompson) - Team Member
+- **Shomari Thompson** - Team Member
   
-- **Tobi (Tee) Odika** (@Tobi-Odika) - Team Member
+- **Tobi (Tee) Odika** (Tobi Odika) - Team Member
 
 *Special thanks to all team members for their contributions to the design, testing, and development of this weather dashboard application.*
 
