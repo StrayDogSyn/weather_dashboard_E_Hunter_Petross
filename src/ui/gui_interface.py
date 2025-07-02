@@ -125,6 +125,51 @@ class AnimationHelper:
 
         pulse_step()
 
+    @staticmethod
+    def text_glow_effect(widget, glow_color=None, duration=2000):
+        """Create a text glow effect by cycling through related colors."""
+        glow_color = glow_color or GlassmorphicStyle.ACCENT
+        original_color = widget.cget("fg")
+
+        # Create a list of colors for the glow effect
+        glow_colors = [
+            original_color,
+            glow_color,
+            GlassmorphicStyle.TEXT_PRIMARY,
+            glow_color,
+            original_color,
+        ]
+
+        def cycle_colors(color_index=0, step=0):
+            if step >= len(glow_colors):
+                step = 0
+
+            widget.configure(fg=glow_colors[step])
+            widget.after(
+                duration // len(glow_colors),
+                lambda: cycle_colors(color_index, (step + 1) % len(glow_colors)),
+            )
+
+        cycle_colors()
+
+    @staticmethod
+    def rainbow_text_effect(widget, duration=3000):
+        """Create a subtle rainbow effect on text."""
+        colors = [
+            GlassmorphicStyle.ACCENT,
+            GlassmorphicStyle.ACCENT_SECONDARY,
+            GlassmorphicStyle.SUCCESS,
+            GlassmorphicStyle.WARNING,
+            GlassmorphicStyle.TEXT_PRIMARY,
+        ]
+
+        def cycle_rainbow(color_index=0):
+            widget.configure(fg=colors[color_index])
+            next_index = (color_index + 1) % len(colors)
+            widget.after(duration // len(colors), lambda: cycle_rainbow(next_index))
+
+        cycle_rainbow()
+
 
 class GlassmorphicStyle:
     """Custom styling for glassmorphic design with enhanced visual features."""
@@ -544,7 +589,7 @@ class WeatherCard(GlassmorphicFrame):
 
             pressure_label = tk.Label(
                 pressure_frame,
-                text=f" {weather.pressure:.0f}",
+                text=f" {weather.pressure.value:.0f} hPa",
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
                     GlassmorphicStyle.FONT_SIZE_MEDIUM,
@@ -731,52 +776,73 @@ class WeatherDashboardGUI(IUserInterface):
         self.create_status_bar()
 
     def create_header(self):
-        """Create enhanced header section with better visual hierarchy."""
+        """Create compact header section with Justice Emoji and enhanced styling."""
+        # Compact header frame with reduced padding
         header_frame = GlassmorphicFrame(self.root, elevated=True, gradient=True)
-        header_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
+        header_frame.pack(fill=tk.X, padx=15, pady=(10, 5))
 
-        # Left side with title and logo
-        left_container = tk.Frame(header_frame, bg=header_frame.bg_color)
-        left_container.pack(side=tk.LEFT, padx=20, pady=15)
+        # Main header container - compact single row
+        main_header = tk.Frame(header_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        main_header.pack(fill=tk.X, padx=15, pady=10)
 
-        # Logo/Icon
-        logo_label = tk.Label(
-            left_container,
-            text="⛅",  # Weather-themed emoji
-            font=(GlassmorphicStyle.FONT_FAMILY, 28),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=header_frame.bg_color,
+        # Left side with compact logo and title layout
+        left_container = tk.Frame(main_header, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        left_container.pack(side=tk.LEFT)
+
+        # Compact horizontal icon layout
+        icon_row = tk.Frame(left_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        icon_row.pack(side=tk.LEFT, padx=(0, 15))
+
+        # Justice Emoji - compact size
+        justice_emoji = tk.Label(
+            icon_row,
+            text="⚖️",
+            font=(GlassmorphicStyle.FONT_FAMILY, 24),  # Smaller for compactness
+            fg=GlassmorphicStyle.ACCENT_SECONDARY,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
-        logo_label.pack(side=tk.LEFT, padx=(0, 10))
+        justice_emoji.pack(side=tk.LEFT, padx=(0, 5))
 
-        # Title with gradient-like effect
-        title_frame = tk.Frame(left_container, bg=header_frame.bg_color)
-        title_frame.pack(side=tk.LEFT)
+        # Weather icon next to Justice emoji
+        weather_logo = tk.Label(
+            icon_row,
+            text="⛅",
+            font=(GlassmorphicStyle.FONT_FAMILY, 20),  # Smaller for compactness
+            fg=GlassmorphicStyle.ACCENT,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
+        )
+        weather_logo.pack(side=tk.LEFT)
 
+        # Compact title section - single column
+        title_container = tk.Frame(left_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        title_container.pack(side=tk.LEFT)
+
+        # Main title - reduced size for compactness
         title_main = tk.Label(
-            title_frame,
-            text="JTC Capstone",
-            font=(GlassmorphicStyle.FONT_FAMILY, 24, "bold"),
+            title_container,
+            text="JTC CAPSTONE • Team 5 Weather Dashboard",
+            font=(GlassmorphicStyle.FONT_FAMILY, 18, "bold"),  # Single line title
             fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=header_frame.bg_color,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
         title_main.pack(anchor=tk.W)
 
-        title_sub = tk.Label(
-            title_frame,
-            text="Team 5 Weather Dashboard",
-            font=(GlassmorphicStyle.FONT_FAMILY, 12),
-            fg=GlassmorphicStyle.TEXT_ACCENT,
-            bg=header_frame.bg_color,
+        # Compact tagline
+        tagline = tk.Label(
+            title_container,
+            text="⚡ Justice Through Code & Climate ⚡",
+            font=(GlassmorphicStyle.FONT_FAMILY, 11, "italic"),  # Smaller font
+            fg=GlassmorphicStyle.ACCENT_SECONDARY_LIGHT,
+            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
-        title_sub.pack(anchor=tk.W)
+        tagline.pack(anchor=tk.W)
 
         # Right side container for buttons with better layout
-        right_container = tk.Frame(header_frame, bg=header_frame.bg_color)
-        right_container.pack(side=tk.RIGHT, padx=20, pady=15)
+        right_container = tk.Frame(main_header, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        right_container.pack(side=tk.RIGHT, padx=20, pady=5)
 
         # Quick actions - main buttons (top row) with enhanced styling
-        actions_frame = tk.Frame(right_container, bg=header_frame.bg_color)
+        actions_frame = tk.Frame(right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         actions_frame.pack()
 
         self.search_btn = ModernButton(
@@ -793,8 +859,8 @@ class WeatherDashboardGUI(IUserInterface):
         self.refresh_btn.pack(side=tk.LEFT)
 
         # Temperature unit toggle - below the main buttons with enhanced styling
-        temp_toggle_frame = tk.Frame(right_container, bg=header_frame.bg_color)
-        temp_toggle_frame.pack(pady=(15, 0))
+        temp_toggle_frame = tk.Frame(right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        temp_toggle_frame.pack(pady=(10, 0))
 
         # Create a more visual temperature toggle
         temp_toggle_container = GlassmorphicFrame(
@@ -822,14 +888,19 @@ class WeatherDashboardGUI(IUserInterface):
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
 
-        # Add a subtle animation effect to the logo
-        AnimationHelper.pulse_effect(logo_label, GlassmorphicStyle.ACCENT, 3000)
+        # Add impressive animation effects to the compact header elements
+        AnimationHelper.pulse_effect(
+            justice_emoji, GlassmorphicStyle.ACCENT_SECONDARY, 4000
+        )
+        AnimationHelper.pulse_effect(weather_logo, GlassmorphicStyle.ACCENT, 3500)
+        AnimationHelper.text_glow_effect(title_main, GlassmorphicStyle.ACCENT, 3000)
+        AnimationHelper.rainbow_text_effect(tagline, 5000)
 
     def create_main_content(self):
         """Create main content area with tabbed interface."""
-        # Create notebook (tabbed interface)
+        # Create notebook (tabbed interface) with reduced padding
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 10))
 
         # Weather tab
         self.create_weather_tab()

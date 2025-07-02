@@ -214,7 +214,9 @@ class SQLDataStorage(IDataStorage):
             fav = {
                 "city": city.city_name,
                 "country": city.country_code,
-                "added_at": city.added_at.isoformat() if city.added_at is not None else None,
+                "added_at": (
+                    city.added_at.isoformat() if city.added_at is not None else None
+                ),
             }
             if city.latitude is not None:
                 fav["latitude"] = city.latitude
