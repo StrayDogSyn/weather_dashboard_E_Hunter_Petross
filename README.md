@@ -10,29 +10,6 @@
 
 A modern weather dashboard application with glassmorphic design, built using Python TKinter. Features comprehensive weather data, capstone functionality, and an intuitive graphical interface.
 
-## 📱 Application Preview
-
-![Weather Dashboard Main Interface](data/screenshots/Main.png)
-
-*The modern glassmorphic interface of the Weather Dashboard showcasing current weather, forecast, and navigation tabs.*
-
-## 👥 Contributors
-
-This project was developed as a collaborative capstone project by:
-
-- **Eric 'Hunter' Petross** (Eric H Petross) - Project Lead & Primary Developer 🏠  
-  *Student TP-s25*
-  
-- **Dunasha Payne** (Dunasha P) - Team Member 💬
-  
-- **Elizabeth Howard** - Team Member
-  
-- **Shomari Thompson** - Team Member
-  
-- **Tobi (Tee) Odika** (Tobi Odika) - Team Member
-
-*Special thanks to all team members for their contributions to the design, testing, and development of this weather dashboard application.*
-
 ## 🌟 Capstone Features
 
 ### Core Weather Features
@@ -47,7 +24,6 @@ This project was developed as a collaborative capstone project by:
 - **📔 Weather Journal**: Track daily weather with mood and activity logging
 - **🎯 Activity Suggestions**: Weather-based activity recommendations
 - **🎨 Weather Poetry**: AI-generated poems inspired by current weather
-- **🗃️ SQL Database**: Modern SQLite database storage for improved performance
 - **💾 Data Management**: Intelligent caching and data storage
 
 ### Modern GUI Design
@@ -89,17 +65,7 @@ This project was developed as a collaborative capstone project by:
    OPENWEATHER_API_KEY=your_actual_api_key_here
    ```
 
-4. **Set up SQL Database (Optional but Recommended)**
-
-   ```bash
-   # Run database setup script
-   python setup_sql_database.py
-   
-   # Verify setup
-   python verify_sql_setup.py
-   ```
-
-5. **Launch the GUI**
+4. **Launch the GUI**
 
    ```bash
    python main.py
@@ -195,25 +161,11 @@ Potential additions:
 - **Export functionality** for journal and data
 - **Customizable themes** and color schemes
 - **Weather widgets** for desktop integration
-- **Cloud database sync** with remote SQL databases
-- **Advanced analytics** with SQL-powered insights
-
-## 🗃️ Database Features
-
-The Weather Dashboard includes optional SQL database support:
-
-- **SQLite Integration**: Modern database storage with better performance
-- **Automatic Migration**: Seamlessly migrate from JSON to SQL storage
-- **Data Integrity**: ACID transactions and relational data structure
-- **Backward Compatibility**: Continue using JSON files if preferred
-
-See [SQL Database Documentation](docs/SQL_DATABASE.md) for detailed setup instructions.
 
 ---
 
-**Team**: JTC Capstone - Team 5  
-**Lead Developer**: Eric 'Hunter' Petross  
-**Project**: Weather Dashboard Capstone  
+**Author**: E Hunter Petross
+**Project**: Weather Dashboard Capstone
 **Technology**: Python, TKinter, OpenWeatherMap API
 
 ## 🏗️ Architecture
