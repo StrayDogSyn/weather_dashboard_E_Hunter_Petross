@@ -203,7 +203,6 @@ class ApplicationConfiguration:
     logging: LoggingConfiguration = field(default_factory=LoggingConfiguration)
     security: SecurityConfiguration = field(default_factory=SecurityConfiguration)
     features: FeatureConfiguration = field(default_factory=FeatureConfiguration)
-    database: DatabaseConfiguration = field(default_factory=DatabaseConfiguration)
 
     # User preferences
     default_city: str = field(
