@@ -712,6 +712,9 @@ class WeatherDashboardGUI(IUserInterface):
             None  # Store forecast data for temperature unit changes
         )
         self.temperature_unit = "C"  # Default to Celsius, can be "C" or "F"
+        self.auto_refresh = False  # Auto-refresh state
+        self.refresh_interval = 300000  # Default refresh interval: 5 minutes (in milliseconds)
+        self.refresh_timer = None  # Store the timer ID for auto-refresh
         self.setup_window()
         self.setup_styles()
         self.create_layout()
@@ -731,6 +734,9 @@ class WeatherDashboardGUI(IUserInterface):
         x = (self.root.winfo_screenwidth() // 2) - (1300 // 2)
         y = (self.root.winfo_screenheight() // 2) - (900 // 2)
         self.root.geometry(f"1300x900+{x}+{y}")
+
+        # Set up close handler to properly clean up
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def setup_styles(self):
         """Setup custom styles."""
@@ -860,7 +866,16 @@ class WeatherDashboardGUI(IUserInterface):
             icon="🔄",
             command=self.refresh_current_weather,
         )
-        self.refresh_btn.pack(side=tk.LEFT)
+        self.refresh_btn.pack(side=tk.LEFT, padx=(0, 10))
+
+        # Auto-refresh toggle button
+        self.auto_refresh_btn = ModernButton(
+            actions_frame,
+            text="Auto-Refresh: OFF",
+            icon="⏱️",
+            command=self.toggle_auto_refresh,
+        )
+        self.auto_refresh_btn.pack(side=tk.LEFT)
 
         # Temperature unit toggle - below the main buttons with enhanced styling
         temp_toggle_frame = tk.Frame(
@@ -893,6 +908,15 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
+
+        # Auto-refresh control button - new addition
+        self.auto_refresh_btn = ModernButton(
+            right_container,
+            text="Auto-Refresh: OFF",
+            style="warning",
+            command=self.toggle_auto_refresh,
+        )
+        self.auto_refresh_btn.pack(side=tk.RIGHT, padx=10, pady=5)
 
         # Add impressive animation effects to the compact header elements
         AnimationHelper.pulse_effect(
@@ -2054,6 +2078,7 @@ class WeatherDashboardGUI(IUserInterface):
                 
                 # Use title if exists, else use poem_type
                 if hasattr(poem, "title") and poem.title:
+
                     title_text = f"{icon} {poem.title}"
                 else:
                     title_text = f"{icon} {poem.poem_type.title()}"
@@ -2238,6 +2263,42 @@ class WeatherDashboardGUI(IUserInterface):
         except Exception as e:
             logging.error(f"Error in location detection: {e}")
             self.show_error(f"Location detection failed: {str(e)}")
+
+    def toggle_auto_refresh(self):
+        """Toggle auto-refresh functionality."""
+        self.auto_refresh = not self.auto_refresh
+        if self.auto_refresh:
+            self.start_auto_refresh()
+            self.auto_refresh_btn.configure(
+                text="Auto-Refresh: ON",
+                bg=GlassmorphicStyle.SUCCESS,
+                activebackground=GlassmorphicStyle.SUCCESS_LIGHT
+            )
+            self.update_status("Auto-refresh enabled (5 minutes)")
+        else:
+            self.stop_auto_refresh()
+            self.auto_refresh_btn.configure(
+                text="Auto-Refresh: OFF",
+                bg=GlassmorphicStyle.ACCENT,
+                activebackground=GlassmorphicStyle.ACCENT_LIGHT
+            )
+            self.update_status("Auto-refresh disabled")
+
+    def start_auto_refresh(self):
+        """Start the auto-refresh timer."""
+        self.refresh_current_weather()  # Refresh immediately
+        self.refresh_timer = self.root.after(self.refresh_interval, self.start_auto_refresh)
+
+    def stop_auto_refresh(self):
+        """Stop the auto-refresh timer."""
+        if self.refresh_timer:
+            self.root.after_cancel(self.refresh_timer)
+            self.refresh_timer = None
+
+    def on_close(self):
+        """Clean up and close the application."""
+        self.stop_auto_refresh()  # Stop auto-refresh timer
+        self.root.destroy()
 
 
 class ModernEntry(tk.Entry):
