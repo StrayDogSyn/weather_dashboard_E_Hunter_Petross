@@ -2,7 +2,8 @@
 Modern TKinter GUI with Glassmorphic Design for Weather Dashboard.
 
 This module provides a modern, glassmorphic user interface using TKinter
-with custom styling and modern visual elements.
+with custom styling and modern visual elements including weather icons,
+animations, and enhanced visual effects.
 """
 
 # Removed PIL import for now - can be added back later for advanced features
@@ -26,75 +27,230 @@ from src.models.capstone_models import (
 from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
 
 
-class GlassmorphicStyle:
-    """Custom styling for glassmorphic design."""
+class WeatherIcons:
+    """Weather condition icons using Unicode characters."""
 
-    # Color scheme
-    BACKGROUND = "#0f0f0f"  # Dark base
-    GLASS_BG = "#1a1a1a"  # Glass background
-    GLASS_BORDER = "#333333"  # Glass border
+    CLEAR = "☀️"
+    PARTLY_CLOUDY = "⛅"
+    CLOUDY = "☁️"
+    OVERCAST = "☁️"
+    RAIN = "🌧️"
+    HEAVY_RAIN = "⛈️"
+    SNOW = "❄️"
+    FOG = "🌫️"
+    WIND = "💨"
+    HOT = "🔥"
+    COLD = "🧊"
+    DEFAULT = "🌤️"
+
+    @classmethod
+    def get_icon(cls, condition: str, temperature: Optional[float] = None) -> str:
+        """Get appropriate weather icon for condition."""
+        condition_lower = condition.lower()
+
+        # Temperature-based icons
+        if temperature is not None:
+            if temperature > 85:
+                return cls.HOT
+            elif temperature < 32:
+                return cls.COLD
+
+        # Condition-based icons
+        if "clear" in condition_lower or "sunny" in condition_lower:
+            return cls.CLEAR
+        elif "partly" in condition_lower or "scattered" in condition_lower:
+            return cls.PARTLY_CLOUDY
+        elif "overcast" in condition_lower:
+            return cls.OVERCAST
+        elif "cloudy" in condition_lower or "cloud" in condition_lower:
+            return cls.CLOUDY
+        elif "rain" in condition_lower or "shower" in condition_lower:
+            if "heavy" in condition_lower or "storm" in condition_lower:
+                return cls.HEAVY_RAIN
+            return cls.RAIN
+        elif "snow" in condition_lower or "blizzard" in condition_lower:
+            return cls.SNOW
+        elif "fog" in condition_lower or "mist" in condition_lower:
+            return cls.FOG
+        elif "wind" in condition_lower:
+            return cls.WIND
+        else:
+            return cls.DEFAULT
+
+
+class AnimationHelper:
+    """Helper class for creating smooth animations."""
+
+    @staticmethod
+    def fade_in(widget, duration=500):
+        """Fade in animation for widget."""
+        widget.configure(fg=GlassmorphicStyle.TEXT_SECONDARY)
+        steps = 20
+        step_time = duration // steps
+
+        def animate_step(step):
+            if step <= steps:
+                # Calculate alpha value (simulated with color intensity)
+                alpha = step / steps
+                color_intensity = int(176 + (255 - 176) * alpha)  # From gray to white
+                color = (
+                    f"#{color_intensity:02x}{color_intensity:02x}{color_intensity:02x}"
+                )
+                widget.configure(fg=color)
+                widget.after(step_time, lambda: animate_step(step + 1))
+            else:
+                widget.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
+
+        animate_step(0)
+
+    @staticmethod
+    def pulse_effect(widget, color=None, duration=1000):
+        """Create a pulsing effect on widget."""
+        original_bg = widget.cget("bg")
+        pulse_color = color or GlassmorphicStyle.ACCENT
+
+        def pulse_step(increasing=True, step=0):
+            if step < 50:
+                # Calculate intermediate color
+                ratio = step / 50.0 if increasing else (50 - step) / 50.0
+                # Simple color interpolation (in real implementation, would be more sophisticated)
+                widget.configure(bg=pulse_color if ratio > 0.5 else original_bg)
+                widget.after(duration // 100, lambda: pulse_step(increasing, step + 1))
+            elif increasing:
+                pulse_step(False, 0)
+            else:
+                widget.configure(bg=original_bg)
+                # Repeat pulse
+                widget.after(duration, lambda: pulse_step(True, 0))
+
+        pulse_step()
+
+
+class GlassmorphicStyle:
+    """Custom styling for glassmorphic design with enhanced visual features."""
+
+    # Enhanced color scheme with gradients
+    BACKGROUND = "#0a0a0a"  # Deeper dark base
+    BACKGROUND_SECONDARY = "#1a1a1a"  # Secondary dark
+    GLASS_BG = "#1e1e1e"  # Enhanced glass background
+    GLASS_BG_LIGHT = "#2a2a2a"  # Lighter glass variant
+    GLASS_BORDER = "#404040"  # More visible glass border
+    GLASS_BORDER_LIGHT = "#555555"  # Lighter border variant
+
+    # Enhanced accent colors
     ACCENT = "#4a9eff"  # Blue accent
+    ACCENT_DARK = "#2563eb"  # Darker blue
+    ACCENT_LIGHT = "#60a5fa"  # Lighter blue
     ACCENT_SECONDARY = "#ff6b4a"  # Orange accent
+    ACCENT_SECONDARY_DARK = "#ea580c"  # Darker orange
+    ACCENT_SECONDARY_LIGHT = "#fb7c56"  # Lighter orange
+
+    # Text colors
     TEXT_PRIMARY = "#ffffff"  # White text
     TEXT_SECONDARY = "#b0b0b0"  # Gray text
-    SUCCESS = "#4ade80"  # Green
-    WARNING = "#fbbf24"  # Yellow
+    TEXT_TERTIARY = "#808080"  # Darker gray text
+    TEXT_ACCENT = "#4a9eff"  # Accent colored text
+
+    # Status colors
+    SUCCESS = "#22c55e"  # Green
+    SUCCESS_LIGHT = "#4ade80"  # Light green
+    WARNING = "#f59e0b"  # Amber
+    WARNING_LIGHT = "#fbbf24"  # Light amber
     ERROR = "#ef4444"  # Red
+    ERROR_LIGHT = "#f87171"  # Light red
+
+    # Weather-specific colors
+    WEATHER_HOT = "#ff4444"  # Hot temperature
+    WEATHER_WARM = "#ff8844"  # Warm temperature
+    WEATHER_COOL = "#4488ff"  # Cool temperature
+    WEATHER_COLD = "#4444ff"  # Cold temperature
 
     # Glassmorphic properties
-    BLUR_RADIUS = 10
-    TRANSPARENCY = 0.1
-    BORDER_RADIUS = 12
+    BLUR_RADIUS = 15
+    TRANSPARENCY = 0.15
+    BORDER_RADIUS = 16
 
-    # Fonts
+    # Enhanced fonts
     FONT_FAMILY = "Segoe UI"
-    FONT_SIZE_LARGE = 16
-    FONT_SIZE_MEDIUM = 12
-    FONT_SIZE_SMALL = 10
+    FONT_FAMILY_MONO = "Consolas"
+    FONT_SIZE_XLARGE = 32  # For main temperature display
+    FONT_SIZE_LARGE = 18
+    FONT_SIZE_MEDIUM = 14
+    FONT_SIZE_SMALL = 12
+    FONT_SIZE_TINY = 10
+
+    @classmethod
+    def get_temperature_color(cls, temperature: float) -> str:
+        """Get color based on temperature value."""
+        if temperature >= 85:
+            return cls.WEATHER_HOT
+        elif temperature >= 70:
+            return cls.WEATHER_WARM
+        elif temperature >= 50:
+            return cls.TEXT_PRIMARY
+        elif temperature >= 32:
+            return cls.WEATHER_COOL
+        else:
+            return cls.WEATHER_COLD
 
 
 class GlassmorphicFrame(tk.Frame):
     """Custom frame with enhanced glassmorphic styling and 3D effects."""
 
     def __init__(
-        self, parent, bg_color=None, border_color=None, elevated=False, **kwargs
+        self,
+        parent,
+        bg_color=None,
+        border_color=None,
+        elevated=False,
+        gradient=False,
+        **kwargs,
     ):
         super().__init__(parent, **kwargs)
 
         self.bg_color = bg_color or GlassmorphicStyle.GLASS_BG
         self.border_color = border_color or GlassmorphicStyle.GLASS_BORDER
         self.elevated = elevated
+        self.gradient = gradient
 
-        # Enhanced styling with 3D effect
+        # Enhanced styling with 3D effect and optional gradient
         if elevated:
             # Create elevated/raised appearance with shadow effect
             self.configure(
-                bg=self.bg_color,
-                highlightbackground="#777777",  # Brighter border for elevation
-                highlightcolor="#999999",  # Even brighter highlight
-                highlightthickness=3,  # Thicker border
+                bg=GlassmorphicStyle.GLASS_BG_LIGHT if gradient else self.bg_color,
+                highlightbackground=GlassmorphicStyle.GLASS_BORDER_LIGHT,
+                highlightcolor="#777777",
+                highlightthickness=3,
                 relief="raised",
-                borderwidth=4,  # Thicker border for more depth
+                borderwidth=4,
             )
         else:
             # Enhanced standard glassmorphic styling with subtle 3D
             self.configure(
                 bg=self.bg_color,
-                highlightbackground="#555555",  # More visible border
-                highlightcolor="#666666",
+                highlightbackground=self.border_color,
+                highlightcolor=GlassmorphicStyle.GLASS_BORDER_LIGHT,
                 highlightthickness=2,
-                relief="ridge",  # Ridge effect for subtle 3D
+                relief="ridge",
                 borderwidth=2,
             )
 
 
 class ModernButton(tk.Button):
-    """Modern styled button with enhanced hover effects and 3D appearance."""
+    """Modern styled button with enhanced hover effects, 3D appearance, and animations."""
 
-    def __init__(self, parent, style="primary", **kwargs):
+    def __init__(self, parent, style="primary", icon=None, **kwargs):
         self.style = style
+        self.icon = icon
         self.default_bg = self._get_bg_color()
         self.hover_bg = self._get_hover_color()
+        self.is_hovered = False
+
+        # Prepare button text with icon if provided
+        text = kwargs.get("text", "")
+        if self.icon:
+            text = f"{self.icon} {text}"
+            kwargs["text"] = text
 
         super().__init__(
             parent,
@@ -105,8 +261,8 @@ class ModernButton(tk.Button):
                 GlassmorphicStyle.FONT_SIZE_MEDIUM,
                 "bold",
             ),
-            relief="raised",  # 3D raised effect
-            borderwidth=3,  # Thicker border for 3D effect
+            relief="raised",
+            borderwidth=3,
             padx=25,
             pady=12,
             cursor="hand2",
@@ -121,12 +277,16 @@ class ModernButton(tk.Button):
         self.bind("<ButtonRelease-1>", self._on_release)
 
     def _on_click(self, event):
-        """Handle button click for pressed effect."""
+        """Handle button click for pressed effect with animation."""
         self.configure(relief="sunken", borderwidth=2)
+        # Add slight color change for click feedback
+        click_color = self._get_click_color()
+        self.configure(bg=click_color)
 
     def _on_release(self, event):
         """Handle button release to restore appearance."""
         self.configure(relief="raised", borderwidth=3)
+        self.configure(bg=self.hover_bg if self.is_hovered else self.default_bg)
 
     def _get_bg_color(self):
         if self.style == "primary":
@@ -146,39 +306,61 @@ class ModernButton(tk.Button):
         # Slightly lighter version of the base color
         base = self._get_bg_color()
         if base == GlassmorphicStyle.ACCENT:
-            return "#5ba3ff"
+            return GlassmorphicStyle.ACCENT_LIGHT
         elif base == GlassmorphicStyle.ACCENT_SECONDARY:
-            return "#ff7a5a"
+            return GlassmorphicStyle.ACCENT_SECONDARY_LIGHT
         elif base == GlassmorphicStyle.SUCCESS:
-            return "#5de690"
+            return GlassmorphicStyle.SUCCESS_LIGHT
         elif base == GlassmorphicStyle.WARNING:
-            return "#fcc534"
+            return GlassmorphicStyle.WARNING_LIGHT
         elif base == GlassmorphicStyle.ERROR:
-            return "#f56565"
+            return GlassmorphicStyle.ERROR_LIGHT
         else:
-            return "#2a2a2a"
+            return GlassmorphicStyle.GLASS_BG_LIGHT
+
+    def _get_click_color(self):
+        # Darker version for click effect
+        base = self._get_bg_color()
+        if base == GlassmorphicStyle.ACCENT:
+            return GlassmorphicStyle.ACCENT_DARK
+        elif base == GlassmorphicStyle.ACCENT_SECONDARY:
+            return GlassmorphicStyle.ACCENT_SECONDARY_DARK
+        else:
+            return base
 
     def _on_enter(self, event):
+        self.is_hovered = True
         self.configure(bg=self.hover_bg)
+        # Add subtle glow effect
+        self.configure(highlightbackground=GlassmorphicStyle.ACCENT_LIGHT)
 
     def _on_leave(self, event):
+        self.is_hovered = False
         self.configure(bg=self.default_bg)
+        self.configure(highlightbackground="")
 
 
 class WeatherCard(GlassmorphicFrame):
-    """Weather information card with glassmorphic styling."""
+    """Enhanced weather information card with improved visual features."""
 
     def __init__(self, parent, gui_ref=None, **kwargs):
-        super().__init__(parent, **kwargs)
+        super().__init__(parent, elevated=True, gradient=True, **kwargs)
         self.gui_ref = gui_ref  # Reference to main GUI for temperature unit
         self.setup_layout()
 
     def setup_layout(self):
-        """Setup the card layout."""
-        # Title
+        """Setup the enhanced card layout with better visual hierarchy."""
+        # Main container with padding
+        main_container = tk.Frame(self, bg=self.bg_color)
+        main_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # Title with icon
+        title_frame = tk.Frame(main_container, bg=self.bg_color)
+        title_frame.pack(fill=tk.X, pady=(0, 15))
+
         self.title_label = tk.Label(
-            self,
-            text="Weather",
+            title_frame,
+            text="🌤️ Weather",
             font=(
                 GlassmorphicStyle.FONT_FAMILY,
                 GlassmorphicStyle.FONT_SIZE_LARGE,
@@ -187,82 +369,244 @@ class WeatherCard(GlassmorphicFrame):
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=self.bg_color,
         )
-        self.title_label.pack(pady=(10, 5))
+        self.title_label.pack()
 
-        # Content frame
-        self.content_frame = tk.Frame(self, bg=self.bg_color)
-        self.content_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
+        # Content frame with center alignment
+        self.content_frame = tk.Frame(main_container, bg=self.bg_color)
+        self.content_frame.pack(fill=tk.BOTH, expand=True)
 
     def update_weather(self, weather: CurrentWeather):
-        """Update the card with weather data."""
+        """Update the card with weather data and enhanced visuals."""
         # Clear existing content
         for widget in self.content_frame.winfo_children():
             widget.destroy()
 
-        # Location
+        # Weather icon (large and prominent)
+        temp_celsius = weather.temperature.to_celsius()
+        icon = WeatherIcons.get_icon(weather.description, temp_celsius)
+        icon_label = tk.Label(
+            self.content_frame,
+            text=icon,
+            font=(GlassmorphicStyle.FONT_FAMILY, 64),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=self.bg_color,
+        )
+        icon_label.pack(pady=(10, 15))
+
+        # Location with enhanced styling
         location_label = tk.Label(
             self.content_frame,
             text=weather.location.display_name,
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_ACCENT,
+            bg=self.bg_color,
+        )
+        location_label.pack(pady=(0, 10))
+
+        # Temperature with color-coded display
+        if self.gui_ref:
+            temp_value, temp_unit = self.gui_ref.convert_temperature(temp_celsius)
+            temp_text = f"{temp_value:.1f}°{temp_unit}"
+        else:
+            temp_text = f"{temp_celsius:.1f}°C"
+            temp_value = temp_celsius
+
+        # Get temperature color based on value
+        temp_color = GlassmorphicStyle.get_temperature_color(temp_value)
+
+        temp_label = tk.Label(
+            self.content_frame,
+            text=temp_text,
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_XLARGE,
+                "bold",
+            ),
+            fg=temp_color,
+            bg=self.bg_color,
+        )
+        temp_label.pack(pady=(0, 5))
+
+        # Condition with better formatting
+        condition_label = tk.Label(
+            self.content_frame,
+            text=weather.description.title(),
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                "italic",
+            ),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=self.bg_color,
+        )
+        condition_label.pack(pady=(0, 20))
+
+        # Enhanced weather details in a grid-like layout
+        details_frame = GlassmorphicFrame(
+            self.content_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+        )
+        details_frame.pack(fill=tk.X, pady=(10, 0))
+
+        # Create two columns for details
+        left_details = tk.Frame(details_frame, bg=details_frame.bg_color)
+        left_details.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=15, pady=15)
+
+        right_details = tk.Frame(details_frame, bg=details_frame.bg_color)
+        right_details.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=15, pady=15)
+
+        # Humidity with enhanced styling
+        humidity_frame = tk.Frame(left_details, bg=details_frame.bg_color)
+        humidity_frame.pack(fill=tk.X, pady=(0, 10))
+
+        humidity_icon = tk.Label(
+            humidity_frame,
+            text="💧",
+            font=(GlassmorphicStyle.FONT_FAMILY, 20),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=details_frame.bg_color,
+        )
+        humidity_icon.pack(side=tk.LEFT)
+
+        humidity_label = tk.Label(
+            humidity_frame,
+            text=f" {weather.humidity}%",
             font=(
                 GlassmorphicStyle.FONT_FAMILY,
                 GlassmorphicStyle.FONT_SIZE_MEDIUM,
                 "bold",
             ),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=self.bg_color,
+            bg=details_frame.bg_color,
         )
-        location_label.pack(pady=(0, 10))
+        humidity_label.pack(side=tk.LEFT)
 
-        # Temperature
-        temp_celsius = weather.temperature.to_celsius()
-        if self.gui_ref:
-            temp_value, temp_unit = self.gui_ref.convert_temperature(temp_celsius)
-            temp_text = f"{temp_value:.1f}{temp_unit}"
-        else:
-            temp_text = f"{temp_celsius:.1f}°C"
-
-        temp_label = tk.Label(
-            self.content_frame,
-            text=temp_text,
-            font=(GlassmorphicStyle.FONT_FAMILY, 24, "bold"),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=self.bg_color,
-        )
-        temp_label.pack()
-
-        # Condition
-        condition_label = tk.Label(
-            self.content_frame,
-            text=weather.description.title(),
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=self.bg_color,
-        )
-        condition_label.pack(pady=(5, 10))
-
-        # Additional info
-        info_frame = tk.Frame(self.content_frame, bg=self.bg_color)
-        info_frame.pack(fill=tk.X)
-
-        # Humidity
-        humidity_label = tk.Label(
-            info_frame,
-            text=f"💧 {weather.humidity}%",
+        humidity_desc = tk.Label(
+            humidity_frame,
+            text=" Humidity",
             font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=self.bg_color,
+            fg=GlassmorphicStyle.TEXT_TERTIARY,
+            bg=details_frame.bg_color,
         )
-        humidity_label.pack(side=tk.LEFT, padx=(0, 10))
+        humidity_desc.pack(side=tk.LEFT)
 
-        # Wind
+        # Wind with enhanced styling
+        wind_frame = tk.Frame(right_details, bg=details_frame.bg_color)
+        wind_frame.pack(fill=tk.X, pady=(0, 10))
+
+        wind_icon = tk.Label(
+            wind_frame,
+            text="💨",
+            font=(GlassmorphicStyle.FONT_FAMILY, 20),
+            fg=GlassmorphicStyle.ACCENT_SECONDARY,
+            bg=details_frame.bg_color,
+        )
+        wind_icon.pack(side=tk.LEFT)
+
         wind_label = tk.Label(
-            info_frame,
-            text=f"💨 {weather.wind.speed}km/h",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=self.bg_color,
+            wind_frame,
+            text=f" {weather.wind.speed:.1f}",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=details_frame.bg_color,
         )
         wind_label.pack(side=tk.LEFT)
+
+        wind_desc = tk.Label(
+            wind_frame,
+            text=" km/h Wind",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            fg=GlassmorphicStyle.TEXT_TERTIARY,
+            bg=details_frame.bg_color,
+        )
+        wind_desc.pack(side=tk.LEFT)
+
+        # Add pressure if available
+        if hasattr(weather, "pressure") and weather.pressure:
+            pressure_frame = tk.Frame(left_details, bg=details_frame.bg_color)
+            pressure_frame.pack(fill=tk.X)
+
+            pressure_icon = tk.Label(
+                pressure_frame,
+                text="🌡️",
+                font=(GlassmorphicStyle.FONT_FAMILY, 20),
+                fg=GlassmorphicStyle.SUCCESS,
+                bg=details_frame.bg_color,
+            )
+            pressure_icon.pack(side=tk.LEFT)
+
+            pressure_label = tk.Label(
+                pressure_frame,
+                text=f" {weather.pressure:.0f}",
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                    "bold",
+                ),
+                fg=GlassmorphicStyle.TEXT_PRIMARY,
+                bg=details_frame.bg_color,
+            )
+            pressure_label.pack(side=tk.LEFT)
+
+            pressure_desc = tk.Label(
+                pressure_frame,
+                text=" hPa",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                fg=GlassmorphicStyle.TEXT_TERTIARY,
+                bg=details_frame.bg_color,
+            )
+            pressure_desc.pack(side=tk.LEFT)
+
+        # Add visibility if available
+        if hasattr(weather, "visibility") and weather.visibility:
+            visibility_frame = tk.Frame(right_details, bg=details_frame.bg_color)
+            visibility_frame.pack(fill=tk.X)
+
+            visibility_icon = tk.Label(
+                visibility_frame,
+                text="👁️",
+                font=(GlassmorphicStyle.FONT_FAMILY, 20),
+                fg=GlassmorphicStyle.WARNING,
+                bg=details_frame.bg_color,
+            )
+            visibility_icon.pack(side=tk.LEFT)
+
+            visibility_label = tk.Label(
+                visibility_frame,
+                text=f" {weather.visibility:.1f}",
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                    "bold",
+                ),
+                fg=GlassmorphicStyle.TEXT_PRIMARY,
+                bg=details_frame.bg_color,
+            )
+            visibility_label.pack(side=tk.LEFT)
+
+            visibility_desc = tk.Label(
+                visibility_frame,
+                text=" km",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                fg=GlassmorphicStyle.TEXT_TERTIARY,
+                bg=details_frame.bg_color,
+            )
+            visibility_desc.pack(side=tk.LEFT)
+
+        # Apply fade-in animation to the main elements
+        AnimationHelper.fade_in(icon_label)
+        AnimationHelper.fade_in(temp_label)
+
+        # Apply subtle pulse effect to temperature for emphasis
+        if temp_value > 85 or temp_value < 32:  # Extreme temperatures
+            AnimationHelper.pulse_effect(temp_label, temp_color)
 
 
 class ModernScrollableFrame(tk.Frame):
@@ -387,52 +731,99 @@ class WeatherDashboardGUI(IUserInterface):
         self.create_status_bar()
 
     def create_header(self):
-        """Create header section."""
-        header_frame = GlassmorphicFrame(self.root, elevated=True)
+        """Create enhanced header section with better visual hierarchy."""
+        header_frame = GlassmorphicFrame(self.root, elevated=True, gradient=True)
         header_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
 
-        # Title
-        title_label = tk.Label(
-            header_frame,
-            text="JTC Capstone - Team 5",
+        # Left side with title and logo
+        left_container = tk.Frame(header_frame, bg=header_frame.bg_color)
+        left_container.pack(side=tk.LEFT, padx=20, pady=15)
+
+        # Logo/Icon
+        logo_label = tk.Label(
+            left_container,
+            text="⛅",  # Weather-themed emoji
+            font=(GlassmorphicStyle.FONT_FAMILY, 28),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=header_frame.bg_color,
+        )
+        logo_label.pack(side=tk.LEFT, padx=(0, 10))
+
+        # Title with gradient-like effect
+        title_frame = tk.Frame(left_container, bg=header_frame.bg_color)
+        title_frame.pack(side=tk.LEFT)
+
+        title_main = tk.Label(
+            title_frame,
+            text="JTC Capstone",
             font=(GlassmorphicStyle.FONT_FAMILY, 24, "bold"),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=header_frame.bg_color,
         )
-        title_label.pack(side=tk.LEFT, padx=20, pady=15)
+        title_main.pack(anchor=tk.W)
 
-        # Right side container for buttons
+        title_sub = tk.Label(
+            title_frame,
+            text="Team 5 Weather Dashboard",
+            font=(GlassmorphicStyle.FONT_FAMILY, 12),
+            fg=GlassmorphicStyle.TEXT_ACCENT,
+            bg=header_frame.bg_color,
+        )
+        title_sub.pack(anchor=tk.W)
+
+        # Right side container for buttons with better layout
         right_container = tk.Frame(header_frame, bg=header_frame.bg_color)
         right_container.pack(side=tk.RIGHT, padx=20, pady=15)
 
-        # Quick actions - main buttons (top row)
+        # Quick actions - main buttons (top row) with enhanced styling
         actions_frame = tk.Frame(right_container, bg=header_frame.bg_color)
         actions_frame.pack()
 
-        self.refresh_btn = ModernButton(
-            actions_frame, text="🔄 Refresh", command=self.refresh_current_weather
-        )
-        self.refresh_btn.pack(side=tk.RIGHT, padx=(10, 0))
-
         self.search_btn = ModernButton(
-            actions_frame, text="🔍 Search City", command=self.show_city_search
+            actions_frame, text="Search City", icon="🔍", command=self.show_city_search
         )
-        self.search_btn.pack(side=tk.RIGHT)
+        self.search_btn.pack(side=tk.LEFT, padx=(0, 10))
 
-        # Temperature unit toggle - below the main buttons
+        self.refresh_btn = ModernButton(
+            actions_frame,
+            text="Refresh",
+            icon="🔄",
+            command=self.refresh_current_weather,
+        )
+        self.refresh_btn.pack(side=tk.LEFT)
+
+        # Temperature unit toggle - below the main buttons with enhanced styling
         temp_toggle_frame = tk.Frame(right_container, bg=header_frame.bg_color)
-        temp_toggle_frame.pack(pady=(10, 0))
+        temp_toggle_frame.pack(pady=(15, 0))
+
+        # Create a more visual temperature toggle
+        temp_toggle_container = GlassmorphicFrame(
+            temp_toggle_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+        )
+        temp_toggle_container.pack()
+
+        temp_icon = tk.Label(
+            temp_toggle_container,
+            text="🌡️",
+            font=(GlassmorphicStyle.FONT_FAMILY, 16),
+            fg=GlassmorphicStyle.ACCENT_SECONDARY,
+            bg=temp_toggle_container.bg_color,
+        )
+        temp_icon.pack(side=tk.LEFT, padx=(10, 5), pady=8)
 
         self.temp_toggle_btn = ModernButton(
-            temp_toggle_frame,
+            temp_toggle_container,
             text="°C / °F",
             style="secondary",
             command=self.toggle_temperature_unit,
         )
-        self.temp_toggle_btn.pack()
+        self.temp_toggle_btn.pack(side=tk.LEFT, padx=(0, 10), pady=5)
 
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
+
+        # Add a subtle animation effect to the logo
+        AnimationHelper.pulse_effect(logo_label, GlassmorphicStyle.ACCENT, 3000)
 
     def create_main_content(self):
         """Create main content area with tabbed interface."""
@@ -462,7 +853,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.create_favorites_tab()
 
     def create_weather_tab(self):
-        """Create current weather tab."""
+        """Create enhanced current weather tab with better visual hierarchy."""
         weather_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
         self.notebook.add(weather_frame, text="🌤️ Current Weather")
 
@@ -472,36 +863,137 @@ class WeatherDashboardGUI(IUserInterface):
             side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10
         )
 
-        # Side panel with controls
-        side_panel = GlassmorphicFrame(weather_frame, elevated=True)
+        # Enhanced side panel with controls
+        side_panel = GlassmorphicFrame(weather_frame, elevated=True, gradient=True)
         side_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
 
-        # City input
-        tk.Label(
-            side_panel,
-            text="Enter City:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+        # Header for side panel
+        panel_header = tk.Frame(side_panel, bg=side_panel.bg_color)
+        panel_header.pack(fill=tk.X, pady=(20, 15))
+
+        header_icon = tk.Label(
+            panel_header,
+            text="🏙️",
+            font=(GlassmorphicStyle.FONT_FAMILY, 24),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=side_panel.bg_color,
+        )
+        header_icon.pack()
+
+        header_text = tk.Label(
+            panel_header,
+            text="City Search",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
+                "bold",
+            ),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=side_panel.bg_color,
-        ).pack(pady=(20, 5))
+        )
+        header_text.pack(pady=(5, 0))
 
-        self.city_entry = ModernEntry(side_panel)
-        self.city_entry.pack(pady=(0, 15), padx=20, fill=tk.X, ipady=8)
+        # City input section with enhanced styling
+        input_section = GlassmorphicFrame(
+            side_panel, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+        )
+        input_section.pack(fill=tk.X, padx=15, pady=(0, 15))
+
+        input_label = tk.Label(
+            input_section,
+            text="Enter City:",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_ACCENT,
+            bg=input_section.bg_color,
+        )
+        input_label.pack(pady=(15, 5))
+
+        self.city_entry = ModernEntry(input_section)
+        self.city_entry.pack(pady=(0, 15), padx=15, fill=tk.X, ipady=10)
+
+        # Placeholder text functionality
+        self.city_entry.insert(0, "e.g., New York, London...")
+        self.city_entry.configure(fg=GlassmorphicStyle.TEXT_TERTIARY)
+
+        def on_entry_click(event):
+            if self.city_entry.get() == "e.g., New York, London...":
+                self.city_entry.delete(0, tk.END)
+                self.city_entry.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
+
+        def on_entry_leave(event):
+            if not self.city_entry.get():
+                self.city_entry.insert(0, "e.g., New York, London...")
+                self.city_entry.configure(fg=GlassmorphicStyle.TEXT_TERTIARY)
+
+        self.city_entry.bind("<FocusIn>", on_entry_click)
+        self.city_entry.bind("<FocusOut>", on_entry_leave)
+
+        # Action buttons with enhanced styling
+        button_section = tk.Frame(side_panel, bg=side_panel.bg_color)
+        button_section.pack(fill=tk.X, padx=15)
 
         # Get weather button
         self.get_weather_btn = ModernButton(
-            side_panel, text="Get Weather", command=self.get_weather_for_city
+            button_section,
+            text="Get Weather",
+            icon="🌤️",
+            command=self.get_weather_for_city,
         )
-        self.get_weather_btn.pack(pady=10)
+        self.get_weather_btn.pack(fill=tk.X, pady=(0, 10))
 
         # Add to favorites button
         self.add_favorite_btn = ModernButton(
-            side_panel,
-            text="⭐ Add to Favorites",
+            button_section,
+            text="Add to Favorites",
+            icon="⭐",
             style="secondary",
             command=self.add_to_favorites,
         )
-        self.add_favorite_btn.pack(pady=5)
+        self.add_favorite_btn.pack(fill=tk.X, pady=(0, 10))
+
+        # Quick access section
+        quick_access = tk.Frame(side_panel, bg=side_panel.bg_color)
+        quick_access.pack(fill=tk.X, padx=15, pady=(15, 0))
+
+        quick_label = tk.Label(
+            quick_access,
+            text="Quick Actions",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_SMALL,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=side_panel.bg_color,
+        )
+        quick_label.pack(pady=(0, 10))
+
+        # Current location button
+        location_btn = ModernButton(
+            quick_access,
+            text="Current Location",
+            icon="📍",
+            style="success",
+            command=lambda: messagebox.showinfo(
+                "Feature Coming Soon",
+                "Location detection will be available in a future update.",
+            ),
+        )
+        location_btn.pack(fill=tk.X, pady=(0, 5))
+
+        # Random city button
+        random_btn = ModernButton(
+            quick_access,
+            text="Random City",
+            icon="🎲",
+            style="warning",
+            command=self.get_random_city_weather,
+        )
+        random_btn.pack(fill=tk.X)
 
         # Bind Enter key to city entry
         self.city_entry.bind("<Return>", lambda e: self.get_weather_for_city())
@@ -831,6 +1323,19 @@ class WeatherDashboardGUI(IUserInterface):
             bg=card.bg_color,
         )
         condition_label.pack(pady=(5, 10))
+
+        # Weather icon
+        icon = WeatherIcons.get_icon(
+            day_data.description, day_data.temperature_high.value
+        )
+        icon_label = tk.Label(
+            card,
+            text=icon,
+            font=(GlassmorphicStyle.FONT_FAMILY, 24),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=card.bg_color,
+        )
+        icon_label.pack(pady=(5, 10))
 
         return card
 
@@ -1369,6 +1874,44 @@ class WeatherDashboardGUI(IUserInterface):
             return temp_fahrenheit, "°F"
         else:
             return temp_celsius, "°C"
+
+    def get_random_city_weather(self):
+        """Get weather for a random city for demonstration purposes."""
+        import random
+
+        # List of interesting cities around the world
+        cities = [
+            "Tokyo",
+            "London",
+            "Paris",
+            "New York",
+            "Sydney",
+            "Dubai",
+            "Singapore",
+            "Rome",
+            "Barcelona",
+            "Amsterdam",
+            "Bangkok",
+            "San Francisco",
+            "Toronto",
+            "Berlin",
+            "Vienna",
+            "Prague",
+            "Stockholm",
+            "Copenhagen",
+            "Helsinki",
+            "Reykjavik",
+        ]
+
+        random_city = random.choice(cities)
+
+        # Clear the entry and set the random city
+        self.city_entry.delete(0, tk.END)
+        self.city_entry.insert(0, random_city)
+        self.city_entry.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
+
+        # Get the weather for the random city
+        self.get_weather_for_city()
 
 
 class ModernEntry(tk.Entry):
