@@ -250,14 +250,27 @@ class GlassmorphicFrame(tk.Frame):
         border_color=None,
         elevated=False,
         gradient=False,
+        blur_intensity=None,  # Added blur_intensity parameter
         **kwargs,
     ):
+        # Remove blur_intensity from kwargs if it exists to avoid passing it to tkinter
+        if "blur_intensity" in kwargs:
+            blur_intensity = kwargs.pop("blur_intensity")
+
         super().__init__(parent, **kwargs)
 
         self.bg_color = bg_color or GlassmorphicStyle.GLASS_BG
         self.border_color = border_color or GlassmorphicStyle.GLASS_BORDER
         self.elevated = elevated
         self.gradient = gradient
+
+        # Set blur intensity (higher value = more blur effect in border)
+        blur_effect = 3  # Default
+        if blur_intensity is not None:
+            if blur_intensity > 10:
+                blur_effect = 5  # High blur
+            elif blur_intensity > 5:
+                blur_effect = 4  # Medium blur
 
         # Enhanced styling with 3D effect and optional gradient
         if elevated:
@@ -266,9 +279,9 @@ class GlassmorphicFrame(tk.Frame):
                 bg=GlassmorphicStyle.GLASS_BG_LIGHT if gradient else self.bg_color,
                 highlightbackground=GlassmorphicStyle.GLASS_BORDER_LIGHT,
                 highlightcolor="#777777",
-                highlightthickness=3,
+                highlightthickness=blur_effect,
                 relief="raised",
-                borderwidth=4,
+                borderwidth=blur_effect,
             )
         else:
             # Enhanced standard glassmorphic styling with subtle 3D
@@ -1999,25 +2012,26 @@ class WeatherDashboardGUI(IUserInterface):
             bg_color="#1d1d2b",
             border_color="#3a3a4a",
             elevated=True,
+            gradient=True,
             blur_intensity=20,
         )
         poem_container.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
-        
+
         # Inner decorative frame with more padding and visual appeal
         poem_frame = tk.Frame(poem_container, bg="#1d1d2b", padx=20, pady=20)
         poem_frame.pack(fill=tk.BOTH, expand=True)
-        
+
         # Create decorative elements
         # Top decorative element
         top_decor = tk.Frame(poem_frame, height=3, bg=GlassmorphicStyle.ACCENT_LIGHT)
         top_decor.pack(fill=tk.X, pady=(0, 20))
-        
+
         # Poem type and title with enhanced styling
         if hasattr(poem, "poem_type"):
             # Enhanced icons with more visual appeal
             type_icons = {"haiku": "🌸", "phrase": "�", "limerick": "🎵"}
             icon = type_icons.get(getattr(poem, "poem_type", ""), "✨")
-            
+
             # Use .title if it exists, else fallback to .poem_type or class name
             if hasattr(poem, "title"):
                 title_text = f"{icon} {poem.title} {icon}"
@@ -2026,7 +2040,9 @@ class WeatherDashboardGUI(IUserInterface):
             else:
                 title_text = f"{icon} Weather Poetry {icon}"
         else:
-            title_text = poem.title if hasattr(poem, "title") else "✨ Weather Poetry ✨"
+            title_text = (
+                poem.title if hasattr(poem, "title") else "✨ Weather Poetry ✨"
+            )
 
         # Modern font for title with larger size
         title_label = tk.Label(
@@ -2044,7 +2060,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create a decorative frame for the poem text
         poem_text_frame = tk.Frame(
-            poem_frame, 
+            poem_frame,
             bg="#252535",
             bd=2,
             relief="solid",
@@ -2053,7 +2069,7 @@ class WeatherDashboardGUI(IUserInterface):
             highlightthickness=1,
         )
         poem_text_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
-        
+
         # Inner padding frame
         padding_frame = tk.Frame(poem_text_frame, bg="#252535", padx=20, pady=20)
         padding_frame.pack(fill=tk.BOTH, expand=True)
@@ -2091,7 +2107,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Insert poem text with proper formatting
         text_widget.configure(state=tk.NORMAL)
-        
+
         # Center-align the text
         text_widget.tag_configure("center", justify="center")
 
@@ -2112,7 +2128,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         text_widget.configure(state=tk.DISABLED)
         text_widget.pack(fill=tk.BOTH, expand=True)
-        
+
         # Bottom decorative element
         bottom_decor = tk.Frame(poem_frame, height=3, bg=GlassmorphicStyle.ACCENT_LIGHT)
         bottom_decor.pack(fill=tk.X, pady=(20, 10))
@@ -2122,7 +2138,7 @@ class WeatherDashboardGUI(IUserInterface):
             timestamp = poem.created_at.strftime("%B %d, %Y at %I:%M %p")
             meta_frame = tk.Frame(poem_frame, bg="#1d1d2b")
             meta_frame.pack(fill=tk.X, pady=(5, 0))
-            
+
             meta_label = tk.Label(
                 meta_frame,
                 text=f"✦ Created: {timestamp} ✦",
@@ -2143,20 +2159,19 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create scrollable area with enhanced styling
         collection_scroll = ModernScrollableFrame(
-            self.poetry_content, 
-            bg_color="#151525"  # Darker background for contrast
+            self.poetry_content, bg_color="#151525"  # Darker background for contrast
         )
         collection_scroll.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
         # Collection header with decorative elements
         header_frame = GlassmorphicFrame(
-            collection_scroll.scrollable_frame, 
+            collection_scroll.scrollable_frame,
             bg_color="#202035",
             border_color="#353555",
-            elevated=True
+            elevated=True,
         )
         header_frame.pack(fill=tk.X, pady=(0, 25), padx=10)
-        
+
         # Top decorative line
         tk.Frame(header_frame, height=3, bg="#5a80ff").pack(fill=tk.X)
 
@@ -2180,7 +2195,7 @@ class WeatherDashboardGUI(IUserInterface):
             justify=tk.CENTER,
         )
         subtitle_label.pack(pady=(0, 15))
-        
+
         # Bottom decorative line
         tk.Frame(header_frame, height=3, bg="#5a80ff").pack(fill=tk.X)
 
@@ -2188,18 +2203,19 @@ class WeatherDashboardGUI(IUserInterface):
         for i, poem in enumerate(poems):
             # Create poem card with gradient effect
             poem_card = GlassmorphicFrame(
-                collection_scroll.scrollable_frame, 
+                collection_scroll.scrollable_frame,
                 bg_color="#1d1d2b",
                 border_color="#3d3d5d",
                 elevated=True,
-                blur_intensity=15
+                gradient=True,
+                blur_intensity=15,
             )
             poem_card.pack(fill=tk.X, pady=15, padx=10)
 
             # Poem header with decorative element
             poem_header = tk.Frame(poem_card, bg="#1d1d2b")
             poem_header.pack(fill=tk.X, padx=15)
-            
+
             # Top mini-decoration
             tk.Frame(poem_header, height=2, bg=GlassmorphicStyle.ACCENT_LIGHT).pack(
                 fill=tk.X, pady=(15, 10)
@@ -2217,7 +2233,9 @@ class WeatherDashboardGUI(IUserInterface):
                     title_text = f"{icon} {poem.poem_type.title()} {icon}"
             else:
                 title_text = (
-                    poem.title if hasattr(poem, "title") else f"✨ Weather Poetry {i+1} ✨"
+                    poem.title
+                    if hasattr(poem, "title")
+                    else f"✨ Weather Poetry {i+1} ✨"
                 )
 
             # Elegant title styling
@@ -2236,7 +2254,7 @@ class WeatherDashboardGUI(IUserInterface):
 
             # Create decorated frame for the poem content
             poem_content_frame = tk.Frame(
-                poem_card, 
+                poem_card,
                 bg="#252535",
                 bd=1,
                 relief="solid",
@@ -2245,7 +2263,7 @@ class WeatherDashboardGUI(IUserInterface):
                 highlightthickness=1,
             )
             poem_content_frame.pack(fill=tk.X, padx=15, pady=10)
-            
+
             # Inner padding frame
             inner_padding = tk.Frame(poem_content_frame, bg="#252535", padx=15, pady=15)
             inner_padding.pack(fill=tk.X)
@@ -2280,7 +2298,7 @@ class WeatherDashboardGUI(IUserInterface):
                 selectbackground="#6a8eff",  # Softer selection color
                 selectforeground="#ffffff",
             )
-            
+
             # Center alignment
             text_widget.tag_configure("center", justify="center")
 
@@ -2303,7 +2321,7 @@ class WeatherDashboardGUI(IUserInterface):
 
             text_widget.configure(state=tk.DISABLED)
             text_widget.pack(fill=tk.X)
-            
+
             # Bottom decoration
             bottom_frame = tk.Frame(poem_card, bg="#1d1d2b")
             bottom_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
