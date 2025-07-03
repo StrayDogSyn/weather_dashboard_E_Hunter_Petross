@@ -28,11 +28,15 @@ weather_dashboard_E_Hunter_Petross/
 │   │   ├── 📄 weather_api.py          # OpenWeatherMap API client
 │   │   ├── 📄 poetry_service.py       # Weather poetry generation
 │   │   ├── 📄 cache_service.py        # Caching functionality
-│   │   └── 📄 data_storage.py         # Data persistence
+│   │   ├── 📄 data_storage.py         # JSON data persistence
+│   │   ├── 📄 sql_data_storage.py     # SQL database integration
+│   │   ├── 📄 storage_factory.py      # Storage implementation factory
+│   │   └── 📄 location_service.py     # Geolocation services
 │   ├── 📁 models/               # Data models and schemas
 │   │   ├── 📄 __init__.py
 │   │   ├── 📄 weather_models.py       # Weather data models
-│   │   └── 📄 capstone_models.py      # Capstone feature models
+│   │   ├── 📄 capstone_models.py      # Capstone feature models
+│   │   └── 📄 database_models.py      # SQLAlchemy database models
 │   ├── 📁 interfaces/           # Abstract interfaces
 │   │   ├── 📄 __init__.py
 │   │   └── 📄 weather_interfaces.py   # Interface definitions

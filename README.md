@@ -17,21 +17,26 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **🌡️ Current Weather**: Real-time weather conditions for any city
 - **📅 Weather Forecast**: Detailed multi-day weather forecasts
 - **⭐ Favorite Cities**: Save and manage your preferred locations
+- **📍 Location Detection**: Automatic geolocation to show your local weather
+- **🌡️ Temperature Unit Toggle**: Quick switching between Celsius and Fahrenheit
 
 ### Advanced Capstone Features
 
 - **🌍 City Comparison**: Side-by-side weather comparison between cities
 - **📔 Weather Journal**: Track daily weather with mood and activity logging
 - **🎯 Activity Suggestions**: Weather-based activity recommendations
-- **🎨 Weather Poetry**: AI-generated poems inspired by current weather
-- **💾 Data Management**: Intelligent caching and data storage
+- **🎨 Weather Poetry**: AI-generated poems inspired by current weather with beautiful display
+- **🗃️ SQL Database Integration**: Robust data persistence with SQLAlchemy ORM
+- **💾 Data Management**: Intelligent caching and flexible storage options
 
 ### Modern GUI Design
 
-- **🎨 Glassmorphic Interface**: Modern dark theme with glass-like effects
-- **📱 Responsive Layout**: Tabbed interface with intuitive navigation
-- **🎯 Interactive Elements**: Custom styled buttons and smooth interactions
-- **📊 Data Visualization**: Beautiful weather cards and information displays
+- **🎨 Enhanced Glassmorphic Interface**: Modern dark theme with advanced glass-like effects and blur controls
+- **📱 Responsive Layout**: Tabbed interface with intuitive navigation and scrollable panels
+- **🎯 Interactive Elements**: Custom styled buttons with modern hover animations and visual feedback
+- **📊 Data Visualization**: Beautiful weather cards and elegantly styled information displays
+- **✨ Poetry Display**: Artistically rendered weather poems with decorative elements and elegant typography
+- **🔄 Auto-Refresh**: Convenient auto-refresh functionality with status indicators
 
 ## 🚀 Quick Start
 
@@ -324,3 +329,20 @@ The project includes several configuration files for development tools:
 - ✅ **Quality gates**: All code must pass formatting, linting, and type checks
 - ✅ **Security scanning**: Integrated Bandit and Safety vulnerability detection
 - ✅ **Configuration files**: Added `.flake8`, `pyproject.toml` for tool configuration
+
+## 🎨 Enhanced Poetry Display
+
+The Weather Dashboard includes a beautifully designed poetry feature that generates and displays weather-inspired poems:
+
+### Poetry Features
+
+- **Elegant Typography**: Uses Georgia and Palatino Linotype fonts for elegant display
+- **Beautiful Layout**: Decorative elements and proper spacing enhance readability
+- **Multiple Poem Types**: Supports haikus, limericks, and free-form poems
+- **Visual Effects**: Glassmorphic containers with custom blur effects
+- **Collection View**: Beautifully formatted poetry collections with consistent styling
+- **Center-Aligned Text**: Properly formatted poetry with appropriate line breaks
+- **Dynamic Sizing**: Adjusts text area size based on poem type and length
+- **Decorative Elements**: Subtle borders, accent lines, and thematic icons
+
+The poetry display uses modern UI techniques to present weather-inspired poems in an engaging, visually pleasing format.

@@ -35,13 +35,17 @@ weather_dashboard_E_Hunter_Petross/
 │   ├── models/                 # Domain models (Entities)
 │   │   ├── __init__.py
 │   │   ├── weather_models.py       # Weather domain models
-│   │   └── capstone_models.py      # Capstone feature models
+│   │   ├── capstone_models.py      # Capstone feature models
+│   │   └── database_models.py      # SQLAlchemy ORM models
 │   ├── services/               # External services (Interface Adapters)
 │   │   ├── __init__.py
 │   │   ├── weather_api.py          # OpenWeatherMap API service
 │   │   ├── poetry_service.py       # Weather poetry generation
 │   │   ├── cache_service.py        # Caching functionality
-│   │   └── data_storage.py         # Data persistence
+│   │   ├── data_storage.py         # JSON data persistence
+│   │   ├── sql_data_storage.py     # SQL database integration
+│   │   ├── storage_factory.py      # Storage implementation factory
+│   │   └── location_service.py     # Geolocation detection service
 │   ├── ui/                     # User interface layer (Frameworks & Drivers)
 │   │   ├── __init__.py
 │   │   └── gui_interface.py        # Modern TKinter GUI

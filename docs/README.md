@@ -16,7 +16,11 @@ Detailed explanation of the Clean Architecture implementation, design patterns, 
 
 Security best practices, API key management, and secure configuration guidelines.
 
-### 📝 [Week 11 Reflection](Week11_Reflection.md)
+### �️ [SQL Database Integration](SQL_DATABASE.md)
+
+Detailed documentation on the SQLite database implementation, data models, and migration process.
+
+### �📝 [Week 11 Reflection](Week11_Reflection.md)
 
 Capstone project reflection, planning, and milestone documentation.
 
@@ -24,6 +28,7 @@ Capstone project reflection, planning, and milestone documentation.
 
 - **For Developers**: Start with [Architecture Documentation](architecture.md) and [Project Structure](project_structure.md)
 - **For Setup**: Refer to [Security Guidelines](security.md) for proper API key configuration
+- **For Database Implementation**: Check [SQL Database Integration](SQL_DATABASE.md) for storage details
 - **For Project Context**: Review [Week 11 Reflection](Week11_Reflection.md) for project goals and planning
 - **For Resources**: See [Works Cited](#works-cited) for all tools, libraries, and learning resources used
 
@@ -46,17 +51,21 @@ This section documents all major tools, extensions, libraries, and learning reso
 
 - **[tkinter](https://docs.python.org/3/library/tkinter.html)** - GUI framework (built-in Python library)
 - **[requests](https://requests.readthedocs.io/)** - HTTP library for API calls
+- **[SQLAlchemy](https://www.sqlalchemy.org/)** - SQL toolkit and ORM for database integration
 - **[json](https://docs.python.org/3/library/json.html)** - JSON data handling (built-in Python library)
 - **[datetime](https://docs.python.org/3/library/datetime.html)** - Date and time handling (built-in Python library)
 - **[typing](https://docs.python.org/3/library/typing.html)** - Type hints support (built-in Python library)
 - **[dataclasses](https://docs.python.org/3/library/dataclasses.html)** - Data class decorators (built-in Python library)
 - **[enum](https://docs.python.org/3/library/enum.html)** - Enumeration support (built-in Python library)
 - **[logging](https://docs.python.org/3/library/logging.html)** - Logging framework (built-in Python library)
+- **[sqlite3](https://docs.python.org/3/library/sqlite3.html)** - SQLite database interface (built-in Python library)
 
 ### APIs & External Services
 
 - **[OpenWeatherMap API](https://openweathermap.org/api)** - Weather data provider
 - **[PoetryDB API](https://poetrydb.org/)** - Poetry and literature data
+- **[ipify API](https://www.ipify.org/)** - IP address detection for geolocation
+- **[ipapi.co](https://ipapi.co/)** - IP-based geolocation service
 
 ### Documentation & Learning Resources
 
