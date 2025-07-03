@@ -307,10 +307,10 @@ class ModernButton(tk.Button):
                 GlassmorphicStyle.FONT_SIZE_SMALL,
                 "bold",
             ),
-            relief="flat",             # Flat modern style
-            borderwidth=0,             # No border for cleaner look
-            padx=12,                   # Balanced horizontal padding
-            pady=6,                    # Reduced vertical padding for more compact look
+            relief="flat",  # Flat modern style
+            borderwidth=0,  # No border for cleaner look
+            padx=12,  # Balanced horizontal padding
+            pady=6,  # Reduced vertical padding for more compact look
             cursor="hand2",
             activebackground=self.hover_bg,
             activeforeground=GlassmorphicStyle.TEXT_PRIMARY,
@@ -333,12 +333,14 @@ class ModernButton(tk.Button):
         self.configure(bg=click_color)
         # Add subtle shadow effect
         self.configure(highlightbackground=GlassmorphicStyle.GLASS_BORDER)
-        
+
     def _on_release(self, event):
         """Handle button release to restore appearance with modern style."""
         self.configure(bg=self.hover_bg if self.is_hovered else self.default_bg)
         # Restore highlight to match background for seamless look
-        self.configure(highlightbackground=self.hover_bg if self.is_hovered else self.default_bg)
+        self.configure(
+            highlightbackground=self.hover_bg if self.is_hovered else self.default_bg
+        )
 
     def _get_bg_color(self):
         if self.style == "primary":
@@ -392,7 +394,9 @@ class ModernButton(tk.Button):
         self.is_hovered = False
         self.configure(bg=self.default_bg)
         # Match highlight to background for seamless look
-        self.configure(highlightbackground=self.default_bg, highlightcolor=self.default_bg)
+        self.configure(
+            highlightbackground=self.default_bg, highlightcolor=self.default_bg
+        )
         # Restore normal text
         self.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
 
@@ -723,12 +727,14 @@ class WeatherDashboardGUI(IUserInterface):
         )
         self.temperature_unit = "C"  # Default to Celsius, can be "C" or "F"
         self.auto_refresh = False  # Auto-refresh state
-        self.refresh_interval = 300000  # Default refresh interval: 5 minutes (in milliseconds)
+        self.refresh_interval = (
+            300000  # Default refresh interval: 5 minutes (in milliseconds)
+        )
         self.refresh_timer = None  # Store the timer ID for auto-refresh
         self.setup_window()
         self.setup_styles()
         self.create_layout()
-        
+
         # Clean up any stray widgets
         self.cleanup_stray_widgets()
 
@@ -869,28 +875,30 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create a modern toolbar with rounded corners
         toolbar_frame = GlassmorphicFrame(
-            right_container, 
+            right_container,
             bg_color="#2a2a2a",
             border_color="#3a3a3a",
         )
         toolbar_frame.pack(pady=5)
-        
+
         actions_frame = tk.Frame(toolbar_frame, bg="#2a2a2a")
         actions_frame.pack(padx=8, pady=5)
-        
+
         # Search button
         self.search_btn = ModernButton(
-            actions_frame, 
-            text="Search City", 
-            icon="🔍", 
+            actions_frame,
+            text="Search City",
+            icon="🔍",
             command=self.show_city_search,
-            style="primary"
+            style="primary",
         )
         self.search_btn.pack(side=tk.LEFT, padx=3)
-        
+
         # Modern separator
-        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=3)
-        
+        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(
+            side=tk.LEFT, fill=tk.Y, padx=5, pady=3
+        )
+
         # Refresh and Auto-refresh as a logical group
         self.refresh_btn = ModernButton(
             actions_frame,
@@ -899,7 +907,7 @@ class WeatherDashboardGUI(IUserInterface):
             command=self.refresh_current_weather,
         )
         self.refresh_btn.pack(side=tk.LEFT, padx=3)
-        
+
         self.auto_refresh_btn = ModernButton(
             actions_frame,
             text="Auto",  # Even shorter for modern look
@@ -908,10 +916,12 @@ class WeatherDashboardGUI(IUserInterface):
             style="primary",
         )
         self.auto_refresh_btn.pack(side=tk.LEFT, padx=3)
-        
+
         # Modern separator
-        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=3)
-        
+        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(
+            side=tk.LEFT, fill=tk.Y, padx=5, pady=3
+        )
+
         # Temperature controls
         temp_icon = tk.Label(
             actions_frame,
@@ -921,7 +931,7 @@ class WeatherDashboardGUI(IUserInterface):
             bg="#2a2a2a",
         )
         temp_icon.pack(side=tk.LEFT, padx=(0, 2))
-        
+
         self.temp_toggle_btn = ModernButton(
             actions_frame,
             text="°C/°F",
@@ -1672,12 +1682,14 @@ class WeatherDashboardGUI(IUserInterface):
                     try:
                         bg_color = widget.cget("bg")
                         if bg_color in ("#f59e0b", "#fbbf24"):  # Warning colors
-                            text = widget.cget("text") if hasattr(widget, "cget") else ""
+                            text = (
+                                widget.cget("text") if hasattr(widget, "cget") else ""
+                            )
                             if "Auto-Refresh" in text:
                                 widget.destroy()
                     except (tk.TclError, AttributeError):
                         pass
-                    
+
                 # Recursively check children
                 if hasattr(widget, "winfo_children"):
                     for child in widget.winfo_children():
@@ -1685,7 +1697,11 @@ class WeatherDashboardGUI(IUserInterface):
                             try:
                                 bg_color = child.cget("bg")
                                 if bg_color in ("#f59e0b", "#fbbf24"):  # Warning colors
-                                    text = child.cget("text") if hasattr(child, "cget") else ""
+                                    text = (
+                                        child.cget("text")
+                                        if hasattr(child, "cget")
+                                        else ""
+                                    )
                                     if "Auto-Refresh" in text:
                                         child.destroy()
                             except (tk.TclError, AttributeError):
@@ -2016,7 +2032,7 @@ class WeatherDashboardGUI(IUserInterface):
                 poem_height = 10
             elif poem.poem_type == "limerick":
                 poem_height = 12
-        
+
         text_widget = tk.Text(
             poem_frame,
             font=(GlassmorphicStyle.FONT_FAMILY, 14),
@@ -2040,9 +2056,13 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Insert poem text with proper formatting
         text_widget.configure(state=tk.NORMAL)
-        
+
         # Use formatted_text for haikus (line breaks instead of slashes)
-        if hasattr(poem, "poem_type") and poem.poem_type == "haiku" and hasattr(poem, "formatted_text"):
+        if (
+            hasattr(poem, "poem_type")
+            and poem.poem_type == "haiku"
+            and hasattr(poem, "formatted_text")
+        ):
             text_widget.insert(tk.END, poem.formatted_text)
         # Format limerick text with line breaks at / characters
         elif hasattr(poem, "poem_type") and poem.poem_type == "limerick":
@@ -2051,7 +2071,7 @@ class WeatherDashboardGUI(IUserInterface):
             text_widget.insert(tk.END, formatted_limerick)
         else:
             text_widget.insert(tk.END, poem_text)
-            
+
         text_widget.configure(state=tk.DISABLED)
 
         text_widget.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
@@ -2119,7 +2139,7 @@ class WeatherDashboardGUI(IUserInterface):
             if hasattr(poem, "poem_type"):
                 type_icons = {"haiku": "🌸", "phrase": "💭", "limerick": "🎵"}
                 icon = type_icons.get(poem.poem_type, "🎨")
-                
+
                 # Use title if exists, else use poem_type
                 if hasattr(poem, "title") and poem.title:
 
@@ -2152,7 +2172,7 @@ class WeatherDashboardGUI(IUserInterface):
                     poem_height = 8
                 elif poem.poem_type == "limerick":
                     poem_height = 10
-            
+
             text_widget = tk.Text(
                 poem_card,
                 font=(GlassmorphicStyle.FONT_FAMILY, 12),
@@ -2176,7 +2196,7 @@ class WeatherDashboardGUI(IUserInterface):
 
             # Insert poem text with proper formatting
             text_widget.configure(state=tk.NORMAL)
-            
+
             # Use formatted_text for haikus and limericks
             if hasattr(poem, "poem_type") and hasattr(poem, "formatted_text"):
                 if poem.poem_type in ["haiku", "limerick"]:
@@ -2190,7 +2210,7 @@ class WeatherDashboardGUI(IUserInterface):
                 text_widget.insert(tk.END, formatted_limerick)
             else:
                 text_widget.insert(tk.END, poem_text)
-                
+
             text_widget.configure(state=tk.DISABLED)
 
             text_widget.pack(fill=tk.X, padx=15, pady=(0, 15))
@@ -2319,7 +2339,7 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=GlassmorphicStyle.SUCCESS,
                 activebackground=GlassmorphicStyle.SUCCESS_LIGHT,
                 highlightbackground=GlassmorphicStyle.SUCCESS,  # Match for rounded corners
-                highlightcolor=GlassmorphicStyle.SUCCESS
+                highlightcolor=GlassmorphicStyle.SUCCESS,
             )
             self.update_status("Auto-refresh enabled (5 minutes)")
         else:
@@ -2330,14 +2350,16 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=GlassmorphicStyle.ACCENT,
                 activebackground=GlassmorphicStyle.ACCENT_LIGHT,
                 highlightbackground=GlassmorphicStyle.ACCENT,  # Match for rounded corners
-                highlightcolor=GlassmorphicStyle.ACCENT
+                highlightcolor=GlassmorphicStyle.ACCENT,
             )
             self.update_status("Auto-refresh disabled")
 
     def start_auto_refresh(self):
         """Start the auto-refresh timer."""
         self.refresh_current_weather()  # Refresh immediately
-        self.refresh_timer = self.root.after(self.refresh_interval, self.start_auto_refresh)
+        self.refresh_timer = self.root.after(
+            self.refresh_interval, self.start_auto_refresh
+        )
 
     def stop_auto_refresh(self):
         """Stop the auto-refresh timer."""
