@@ -304,13 +304,13 @@ class ModernButton(tk.Button):
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             font=(
                 GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                GlassmorphicStyle.FONT_SIZE_SMALL,  # Smaller font
                 "bold",
             ),
             relief="raised",
-            borderwidth=3,
-            padx=25,
-            pady=12,
+            borderwidth=2,  # Reduced border
+            padx=15,        # Reduced horizontal padding
+            pady=8,         # Reduced vertical padding
             cursor="hand2",
             activebackground=self.hover_bg,
             activeforeground=GlassmorphicStyle.TEXT_PRIMARY,
@@ -718,9 +718,15 @@ class WeatherDashboardGUI(IUserInterface):
         self.setup_window()
         self.setup_styles()
         self.create_layout()
+        
+        # Clean up any stray widgets
+        self.cleanup_stray_widgets()
 
         # Callback storage
         self.callbacks = {}
+
+        # Cleanup stray widgets on startup
+        self.cleanup_stray_widgets()
 
     def setup_window(self):
         """Setup main window properties."""
@@ -858,7 +864,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.search_btn = ModernButton(
             actions_frame, text="Search City", icon="🔍", command=self.show_city_search
         )
-        self.search_btn.pack(side=tk.LEFT, padx=(0, 10))
+        self.search_btn.pack(side=tk.LEFT, padx=(0, 5))  # Reduced spacing
 
         self.refresh_btn = ModernButton(
             actions_frame,
@@ -866,12 +872,12 @@ class WeatherDashboardGUI(IUserInterface):
             icon="🔄",
             command=self.refresh_current_weather,
         )
-        self.refresh_btn.pack(side=tk.LEFT, padx=(0, 10))
+        self.refresh_btn.pack(side=tk.LEFT, padx=(0, 5))  # Reduced spacing
 
         # Auto-refresh toggle button with consistent styling
         self.auto_refresh_btn = ModernButton(
             actions_frame,
-            text="Auto-Refresh: OFF",
+            text="Auto-Refresh",  # Shortened text 
             icon="⏱️",
             command=self.toggle_auto_refresh,
             style="primary",  # Match primary button style for consistency
@@ -879,33 +885,24 @@ class WeatherDashboardGUI(IUserInterface):
         self.auto_refresh_btn.pack(side=tk.LEFT)
 
         # Temperature unit toggle - below the main buttons with enhanced styling
-        temp_toggle_frame = tk.Frame(
-            right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT
-        )
-        temp_toggle_frame.pack(fill=tk.X)
-
-        # Create a more visual temperature toggle
-        temp_toggle_container = GlassmorphicFrame(
-            temp_toggle_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
-        )
-        temp_toggle_container.pack(fill=tk.X)
-
+        # Add temperature toggle directly to actions frame for a more compact layout
+        # Skip the extra frame containers for a cleaner layout
         temp_icon = tk.Label(
-            temp_toggle_container,
+            actions_frame,
             text="🌡️",
-            font=(GlassmorphicStyle.FONT_FAMILY, 16),
+            font=(GlassmorphicStyle.FONT_FAMILY, 14),  # Smaller font
             fg=GlassmorphicStyle.ACCENT_SECONDARY,
             bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
-        temp_icon.pack(side=tk.LEFT, padx=(10, 5), pady=8)
+        temp_icon.pack(side=tk.LEFT, padx=(10, 2), pady=5)  # Reduced spacing
 
         self.temp_toggle_btn = ModernButton(
-            temp_toggle_container,
-            text="°C / °F",
+            actions_frame,
+            text="°C/°F",  # Shortened text
             style="secondary",
             command=self.toggle_temperature_unit,
         )
-        self.temp_toggle_btn.pack(side=tk.LEFT, padx=(0, 10), pady=5)
+        self.temp_toggle_btn.pack(side=tk.LEFT, padx=(0, 5), pady=5)  # Reduced padding
 
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
@@ -1639,6 +1636,35 @@ class WeatherDashboardGUI(IUserInterface):
             ),
         )
 
+    def cleanup_stray_widgets(self):
+        """Clean up any stray widgets that might be showing in the UI."""
+        # Iterate through all children of the root window
+        for widget in self.root.winfo_children():
+            # If it's a warning-colored widget with "Auto-Refresh" text, remove it
+            if isinstance(widget, (tk.Label, tk.Button, tk.Frame)):
+                if hasattr(widget, "cget"):
+                    try:
+                        bg_color = widget.cget("bg")
+                        if bg_color in ("#f59e0b", "#fbbf24"):  # Warning colors
+                            text = widget.cget("text") if hasattr(widget, "cget") else ""
+                            if "Auto-Refresh" in text:
+                                widget.destroy()
+                    except (tk.TclError, AttributeError):
+                        pass
+                    
+                # Recursively check children
+                if hasattr(widget, "winfo_children"):
+                    for child in widget.winfo_children():
+                        if hasattr(child, "cget"):
+                            try:
+                                bg_color = child.cget("bg")
+                                if bg_color in ("#f59e0b", "#fbbf24"):  # Warning colors
+                                    text = child.cget("text") if hasattr(child, "cget") else ""
+                                    if "Auto-Refresh" in text:
+                                        child.destroy()
+                            except (tk.TclError, AttributeError):
+                                pass
+
     # GUI-specific methods
     def get_weather_for_city(self):
         """Get weather for entered city."""
@@ -2156,9 +2182,9 @@ class WeatherDashboardGUI(IUserInterface):
     def update_temp_toggle_text(self):
         """Update the temperature toggle button text."""
         if self.temperature_unit == "C":
-            self.temp_toggle_btn.configure(text="°C → °F")
+            self.temp_toggle_btn.configure(text="°C/°F")
         else:
-            self.temp_toggle_btn.configure(text="°F → °C")
+            self.temp_toggle_btn.configure(text="°F/°C")
 
     def refresh_temperature_displays(self):
         """Refresh all temperature displays with new unit."""
@@ -2262,17 +2288,15 @@ class WeatherDashboardGUI(IUserInterface):
         if self.auto_refresh:
             self.start_auto_refresh()
             self.auto_refresh_btn.configure(
-                text="Auto-Refresh: ON",
+                text="Auto ✓",  # Shortened ON text with checkmark
                 bg=GlassmorphicStyle.SUCCESS,
                 activebackground=GlassmorphicStyle.SUCCESS_LIGHT
             )
-            # Make the button icon change to show active state
-            self.auto_refresh_btn.configure(text="Auto-Refresh: ON ✓")
             self.update_status("Auto-refresh enabled (5 minutes)")
         else:
             self.stop_auto_refresh()
             self.auto_refresh_btn.configure(
-                text="Auto-Refresh: OFF",
+                text="Auto-Refresh",  # Shortened OFF text
                 bg=GlassmorphicStyle.ACCENT,
                 activebackground=GlassmorphicStyle.ACCENT_LIGHT
             )
