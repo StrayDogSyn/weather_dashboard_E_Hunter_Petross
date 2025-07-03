@@ -2136,107 +2136,153 @@ class WeatherDashboardGUI(IUserInterface):
         self.update_status("Poetry displayed with enhanced styling!")
 
     def display_weather_poem_collection(self, poems) -> None:
-        """Display a collection of weather poems in the poetry tab."""
+        """Display a collection of weather poems with enhanced visual styling."""
         # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():
             widget.destroy()
 
-        # Create scrollable area for multiple poems
-        collection_scroll = ModernScrollableFrame(self.poetry_content)
-        collection_scroll.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        # Collection header
-        header_frame = tk.Frame(
-            collection_scroll.scrollable_frame, bg=GlassmorphicStyle.BACKGROUND
+        # Create scrollable area with enhanced styling
+        collection_scroll = ModernScrollableFrame(
+            self.poetry_content, 
+            bg_color="#151525"  # Darker background for contrast
         )
-        header_frame.pack(fill=tk.X, pady=(0, 20))
+        collection_scroll.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
+        # Collection header with decorative elements
+        header_frame = GlassmorphicFrame(
+            collection_scroll.scrollable_frame, 
+            bg_color="#202035",
+            border_color="#353555",
+            elevated=True
+        )
+        header_frame.pack(fill=tk.X, pady=(0, 25), padx=10)
+        
+        # Top decorative line
+        tk.Frame(header_frame, height=3, bg="#5a80ff").pack(fill=tk.X)
+
+        # Title with enhanced styling
         title_label = tk.Label(
             header_frame,
-            text="📚 Poetry Collection",
-            font=(GlassmorphicStyle.FONT_FAMILY, 20, "bold"),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=GlassmorphicStyle.BACKGROUND,
+            text="✨ Poetry Collection ✨",
+            font=("Georgia", 24, "bold"),  # More elegant, larger font
+            fg="#90b0ff",  # Softer blue for better aesthetics
+            bg="#202035",
             justify=tk.CENTER,
         )
-        title_label.pack()
+        title_label.pack(pady=(15, 5))
 
         subtitle_label = tk.Label(
             header_frame,
-            text=f"A collection of {len(poems)} weather-inspired poems",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=GlassmorphicStyle.BACKGROUND,
+            text=f"A curated collection of {len(poems)} weather-inspired poems",
+            font=("Georgia", 14, "italic"),
+            fg="#a0a0c0",  # Softer color for subtitle
+            bg="#202035",
             justify=tk.CENTER,
         )
-        subtitle_label.pack(pady=(5, 0))
+        subtitle_label.pack(pady=(0, 15))
+        
+        # Bottom decorative line
+        tk.Frame(header_frame, height=3, bg="#5a80ff").pack(fill=tk.X)
 
-        # Display each poem in a separate card
+        # Display each poem in a separate card with enhanced styling
         for i, poem in enumerate(poems):
-            # Create poem card
+            # Create poem card with gradient effect
             poem_card = GlassmorphicFrame(
-                collection_scroll.scrollable_frame, elevated=True
+                collection_scroll.scrollable_frame, 
+                bg_color="#1d1d2b",
+                border_color="#3d3d5d",
+                elevated=True,
+                blur_intensity=15
             )
-            poem_card.pack(fill=tk.X, pady=10, padx=5)
+            poem_card.pack(fill=tk.X, pady=15, padx=10)
 
-            # Poem type and title
+            # Poem header with decorative element
+            poem_header = tk.Frame(poem_card, bg="#1d1d2b")
+            poem_header.pack(fill=tk.X, padx=15)
+            
+            # Top mini-decoration
+            tk.Frame(poem_header, height=2, bg=GlassmorphicStyle.ACCENT_LIGHT).pack(
+                fill=tk.X, pady=(15, 10)
+            )
+
+            # Poem type and title with enhanced icons
             if hasattr(poem, "poem_type"):
-                type_icons = {"haiku": "🌸", "phrase": "💭", "limerick": "🎵"}
-                icon = type_icons.get(poem.poem_type, "🎨")
+                type_icons = {"haiku": "🌸", "phrase": "💫", "limerick": "🎵"}
+                icon = type_icons.get(poem.poem_type, "✨")
 
                 # Use title if exists, else use poem_type
                 if hasattr(poem, "title") and poem.title:
-
-                    title_text = f"{icon} {poem.title}"
+                    title_text = f"{icon} {poem.title} {icon}"
                 else:
-                    title_text = f"{icon} {poem.poem_type.title()}"
+                    title_text = f"{icon} {poem.poem_type.title()} {icon}"
             else:
                 title_text = (
-                    poem.title if hasattr(poem, "title") else f"Weather Poetry {i+1}"
+                    poem.title if hasattr(poem, "title") else f"✨ Weather Poetry {i+1} ✨"
                 )
 
+            # Elegant title styling
             title_label = tk.Label(
-                poem_card,
+                poem_header,
                 text=title_text,
-                font=(GlassmorphicStyle.FONT_FAMILY, 16, "bold"),
-                fg=GlassmorphicStyle.ACCENT,
-                bg=poem_card.bg_color,
+                font=("Georgia", 18, "bold"),  # More elegant, larger font
+                fg="#80a0ff",  # Softer blue for better aesthetics
+                bg="#1d1d2b",
                 justify=tk.CENTER,
             )
-            title_label.pack(pady=(15, 10))
+            title_label.pack(pady=(0, 10))
 
             # Poem text
             poem_text = poem.text if hasattr(poem, "text") else str(poem)
 
-            # Create text widget for poem display
+            # Create decorated frame for the poem content
+            poem_content_frame = tk.Frame(
+                poem_card, 
+                bg="#252535",
+                bd=1,
+                relief="solid",
+                highlightbackground="#3d3d4d",
+                highlightcolor="#4a9eff",
+                highlightthickness=1,
+            )
+            poem_content_frame.pack(fill=tk.X, padx=15, pady=10)
+            
+            # Inner padding frame
+            inner_padding = tk.Frame(poem_content_frame, bg="#252535", padx=15, pady=15)
+            inner_padding.pack(fill=tk.X)
+
             # Adjust height based on poem type for better display
-            poem_height = 6  # Default height
+            poem_height = 8  # Increased default height for better readability
             if hasattr(poem, "poem_type"):
                 if poem.poem_type == "haiku":
-                    poem_height = 8
-                elif poem.poem_type == "limerick":
                     poem_height = 10
+                elif poem.poem_type == "limerick":
+                    poem_height = 12
 
+            # Text widget with enhanced styling
             text_widget = tk.Text(
-                poem_card,
-                font=(GlassmorphicStyle.FONT_FAMILY, 12),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg="#2a2a2a",
-                relief="ridge",
-                borderwidth=1,
+                inner_padding,
+                font=("Palatino Linotype", 16),  # More elegant, larger font
+                fg="#ffffff",  # Bright white for better contrast
+                bg="#252535",
+                relief="flat",
+                borderwidth=0,
                 wrap=tk.WORD,
                 height=poem_height,
+                padx=10,
+                pady=5,
                 state=tk.DISABLED,
                 cursor="arrow",
             )
 
             # Configure text widget appearance
             text_widget.configure(
-                highlightbackground="#555555",
-                highlightcolor=GlassmorphicStyle.ACCENT,
-                selectbackground=GlassmorphicStyle.ACCENT,
-                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
+                highlightthickness=0,
+                selectbackground="#6a8eff",  # Softer selection color
+                selectforeground="#ffffff",
             )
+            
+            # Center alignment
+            text_widget.tag_configure("center", justify="center")
 
             # Insert poem text with proper formatting
             text_widget.configure(state=tk.NORMAL)
@@ -2244,23 +2290,29 @@ class WeatherDashboardGUI(IUserInterface):
             # Use formatted_text for haikus and limericks
             if hasattr(poem, "poem_type") and hasattr(poem, "formatted_text"):
                 if poem.poem_type in ["haiku", "limerick"]:
-                    text_widget.insert(tk.END, poem.formatted_text)
+                    text_widget.insert(tk.END, poem.formatted_text, "center")
                 else:
-                    text_widget.insert(tk.END, poem_text)
-            # Format limerick text with line breaks at / characters if not using formatted_text
+                    text_widget.insert(tk.END, poem_text, "center")
+            # Format limerick text with line breaks at / characters
             elif hasattr(poem, "poem_type") and poem.poem_type == "limerick":
                 limerick_lines = poem_text.split(" / ")
                 formatted_limerick = "\n".join(limerick_lines)
-                text_widget.insert(tk.END, formatted_limerick)
+                text_widget.insert(tk.END, formatted_limerick, "center")
             else:
-                text_widget.insert(tk.END, poem_text)
+                text_widget.insert(tk.END, poem_text, "center")
 
             text_widget.configure(state=tk.DISABLED)
-
-            text_widget.pack(fill=tk.X, padx=15, pady=(0, 15))
+            text_widget.pack(fill=tk.X)
+            
+            # Bottom decoration
+            bottom_frame = tk.Frame(poem_card, bg="#1d1d2b")
+            bottom_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
+            tk.Frame(bottom_frame, height=2, bg=GlassmorphicStyle.ACCENT_LIGHT).pack(
+                fill=tk.X, pady=(10, 0)
+            )
 
         self.update_status(
-            f"Poetry collection generated successfully! ({len(poems)} poems)"
+            f"Poetry collection displayed with enhanced styling! ({len(poems)} poems)"
         )
 
     def toggle_temperature_unit(self):
