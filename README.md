@@ -1,6 +1,6 @@
 # 🌤️ Weather Dashboard - TKinter GUI
 
-> **📋 WEEK 11 SUBMISSION STATUS: ✅ READY**  
+> **📋 WEEK 12 SUBMISSION STATUS: ✅ READY**  
 > All core requirements met. Application tested and functional.
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)

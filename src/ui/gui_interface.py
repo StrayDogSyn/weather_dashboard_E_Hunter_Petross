@@ -304,16 +304,20 @@ class ModernButton(tk.Button):
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             font=(
                 GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_SMALL,  # Smaller font
+                GlassmorphicStyle.FONT_SIZE_SMALL,
                 "bold",
             ),
-            relief="raised",
-            borderwidth=2,  # Reduced border
-            padx=15,        # Reduced horizontal padding
-            pady=8,         # Reduced vertical padding
+            relief="flat",             # Flat modern style
+            borderwidth=0,             # No border for cleaner look
+            padx=12,                   # Balanced horizontal padding
+            pady=6,                    # Reduced vertical padding for more compact look
             cursor="hand2",
             activebackground=self.hover_bg,
             activeforeground=GlassmorphicStyle.TEXT_PRIMARY,
+            # Adding rounded corners effect with highlightbackground
+            highlightbackground=self.default_bg,
+            highlightcolor=self.default_bg,
+            highlightthickness=1,
             **kwargs,
         )
 
@@ -323,16 +327,18 @@ class ModernButton(tk.Button):
         self.bind("<ButtonRelease-1>", self._on_release)
 
     def _on_click(self, event):
-        """Handle button click for pressed effect with animation."""
-        self.configure(relief="sunken", borderwidth=2)
-        # Add slight color change for click feedback
+        """Handle button click for modern pressed effect with animation."""
+        # Modern buttons use color and subtle scaling rather than relief changes
         click_color = self._get_click_color()
         self.configure(bg=click_color)
-
+        # Add subtle shadow effect
+        self.configure(highlightbackground=GlassmorphicStyle.GLASS_BORDER)
+        
     def _on_release(self, event):
-        """Handle button release to restore appearance."""
-        self.configure(relief="raised", borderwidth=3)
+        """Handle button release to restore appearance with modern style."""
         self.configure(bg=self.hover_bg if self.is_hovered else self.default_bg)
+        # Restore highlight to match background for seamless look
+        self.configure(highlightbackground=self.hover_bg if self.is_hovered else self.default_bg)
 
     def _get_bg_color(self):
         if self.style == "primary":
@@ -377,14 +383,18 @@ class ModernButton(tk.Button):
     def _on_enter(self, event):
         self.is_hovered = True
         self.configure(bg=self.hover_bg)
-        # Add subtle glow effect
-        self.configure(highlightbackground=GlassmorphicStyle.ACCENT_LIGHT)
+        # Add subtle glow effect with matching highlight for seamless rounded corners
+        self.configure(highlightbackground=self.hover_bg, highlightcolor=self.hover_bg)
+        # Subtle text brightening for modern feedback
+        self.configure(fg="#ffffff")
 
     def _on_leave(self, event):
         self.is_hovered = False
         self.configure(bg=self.default_bg)
-        # Restore to a neutral color instead of empty string to avoid TclError
-        self.configure(highlightbackground=GlassmorphicStyle.ACCENT_LIGHT)
+        # Match highlight to background for seamless look
+        self.configure(highlightbackground=self.default_bg, highlightcolor=self.default_bg)
+        # Restore normal text
+        self.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
 
 
 class WeatherCard(GlassmorphicFrame):
@@ -853,56 +863,72 @@ class WeatherDashboardGUI(IUserInterface):
         )
         tagline.pack(anchor=tk.W)
 
-        # Right side container for buttons with better layout
+        # Right side container for buttons with modern layout
         right_container = tk.Frame(main_header, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         right_container.pack(side=tk.RIGHT, padx=20, pady=5)
 
-        # Quick actions - main buttons (top row) with enhanced styling
-        actions_frame = tk.Frame(right_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        actions_frame.pack(fill=tk.X, pady=(0, 10))  # Add some bottom padding
-
-        self.search_btn = ModernButton(
-            actions_frame, text="Search City", icon="🔍", command=self.show_city_search
+        # Create a modern toolbar with rounded corners
+        toolbar_frame = GlassmorphicFrame(
+            right_container, 
+            bg_color="#2a2a2a",
+            border_color="#3a3a3a",
         )
-        self.search_btn.pack(side=tk.LEFT, padx=(0, 5))  # Reduced spacing
-
+        toolbar_frame.pack(pady=5)
+        
+        actions_frame = tk.Frame(toolbar_frame, bg="#2a2a2a")
+        actions_frame.pack(padx=8, pady=5)
+        
+        # Search button
+        self.search_btn = ModernButton(
+            actions_frame, 
+            text="Search City", 
+            icon="🔍", 
+            command=self.show_city_search,
+            style="primary"
+        )
+        self.search_btn.pack(side=tk.LEFT, padx=3)
+        
+        # Modern separator
+        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=3)
+        
+        # Refresh and Auto-refresh as a logical group
         self.refresh_btn = ModernButton(
             actions_frame,
             text="Refresh",
             icon="🔄",
             command=self.refresh_current_weather,
         )
-        self.refresh_btn.pack(side=tk.LEFT, padx=(0, 5))  # Reduced spacing
-
-        # Auto-refresh toggle button with consistent styling
+        self.refresh_btn.pack(side=tk.LEFT, padx=3)
+        
         self.auto_refresh_btn = ModernButton(
             actions_frame,
-            text="Auto-Refresh",  # Shortened text 
+            text="Auto",  # Even shorter for modern look
             icon="⏱️",
             command=self.toggle_auto_refresh,
-            style="primary",  # Match primary button style for consistency
+            style="primary",
         )
-        self.auto_refresh_btn.pack(side=tk.LEFT)
-
-        # Temperature unit toggle - below the main buttons with enhanced styling
-        # Add temperature toggle directly to actions frame for a more compact layout
-        # Skip the extra frame containers for a cleaner layout
+        self.auto_refresh_btn.pack(side=tk.LEFT, padx=3)
+        
+        # Modern separator
+        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(side=tk.LEFT, fill=tk.Y, padx=5, pady=3)
+        
+        # Temperature controls
         temp_icon = tk.Label(
             actions_frame,
             text="🌡️",
-            font=(GlassmorphicStyle.FONT_FAMILY, 14),  # Smaller font
+            font=(GlassmorphicStyle.FONT_FAMILY, 14),
             fg=GlassmorphicStyle.ACCENT_SECONDARY,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
+            bg="#2a2a2a",
         )
-        temp_icon.pack(side=tk.LEFT, padx=(10, 2), pady=5)  # Reduced spacing
-
+        temp_icon.pack(side=tk.LEFT, padx=(0, 2))
+        
         self.temp_toggle_btn = ModernButton(
             actions_frame,
-            text="°C/°F",  # Shortened text
+            text="°C/°F",
             style="secondary",
             command=self.toggle_temperature_unit,
         )
-        self.temp_toggle_btn.pack(side=tk.LEFT, padx=(0, 5), pady=5)  # Reduced padding
+        self.temp_toggle_btn.pack(side=tk.LEFT, padx=3)
 
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
@@ -2283,22 +2309,28 @@ class WeatherDashboardGUI(IUserInterface):
             self.show_error(f"Location detection failed: {str(e)}")
 
     def toggle_auto_refresh(self):
-        """Toggle auto-refresh functionality."""
+        """Toggle auto-refresh functionality with modern styling."""
         self.auto_refresh = not self.auto_refresh
         if self.auto_refresh:
             self.start_auto_refresh()
+            # Modern button styling with icon change
             self.auto_refresh_btn.configure(
-                text="Auto ✓",  # Shortened ON text with checkmark
+                text="⏱️ ON",  # Very concise modern indicator
                 bg=GlassmorphicStyle.SUCCESS,
-                activebackground=GlassmorphicStyle.SUCCESS_LIGHT
+                activebackground=GlassmorphicStyle.SUCCESS_LIGHT,
+                highlightbackground=GlassmorphicStyle.SUCCESS,  # Match for rounded corners
+                highlightcolor=GlassmorphicStyle.SUCCESS
             )
             self.update_status("Auto-refresh enabled (5 minutes)")
         else:
             self.stop_auto_refresh()
+            # Restore original styling
             self.auto_refresh_btn.configure(
-                text="Auto-Refresh",  # Shortened OFF text
+                text="Auto",  # Keep it short for modern look
                 bg=GlassmorphicStyle.ACCENT,
-                activebackground=GlassmorphicStyle.ACCENT_LIGHT
+                activebackground=GlassmorphicStyle.ACCENT_LIGHT,
+                highlightbackground=GlassmorphicStyle.ACCENT,  # Match for rounded corners
+                highlightcolor=GlassmorphicStyle.ACCENT
             )
             self.update_status("Auto-refresh disabled")
 
