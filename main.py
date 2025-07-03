@@ -131,7 +131,7 @@ def launch_simple_gui():
 • Backend Service Integration
 
 This GUI framework is fully functional and ready for integration!"""
-
+# Remember to switch .pack to grid if you want to use grid layout instead of pack
             features_label = tk.Label(
                 features_frame,
                 text=features_text,
