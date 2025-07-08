@@ -2078,7 +2078,7 @@ class WeatherDashboardGUI(IUserInterface):
             no_activities_label.pack(pady=50)
             return
 
-        # Top recommendation with full width layout
+        # Top recommendation - more compact for grid layout
         if suggestions.top_suggestion:
             top_activity, top_score = suggestions.suggested_activities[0]
 
@@ -2087,11 +2087,11 @@ class WeatherDashboardGUI(IUserInterface):
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
                 elevated=True
             )
-            top_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(15, 20))  # Reduced outer margins for wider cards
+            top_frame.pack(fill=tk.X, padx=20, pady=(10, 15))  # More compact for grid layout
 
-            # Top recommendation header with more spacing
+            # Top recommendation header - more compact
             header_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            header_frame.pack(fill=tk.X, pady=(20, 10))  # Increased top/bottom padding
+            header_frame.pack(fill=tk.X, pady=(15, 8))  # Reduced padding
 
             tk.Label(
                 header_frame,
@@ -2105,9 +2105,9 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-            # Activity name with more spacing
+            # Activity name - more compact
             name_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            name_frame.pack(fill=tk.X, pady=(10, 15))  # Increased spacing
+            name_frame.pack(fill=tk.X, pady=(8, 10))  # Reduced spacing
 
             icon = "🏠" if top_activity.indoor else "🌞"
             tk.Label(
@@ -2122,9 +2122,9 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-            # Activity description with better spacing
+            # Activity description - more compact
             desc_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            desc_frame.pack(fill=tk.X, pady=(10, 15), padx=25)  # Increased padding
+            desc_frame.pack(fill=tk.X, pady=(8, 12), padx=20)  # Reduced padding
 
             desc_label = tk.Label(
                 desc_frame,
@@ -2141,9 +2141,9 @@ class WeatherDashboardGUI(IUserInterface):
             )
             desc_label.pack(fill=tk.X, anchor="w")
 
-            # Score with more spacing
+            # Score - more compact
             score_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            score_frame.pack(fill=tk.X, pady=(10, 25))  # Increased bottom padding
+            score_frame.pack(fill=tk.X, pady=(8, 15))  # Reduced bottom padding
 
             tk.Label(
                 score_frame,
@@ -2153,17 +2153,17 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-        # All suggestions with full width layout
+        # All suggestions grid container
         all_frame = GlassmorphicFrame(
             self.activities_content.scrollable_frame,
             bg_color=GlassmorphicStyle.GLASS_BG,
             elevated=True
         )
-        all_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(10, 15))  # Reduced outer margins for wider cards
+        all_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(8, 15))  # Reduced spacing for more grid space
 
-        # Header for all suggestions with more spacing
+        # Header for grid layout
         header_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
-        header_frame.pack(fill=tk.X, pady=(20, 15))  # Increased padding
+        header_frame.pack(fill=tk.X, pady=(15, 12))  # Reduced padding for grid
 
         tk.Label(
             header_frame,
@@ -2177,22 +2177,33 @@ class WeatherDashboardGUI(IUserInterface):
             bg=all_frame.bg_color,
         ).pack()
 
-        # Display all activities with full width cards
+        # Display activities in a responsive grid layout
+        total_activities = len(suggestions.suggested_activities)
+        # Use 3 columns if more than 6 activities, otherwise 2 columns
+        cards_per_row = 3 if total_activities > 6 else 2
+        current_row_frame = None
+        
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
-            # Create individual activity card using full width
+            # Create new row frame every 'cards_per_row' cards
+            if (i - 1) % cards_per_row == 0:
+                current_row_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
+                current_row_frame.pack(fill=tk.X, padx=10, pady=5)
+            
+            # Create individual activity card in grid layout
             activity_card = GlassmorphicFrame(
-                all_frame,
+                current_row_frame,
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
             )
-            activity_card.pack(fill=tk.BOTH, expand=True, padx=15, pady=8)  # Reduced margins for wider individual cards
+            # Use side=LEFT to place cards horizontally, with equal expansion
+            activity_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8, pady=8)
 
             # Activity header with name and score
             activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
-            activity_header.pack(fill=tk.X, pady=(15, 10), padx=20)  # Increased padding
+            activity_header.pack(fill=tk.X, pady=(15, 10), padx=15)
 
             icon = "🏠" if activity.indoor else "🌞"
             
-            # Left side - activity name with better spacing
+            # Activity name (centered for better grid appearance)
             name_label = tk.Label(
                 activity_header,
                 text=f"{i}. {icon} {activity.name}",
@@ -2204,9 +2215,9 @@ class WeatherDashboardGUI(IUserInterface):
                 fg=GlassmorphicStyle.TEXT_PRIMARY,
                 bg=activity_card.bg_color,
             )
-            name_label.pack(side=tk.LEFT, anchor="w")
+            name_label.pack(anchor="center")  # Center the activity name
 
-            # Right side - score
+            # Score (centered below name for grid layout)
             score_label = tk.Label(
                 activity_header,
                 text=f"Score: {score:.1f}/10",
@@ -2214,11 +2225,11 @@ class WeatherDashboardGUI(IUserInterface):
                 fg=GlassmorphicStyle.ACCENT,
                 bg=activity_card.bg_color,
             )
-            score_label.pack(side=tk.RIGHT, anchor="e")
+            score_label.pack(anchor="center", pady=(5, 0))
 
-            # Activity description with better spacing
+            # Activity description (centered and compact for grid)
             desc_frame = tk.Frame(activity_card, bg=activity_card.bg_color)
-            desc_frame.pack(fill=tk.X, pady=(5, 20), padx=25)  # Increased padding
+            desc_frame.pack(fill=tk.X, pady=(10, 20), padx=15)
 
             desc_label = tk.Label(
                 desc_frame,
@@ -2229,11 +2240,11 @@ class WeatherDashboardGUI(IUserInterface):
                 ),
                 fg=GlassmorphicStyle.TEXT_SECONDARY,
                 bg=activity_card.bg_color,
-                wraplength=700,  # Increased for wider layout
-                justify=tk.LEFT,
-                anchor="nw"
+                wraplength=300,  # Smaller wrap for grid cards
+                justify=tk.CENTER,  # Center justify for grid layout
+                anchor="center"
             )
-            desc_label.pack(fill=tk.X, anchor="w")
+            desc_label.pack(anchor="center")
 
         # Add some spacing at the bottom for better visual flow
         bottom_spacer = tk.Frame(
