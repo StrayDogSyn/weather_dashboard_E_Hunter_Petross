@@ -1,0 +1,331 @@
+"""Weather Data Visualization Dashboard with Hotkey Support."""
+
+import logging
+import tkinter as tk
+from tkinter import ttk
+from typing import Dict, Optional
+
+from src.models.weather_models import CurrentWeather, WeatherForecast
+from src.services.visualization_service import WeatherVisualizationService
+from src.ui.gui_interface import GlassmorphicFrame, GlassmorphicStyle
+
+
+class WeatherDashboard:
+    """Interactive weather dashboard with visualization charts and hotkey support."""
+
+    def __init__(self, parent: tk.Tk):
+        """Initialize the weather dashboard."""
+        self.parent = parent
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize visualization service
+        self.viz_service = WeatherVisualizationService()
+        
+        # Dashboard window
+        self.dashboard_window: Optional[tk.Toplevel] = None
+        
+        # Chart containers
+        self.chart_frames: Dict[str, tk.Widget] = {}
+        
+        # Current weather and forecast data
+        self.current_weather: Optional[CurrentWeather] = None
+        self.current_forecast: Optional[WeatherForecast] = None
+        
+        # Setup hotkeys
+        self.setup_hotkeys()
+
+    def setup_hotkeys(self):
+        """Setup global hotkeys for dashboard operations."""
+        # Bind hotkeys to the main window
+        self.parent.bind('<Control-d>', self.toggle_dashboard)
+        self.parent.bind('<Control-1>', lambda e: self.show_chart('temperature'))
+        self.parent.bind('<Control-2>', lambda e: self.show_chart('metrics'))
+        self.parent.bind('<Control-3>', lambda e: self.show_chart('forecast'))
+        self.parent.bind('<Control-4>', lambda e: self.show_chart('humidity_pressure'))
+        self.parent.bind('<Control-r>', self.refresh_all_charts)
+        self.parent.bind('<Control-h>', self.show_help)
+        
+        # Make sure the main window can receive focus for hotkeys
+        self.parent.focus_set()
+
+    def toggle_dashboard(self, event=None):
+        """Toggle the dashboard visibility."""
+        if self.dashboard_window is None or not self.dashboard_window.winfo_exists():
+            self.show_dashboard()
+        else:
+            self.hide_dashboard()
+
+    def show_dashboard(self):
+        """Show the weather visualization dashboard."""
+        if self.dashboard_window is not None and self.dashboard_window.winfo_exists():
+            self.dashboard_window.lift()
+            return
+
+        # Create dashboard window
+        self.dashboard_window = tk.Toplevel(self.parent)
+        self.dashboard_window.title("Weather Data Visualization Dashboard")
+        self.dashboard_window.geometry("1200x800")
+        self.dashboard_window.configure(bg=GlassmorphicStyle.BACKGROUND)
+        
+        # Make window resizable
+        self.dashboard_window.resizable(True, True)
+        
+        # Setup window icon and styling
+        try:
+            self.dashboard_window.iconname("Weather Dashboard")
+        except:
+            pass  # Ignore if icon setting fails
+        
+        # Create main layout
+        self.create_dashboard_layout()
+        
+        # Load initial charts
+        self.refresh_all_charts()
+        
+        # Setup window close event
+        self.dashboard_window.protocol("WM_DELETE_WINDOW", self.hide_dashboard)
+
+    def hide_dashboard(self):
+        """Hide the dashboard window."""
+        if self.dashboard_window and self.dashboard_window.winfo_exists():
+            self.dashboard_window.destroy()
+            self.dashboard_window = None
+
+    def create_dashboard_layout(self):
+        """Create the dashboard layout with chart areas."""
+        # Main container
+        main_frame = GlassmorphicFrame(
+            self.dashboard_window,
+            bg_color=GlassmorphicStyle.BACKGROUND,
+        )
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Title bar
+        title_frame = GlassmorphicFrame(main_frame, elevated=True)
+        title_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        title_label = tk.Label(
+            title_frame,
+            text="🌤️ Weather Data Visualization Dashboard",
+            font=("Segoe UI", 18, "bold"),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=title_frame.bg_color,
+        )
+        title_label.pack(pady=15)
+        
+        # Hotkey info
+        hotkey_info = tk.Label(
+            title_frame,
+            text="Hotkeys: Ctrl+1-4 (Charts) | Ctrl+R (Refresh) | Ctrl+H (Help) | Ctrl+D (Toggle)",
+            font=("Segoe UI", 10),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=title_frame.bg_color,
+        )
+        hotkey_info.pack(pady=(0, 10))
+        
+        # Chart controls
+        controls_frame = GlassmorphicFrame(main_frame, elevated=True)
+        controls_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        # Control buttons
+        button_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        button_frame.pack(pady=10)
+        
+        # Chart selection buttons
+        charts_info = [
+            ("📈 Temperature Trend", "temperature", "Ctrl+1"),
+            ("📊 Weather Metrics", "metrics", "Ctrl+2"),
+            ("🌤️ 5-Day Forecast", "forecast", "Ctrl+3"),
+            ("💧 Humidity & Pressure", "humidity_pressure", "Ctrl+4"),
+        ]
+        
+        for text, chart_id, hotkey in charts_info:
+            btn = tk.Button(
+                button_frame,
+                text=f"{text}\n({hotkey})",
+                font=("Segoe UI", 10),
+                fg=GlassmorphicStyle.TEXT_PRIMARY,
+                bg=GlassmorphicStyle.ACCENT,
+                activebackground=GlassmorphicStyle.ACCENT_LIGHT,
+                relief="flat",
+                padx=15,
+                pady=8,
+                cursor="hand2",
+                command=lambda cid=chart_id: self.show_chart(cid),
+            )
+            btn.pack(side=tk.LEFT, padx=5)
+        
+        # Refresh button
+        refresh_btn = tk.Button(
+            button_frame,
+            text="🔄 Refresh All\n(Ctrl+R)",
+            font=("Segoe UI", 10),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=GlassmorphicStyle.SUCCESS,
+            activebackground=GlassmorphicStyle.SUCCESS_LIGHT,
+            relief="flat",
+            padx=15,
+            pady=8,
+            cursor="hand2",
+            command=self.refresh_all_charts,
+        )
+        refresh_btn.pack(side=tk.RIGHT, padx=5)
+        
+        # Charts container with grid layout
+        charts_container = GlassmorphicFrame(main_frame)
+        charts_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Configure grid layout (2x2)
+        charts_container.grid_rowconfigure(0, weight=1)
+        charts_container.grid_rowconfigure(1, weight=1)
+        charts_container.grid_columnconfigure(0, weight=1)
+        charts_container.grid_columnconfigure(1, weight=1)
+        
+        # Create chart placeholder frames
+        chart_positions = [
+            ("temperature", 0, 0),
+            ("metrics", 0, 1),
+            ("forecast", 1, 0),
+            ("humidity_pressure", 1, 1),
+        ]
+        
+        for chart_id, row, col in chart_positions:
+            chart_frame = GlassmorphicFrame(
+                charts_container,
+                bg_color=GlassmorphicStyle.GLASS_BG,
+                elevated=True,
+            )
+            chart_frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+            self.chart_frames[chart_id] = chart_frame
+
+    def show_chart(self, chart_type: str):
+        """Show a specific chart type."""
+        if chart_type not in self.chart_frames:
+            self.logger.warning(f"Unknown chart type: {chart_type}")
+            return
+        
+        # Clear existing chart
+        frame = self.chart_frames[chart_type]
+        for widget in frame.winfo_children():
+            widget.destroy()
+        
+        # Create new chart based on type
+        if chart_type == "temperature":
+            chart = self.viz_service.create_temperature_trend_chart(frame)
+        elif chart_type == "metrics":
+            chart = self.viz_service.create_weather_metrics_chart(frame)
+        elif chart_type == "forecast":
+            chart = self.viz_service.create_forecast_comparison_chart(frame, self.current_forecast)
+        elif chart_type == "humidity_pressure":
+            chart = self.viz_service.create_humidity_pressure_chart(frame)
+        else:
+            # Fallback placeholder
+            label = tk.Label(
+                frame,
+                text=f"📊 {chart_type.title()} Chart\n\nChart type not implemented yet.",
+                font=("Segoe UI", 12),
+                fg=GlassmorphicStyle.TEXT_SECONDARY,
+                bg=frame.bg_color,
+                justify=tk.CENTER,
+            )
+            label.pack(expand=True)
+            return
+        
+        # Pack the chart
+        if chart != frame:  # Only pack if it's a different widget
+            chart.pack(fill=tk.BOTH, expand=True)
+
+    def refresh_all_charts(self, event=None):
+        """Refresh all charts with current data."""
+        if self.dashboard_window is None or not self.dashboard_window.winfo_exists():
+            return
+        
+        # Refresh each chart
+        for chart_type in self.chart_frames.keys():
+            self.show_chart(chart_type)
+        
+        # Update status
+        if hasattr(self.parent, 'update_status'):
+            self.parent.update_status("Dashboard charts refreshed")
+
+    def update_weather_data(self, weather: CurrentWeather):
+        """Update dashboard with new weather data."""
+        self.current_weather = weather
+        self.viz_service.add_weather_data_point(weather)
+        
+        # Refresh charts if dashboard is visible
+        if self.dashboard_window and self.dashboard_window.winfo_exists():
+            self.refresh_all_charts()
+
+    def update_forecast_data(self, forecast: WeatherForecast):
+        """Update dashboard with new forecast data."""
+        self.current_forecast = forecast
+        
+        # Refresh forecast chart if dashboard is visible
+        if self.dashboard_window and self.dashboard_window.winfo_exists():
+            self.show_chart("forecast")
+
+    def show_help(self, event=None):
+        """Show hotkey help dialog."""
+        help_window = tk.Toplevel(self.parent)
+        help_window.title("Dashboard Hotkeys")
+        help_window.geometry("400x300")
+        help_window.configure(bg=GlassmorphicStyle.BACKGROUND)
+        help_window.transient(self.parent)
+        help_window.grab_set()
+        
+        # Center the window
+        help_window.geometry("+%d+%d" % (
+            self.parent.winfo_rootx() + 100,
+            self.parent.winfo_rooty() + 100
+        ))
+        
+        help_frame = GlassmorphicFrame(help_window, elevated=True)
+        help_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        
+        title = tk.Label(
+            help_frame,
+            text="🔗 Dashboard Hotkeys",
+            font=("Segoe UI", 16, "bold"),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=help_frame.bg_color,
+        )
+        title.pack(pady=(10, 20))
+        
+        hotkeys_text = """
+Ctrl + D    Toggle Dashboard
+Ctrl + 1    Show Temperature Trend
+Ctrl + 2    Show Weather Metrics  
+Ctrl + 3    Show 5-Day Forecast
+Ctrl + 4    Show Humidity & Pressure
+Ctrl + R    Refresh All Charts
+Ctrl + H    Show This Help
+
+Note: Make sure the main window has focus
+for hotkeys to work properly.
+        """
+        
+        help_label = tk.Label(
+            help_frame,
+            text=hotkeys_text.strip(),
+            font=("Segoe UI", 11),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=help_frame.bg_color,
+            justify=tk.LEFT,
+        )
+        help_label.pack(pady=10)
+        
+        close_btn = tk.Button(
+            help_frame,
+            text="Close",
+            font=("Segoe UI", 10),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=GlassmorphicStyle.ACCENT,
+            activebackground=GlassmorphicStyle.ACCENT_LIGHT,
+            relief="flat",
+            padx=20,
+            pady=5,
+            cursor="hand2",
+            command=help_window.destroy,
+        )
+        close_btn.pack(pady=20)
