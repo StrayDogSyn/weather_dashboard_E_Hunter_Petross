@@ -28,6 +28,9 @@ from src.models.capstone_models import (
 from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
 
 
+# Note: WeatherDashboard import will be added after class definition to avoid circular import
+
+
 class WeatherIcons:
     """Weather condition icons using Unicode characters."""
 
@@ -734,6 +737,7 @@ class WeatherDashboardGUI(IUserInterface):
         """Initialize the GUI."""
         self.root = tk.Tk()
         self.config = config_manager.config
+        self.logger = logging.getLogger(__name__)
         self.current_weather = None
         self.current_forecast_data = (
             None  # Store forecast data for temperature unit changes
@@ -744,6 +748,11 @@ class WeatherDashboardGUI(IUserInterface):
             300000  # Default refresh interval: 5 minutes (in milliseconds)
         )
         self.refresh_timer = None  # Store the timer ID for auto-refresh
+        
+        # Initialize dashboard (import here to avoid circular import)
+        from src.ui.dashboard import WeatherDashboard
+        self.dashboard = WeatherDashboard(self.root)
+        
         self.setup_window()
         self.setup_styles()
         self.create_layout()
@@ -929,6 +938,16 @@ class WeatherDashboardGUI(IUserInterface):
             style="primary",
         )
         self.auto_refresh_btn.pack(side=tk.LEFT, padx=3)
+
+        # Dashboard button
+        self.dashboard_btn = ModernButton(
+            actions_frame,
+            text="Charts",
+            icon="📊",
+            command=self.show_dashboard,
+            style="primary",
+        )
+        self.dashboard_btn.pack(side=tk.LEFT, padx=3)
 
         # Modern separator
         tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(
@@ -1448,6 +1467,10 @@ class WeatherDashboardGUI(IUserInterface):
         self.main_weather_card.update_weather(weather_data)
         self.update_status(f"Weather updated for {weather_data.location.display_name}")
 
+        # Update dashboard with new weather data
+        if hasattr(self, 'dashboard'):
+            self.dashboard.update_weather_data(weather_data)
+
         # Update timestamp
         if weather_data.timestamp:
             time_str = weather_data.timestamp.strftime("%H:%M")
@@ -1457,6 +1480,10 @@ class WeatherDashboardGUI(IUserInterface):
         """Display forecast data with enhanced grid layout."""
         # Store forecast data for temperature unit changes
         self.current_forecast_data = forecast_data
+
+        # Update dashboard with new forecast data
+        if hasattr(self, 'dashboard'):
+            self.dashboard.update_forecast_data(forecast_data)
 
         # Clear existing forecast
         for widget in self.forecast_scroll.scrollable_frame.winfo_children():
@@ -2050,6 +2077,7 @@ class WeatherDashboardGUI(IUserInterface):
             text=title_text,
             font=("Georgia", 22, "bold"),  # More elegant font with increased size
             fg="#80a0ff",  # Softer blue for better aesthetics
+
             bg="#1d1d2b",
             justify=tk.CENTER,
         )
@@ -2485,6 +2513,24 @@ class WeatherDashboardGUI(IUserInterface):
         """Clean up and close the application."""
         self.stop_auto_refresh()  # Stop auto-refresh timer
         self.root.destroy()
+
+    def show_dashboard(self):
+        """Show the weather visualization dashboard."""
+        try:
+            # Update dashboard with current weather data
+            if self.current_weather:
+                self.dashboard.update_weather_data(self.current_weather)
+            
+            # Update forecast data if available
+            if self.current_forecast_data:
+                self.dashboard.update_forecast_data(self.current_forecast_data)
+            
+            # Show the dashboard
+            self.dashboard.show_dashboard()
+            self.update_status("Dashboard opened - Use Ctrl+1-4 for charts, Ctrl+D to toggle")
+        except Exception as e:
+            self.logger.error(f"Error opening dashboard: {e}")
+            self.show_error(f"Failed to open dashboard: {str(e)}")
 
 
 class ModernEntry(tk.Entry):

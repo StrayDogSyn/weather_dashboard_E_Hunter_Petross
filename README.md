@@ -19,6 +19,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **⭐ Favorite Cities**: Save and manage your preferred locations
 - **📍 Location Detection**: Automatic geolocation to show your local weather
 - **🌡️ Temperature Unit Toggle**: Quick switching between Celsius and Fahrenheit
+- **📊 Interactive Dashboard**: Advanced data visualization with multiple chart types and hotkey support
 
 ### Advanced Capstone Features
 
@@ -35,6 +36,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **📱 Responsive Layout**: Tabbed interface with intuitive navigation and scrollable panels
 - **🎯 Interactive Elements**: Custom styled buttons with modern hover animations and visual feedback
 - **📊 Data Visualization**: Beautiful weather cards and elegantly styled information displays
+- **📈 Visualization Dashboard**: Interactive charts with hotkeys (Ctrl+1-4) for temperature trends, metrics, forecasts, and humidity/pressure data
 - **✨ Poetry Display**: Artistically rendered weather poems with decorative elements and elegant typography
 - **🔄 Auto-Refresh**: Convenient auto-refresh functionality with status indicators
 
@@ -106,6 +108,19 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 2. Click "Get Weather" or press Enter
 3. View current conditions and forecast
 4. Add cities to favorites for quick access
+
+### Data Visualization Dashboard
+
+- **Open Dashboard**: Click the "Charts" button in the header or press `Ctrl+D`
+- **Chart Navigation**: Use hotkeys to quickly switch between chart types:
+  - `Ctrl+1`: Temperature trends over time
+  - `Ctrl+2`: Weather metrics overview
+  - `Ctrl+3`: 5-day forecast visualization
+  - `Ctrl+4`: Humidity and pressure charts
+- **Dashboard Controls**:
+  - `Ctrl+R`: Refresh all charts with latest data
+  - `Ctrl+H`: Show help information
+  - `Ctrl+D`: Toggle dashboard visibility
 
 ### Capstone Features
 

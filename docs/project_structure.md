@@ -16,7 +16,8 @@ weather_dashboard_E_Hunter_Petross/
 │   ├── 📄 app_gui.py            # Main GUI application controller
 │   ├── 📁 ui/                   # User interface layer
 │   │   ├── 📄 __init__.py
-│   │   └── 📄 gui_interface.py  # Modern TKinter GUI with glassmorphic design
+│   │   ├── 📄 gui_interface.py  # Modern TKinter GUI with glassmorphic design
+│   │   └── 📄 dashboard.py      # Weather data visualization dashboard with hotkeys
 │   ├── 📁 core/                 # Business logic and services
 │   │   ├── 📄 __init__.py
 │   │   ├── 📄 weather_service.py      # Core weather functionality
@@ -31,7 +32,8 @@ weather_dashboard_E_Hunter_Petross/
 │   │   ├── 📄 data_storage.py         # JSON data persistence
 │   │   ├── 📄 sql_data_storage.py     # SQL database integration
 │   │   ├── 📄 storage_factory.py      # Storage implementation factory
-│   │   └── 📄 location_service.py     # Geolocation services
+│   │   ├── 📄 location_service.py     # Geolocation services
+│   │   └── 📄 visualization_service.py # Weather data visualization with matplotlib
 │   ├── 📁 models/               # Data models and schemas
 │   │   ├── 📄 __init__.py
 │   │   ├── 📄 weather_models.py       # Weather data models

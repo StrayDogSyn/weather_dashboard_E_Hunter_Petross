@@ -225,7 +225,7 @@ class WeatherDashboard:
                 text=f"📊 {chart_type.title()} Chart\n\nChart type not implemented yet.",
                 font=("Segoe UI", 12),
                 fg=GlassmorphicStyle.TEXT_SECONDARY,
-                bg=frame.bg_color,
+                bg=GlassmorphicStyle.GLASS_BG,
                 justify=tk.CENTER,
             )
             label.pack(expand=True)
@@ -244,9 +244,8 @@ class WeatherDashboard:
         for chart_type in self.chart_frames.keys():
             self.show_chart(chart_type)
         
-        # Update status
-        if hasattr(self.parent, 'update_status'):
-            self.parent.update_status("Dashboard charts refreshed")
+        # Log refresh completion
+        self.logger.info("Dashboard charts refreshed")
 
     def update_weather_data(self, weather: CurrentWeather):
         """Update dashboard with new weather data."""
