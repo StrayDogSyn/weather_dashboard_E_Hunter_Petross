@@ -235,8 +235,8 @@ class WeatherVisualizationService:
         
         for i, day_forecast in enumerate(forecast.forecast_days[:5]):
             days.append(f"Day {i+1}")
-            high_temps.append(day_forecast.temperature_max)
-            low_temps.append(day_forecast.temperature_min)
+            high_temps.append(day_forecast.temperature_high.to_celsius())
+            low_temps.append(day_forecast.temperature_low.to_celsius())
         
         # Create grouped bar chart using range if numpy not available
         try:

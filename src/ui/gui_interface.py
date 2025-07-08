@@ -325,8 +325,8 @@ class ModernButton(tk.Button):
             ),
             relief="flat",  # Flat modern style
             borderwidth=0,  # No border for cleaner look
-            padx=12,  # Balanced horizontal padding
-            pady=6,  # Reduced vertical padding for more compact look
+            padx=8,  # Reduced horizontal padding for more compact buttons
+            pady=4,  # Reduced vertical padding for more compact look
             cursor="hand2",
             activebackground=self.hover_bg,
             activeforeground=GlassmorphicStyle.TEXT_PRIMARY,
@@ -909,26 +909,26 @@ class WeatherDashboardGUI(IUserInterface):
         # Search button
         self.search_btn = ModernButton(
             actions_frame,
-            text="Search City",
+            text="Search",  # Shortened text
             icon="🔍",
             command=self.show_city_search,
             style="primary",
         )
-        self.search_btn.pack(side=tk.LEFT, padx=3)
+        self.search_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
 
         # Modern separator
         tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(
-            side=tk.LEFT, fill=tk.Y, padx=5, pady=3
+            side=tk.LEFT, fill=tk.Y, padx=3, pady=3  # Reduced padding
         )
 
         # Refresh and Auto-refresh as a logical group
         self.refresh_btn = ModernButton(
             actions_frame,
-            text="Refresh",
+            text="Sync",  # Shorter text
             icon="🔄",
             command=self.refresh_current_weather,
         )
-        self.refresh_btn.pack(side=tk.LEFT, padx=3)
+        self.refresh_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
 
         self.auto_refresh_btn = ModernButton(
             actions_frame,
@@ -937,7 +937,7 @@ class WeatherDashboardGUI(IUserInterface):
             command=self.toggle_auto_refresh,
             style="primary",
         )
-        self.auto_refresh_btn.pack(side=tk.LEFT, padx=3)
+        self.auto_refresh_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
 
         # Dashboard button
         self.dashboard_btn = ModernButton(
@@ -947,11 +947,11 @@ class WeatherDashboardGUI(IUserInterface):
             command=self.show_dashboard,
             style="primary",
         )
-        self.dashboard_btn.pack(side=tk.LEFT, padx=3)
+        self.dashboard_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
 
         # Modern separator
         tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(
-            side=tk.LEFT, fill=tk.Y, padx=5, pady=3
+            side=tk.LEFT, fill=tk.Y, padx=3, pady=3  # Reduced padding
         )
 
         # Temperature controls
@@ -962,7 +962,7 @@ class WeatherDashboardGUI(IUserInterface):
             fg=GlassmorphicStyle.ACCENT_SECONDARY,
             bg="#2a2a2a",
         )
-        temp_icon.pack(side=tk.LEFT, padx=(0, 2))
+        temp_icon.pack(side=tk.LEFT, padx=(0, 1))  # Reduced padding
 
         self.temp_toggle_btn = ModernButton(
             actions_frame,
@@ -970,7 +970,7 @@ class WeatherDashboardGUI(IUserInterface):
             style="secondary",
             command=self.toggle_temperature_unit,
         )
-        self.temp_toggle_btn.pack(side=tk.LEFT, padx=3)
+        self.temp_toggle_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
 
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
