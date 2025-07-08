@@ -21,5 +21,8 @@ sqlalchemy>=2.0.0  # ORM for database operations
 matplotlib>=3.7.0  # For charts and graphs
 numpy>=1.24.0      # For numerical operations
 
+# Modern UI styling
+ttkbootstrap>=1.10.1  # Bootstrap-inspired styling for Tkinter
+
 # Note: TKinter is included with Python by default
 # All capstone features work with these minimal dependencies

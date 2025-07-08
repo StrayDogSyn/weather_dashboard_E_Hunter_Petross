@@ -6,7 +6,7 @@ with custom styling and modern visual elements including weather icons,
 animations, and enhanced visual effects.
 """
 
-# Removed PIL import for now - can be added back later for advanced features
+# Modern UI imports with ttkbootstrap
 import json
 import logging
 import threading
@@ -15,6 +15,12 @@ import tkinter.font as tkFont
 from datetime import date, datetime
 from tkinter import messagebox, simpledialog, ttk
 from typing import Any, Callable, Dict, List, Optional
+
+# Bootstrap-inspired styling
+import ttkbootstrap as ttk_bs
+from ttkbootstrap.constants import (
+    PRIMARY, SECONDARY, SUCCESS, INFO, WARNING, DANGER, LIGHT, DARK
+)
 
 from src.config.config import config_manager
 from src.interfaces.weather_interfaces import IUserInterface
@@ -417,6 +423,43 @@ class ModernButton(tk.Button):
         self.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
 
 
+class BootstrapButton(ttk_bs.Button):
+    """Modern Bootstrap-style button using ttkbootstrap."""
+
+    def __init__(self, parent, style="primary", icon=None, **kwargs):
+        # Prepare button text with icon if provided
+        text = kwargs.get("text", "")
+        if icon:
+            text = f"{icon} {text}"
+            kwargs["text"] = text
+        
+        # Initialize with ttkbootstrap styling
+        super().__init__(parent, **kwargs)
+        
+        # Apply style manually after creation
+        if hasattr(parent, 'style') and hasattr(parent.style, 'configure'):
+            try:
+                style_name = f"{style}.TButton"
+                parent.style.configure(style_name)
+                self.configure(style=style_name)
+            except:
+                pass  # Fallback to default styling
+
+
+class BootstrapFrame(ttk_bs.Frame):
+    """Modern Bootstrap-style frame using ttkbootstrap."""
+    
+    def __init__(self, parent, style="", **kwargs):
+        super().__init__(parent, **kwargs)
+
+
+class BootstrapEntry(ttk_bs.Entry):
+    """Modern Bootstrap-style entry using ttkbootstrap."""
+    
+    def __init__(self, parent, style="primary", **kwargs):
+        super().__init__(parent, **kwargs)
+
+
 class WeatherCard(GlassmorphicFrame):
     """Enhanced weather information card with improved visual features."""
 
@@ -734,8 +777,11 @@ class WeatherDashboardGUI(IUserInterface):
     """Modern TKinter GUI for Weather Dashboard with glassmorphic design."""
 
     def __init__(self):
-        """Initialize the GUI."""
-        self.root = tk.Tk()
+        """Initialize the GUI with ttkbootstrap styling."""
+        # Initialize ttkbootstrap style first
+        self.style = ttk_bs.Style(theme="superhero")  # Dark modern theme
+        self.root = self.style.master
+        
         self.config = config_manager.config
         self.logger = logging.getLogger(__name__)
         self.current_weather = None
@@ -895,82 +941,77 @@ class WeatherDashboardGUI(IUserInterface):
         right_container = tk.Frame(main_header, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
         right_container.pack(side=tk.RIGHT, padx=20, pady=5)
 
-        # Create a modern toolbar with rounded corners
-        toolbar_frame = GlassmorphicFrame(
-            right_container,
-            bg_color="#2a2a2a",
-            border_color="#3a3a3a",
-        )
+        # Create a modern Bootstrap toolbar
+        toolbar_frame = BootstrapFrame(right_container, style="dark")
         toolbar_frame.pack(pady=5)
 
-        actions_frame = tk.Frame(toolbar_frame, bg="#2a2a2a")
+        actions_frame = BootstrapFrame(toolbar_frame, style="dark")
         actions_frame.pack(padx=8, pady=5)
 
         # Search button
-        self.search_btn = ModernButton(
+        self.search_btn = BootstrapButton(
             actions_frame,
-            text="Search",  # Shortened text
+            text="Search",
             icon="🔍",
             command=self.show_city_search,
             style="primary",
         )
-        self.search_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
+        self.search_btn.pack(side=tk.LEFT, padx=2)
 
-        # Modern separator
-        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(
-            side=tk.LEFT, fill=tk.Y, padx=3, pady=3  # Reduced padding
+        # Modern separator using Bootstrap
+        ttk_bs.Separator(actions_frame, orient='vertical').pack(
+            side=tk.LEFT, fill=tk.Y, padx=3, pady=3
         )
 
         # Refresh and Auto-refresh as a logical group
-        self.refresh_btn = ModernButton(
+        self.refresh_btn = BootstrapButton(
             actions_frame,
-            text="Sync",  # Shorter text
+            text="Sync",
             icon="🔄",
             command=self.refresh_current_weather,
+            style="info",
         )
-        self.refresh_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
+        self.refresh_btn.pack(side=tk.LEFT, padx=2)
 
-        self.auto_refresh_btn = ModernButton(
+        self.auto_refresh_btn = BootstrapButton(
             actions_frame,
-            text="Auto",  # Even shorter for modern look
+            text="Auto",
             icon="⏱️",
             command=self.toggle_auto_refresh,
-            style="primary",
+            style="success",
         )
-        self.auto_refresh_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
+        self.auto_refresh_btn.pack(side=tk.LEFT, padx=2)
 
         # Dashboard button
-        self.dashboard_btn = ModernButton(
+        self.dashboard_btn = BootstrapButton(
             actions_frame,
             text="Charts",
             icon="📊",
             command=self.show_dashboard,
-            style="primary",
+            style="warning",
         )
-        self.dashboard_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
+        self.dashboard_btn.pack(side=tk.LEFT, padx=2)
 
-        # Modern separator
-        tk.Frame(actions_frame, width=1, bg="#3a3a3a").pack(
-            side=tk.LEFT, fill=tk.Y, padx=3, pady=3  # Reduced padding
+        # Modern separator using Bootstrap
+        ttk_bs.Separator(actions_frame, orient='vertical').pack(
+            side=tk.LEFT, fill=tk.Y, padx=3, pady=3
         )
 
-        # Temperature controls
-        temp_icon = tk.Label(
+        # Temperature controls with Bootstrap styling
+        temp_label = ttk_bs.Label(
             actions_frame,
             text="🌡️",
             font=(GlassmorphicStyle.FONT_FAMILY, 14),
-            fg=GlassmorphicStyle.ACCENT_SECONDARY,
-            bg="#2a2a2a",
         )
-        temp_icon.pack(side=tk.LEFT, padx=(0, 1))  # Reduced padding
+        temp_label.pack(side=tk.LEFT, padx=(0, 1))
 
-        self.temp_toggle_btn = ModernButton(
+        self.temp_toggle_btn = BootstrapButton(
             actions_frame,
             text="°C/°F",
             style="secondary",
             command=self.toggle_temperature_unit,
         )
-        self.temp_toggle_btn.pack(side=tk.LEFT, padx=2)  # Reduced padding
+        self.temp_toggle_btn.pack(side=tk.LEFT, padx=2)
 
         # Update toggle button text to show current unit
         self.update_temp_toggle_text()
@@ -985,8 +1026,8 @@ class WeatherDashboardGUI(IUserInterface):
 
     def create_main_content(self):
         """Create main content area with tabbed interface."""
-        # Create notebook (tabbed interface) with reduced padding
-        self.notebook = ttk.Notebook(self.root)
+        # Create Bootstrap-styled notebook (tabbed interface)
+        self.notebook = ttk_bs.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 10))
 
         # Weather tab
@@ -1011,8 +1052,8 @@ class WeatherDashboardGUI(IUserInterface):
         self.create_favorites_tab()
 
     def create_weather_tab(self):
-        """Create enhanced current weather tab with better visual hierarchy."""
-        weather_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
+        """Create enhanced current weather tab with Bootstrap styling."""
+        weather_frame = BootstrapFrame(self.notebook)
         self.notebook.add(weather_frame, text="🌤️ Current Weather")
 
         # Main weather card
@@ -1104,54 +1145,52 @@ class WeatherDashboardGUI(IUserInterface):
         )
         input_label.pack(pady=(15, 5))
 
-        self.city_entry = ModernEntry(input_section)
+        self.city_entry = BootstrapEntry(input_section, style="primary")
         self.city_entry.pack(pady=(0, 15), padx=15, fill=tk.X, ipady=10)
 
-        # Placeholder text functionality
+        # Placeholder text functionality for Bootstrap entry
         self.city_entry.insert(0, "e.g., New York, London...")
-        self.city_entry.configure(fg=GlassmorphicStyle.TEXT_TERTIARY)
-
+        
         def on_entry_click(event):
             if self.city_entry.get() == "e.g., New York, London...":
                 self.city_entry.delete(0, tk.END)
-                self.city_entry.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
 
         def on_entry_leave(event):
             if not self.city_entry.get():
                 self.city_entry.insert(0, "e.g., New York, London...")
-                self.city_entry.configure(fg=GlassmorphicStyle.TEXT_TERTIARY)
 
         self.city_entry.bind("<FocusIn>", on_entry_click)
         self.city_entry.bind("<FocusOut>", on_entry_leave)
 
-        # Action buttons with enhanced styling
-        button_section = tk.Frame(scrollable_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        # Action buttons with Bootstrap styling
+        button_section = BootstrapFrame(scrollable_frame)
         button_section.pack(fill=tk.X, padx=15)
 
         # Get weather button
-        self.get_weather_btn = ModernButton(
+        self.get_weather_btn = BootstrapButton(
             button_section,
             text="Get Weather",
             icon="🌤️",
+            style="primary",
             command=self.get_weather_for_city,
         )
         self.get_weather_btn.pack(fill=tk.X, pady=(0, 10))
 
         # Add to favorites button
-        self.add_favorite_btn = ModernButton(
+        self.add_favorite_btn = BootstrapButton(
             button_section,
             text="Add to Favorites",
             icon="⭐",
-            style="secondary",
+            style="warning",
             command=self.add_to_favorites,
         )
         self.add_favorite_btn.pack(fill=tk.X, pady=(0, 10))
 
         # Quick access section
-        quick_access = tk.Frame(scrollable_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
+        quick_access = BootstrapFrame(scrollable_frame)
         quick_access.pack(fill=tk.X, padx=15, pady=(15, 0))
 
-        quick_label = tk.Label(
+        quick_label = ttk_bs.Label(
             quick_access,
             text="Quick Actions",
             font=(
@@ -1159,13 +1198,11 @@ class WeatherDashboardGUI(IUserInterface):
                 GlassmorphicStyle.FONT_SIZE_SMALL,
                 "bold",
             ),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
         )
         quick_label.pack(pady=(0, 10))
 
         # Current location button
-        location_btn = ModernButton(
+        location_btn = BootstrapButton(
             quick_access,
             text="Current Location",
             icon="📍",
@@ -1175,11 +1212,11 @@ class WeatherDashboardGUI(IUserInterface):
         location_btn.pack(fill=tk.X, pady=(0, 5))
 
         # Random city button
-        random_btn = ModernButton(
+        random_btn = BootstrapButton(
             quick_access,
             text="Random City",
             icon="🎲",
-            style="warning",
+            style="info",
             command=self.get_random_city_weather,
         )
         random_btn.pack(fill=tk.X)
@@ -2446,7 +2483,6 @@ class WeatherDashboardGUI(IUserInterface):
         # Clear the entry and set the random city
         self.city_entry.delete(0, tk.END)
         self.city_entry.insert(0, random_city)
-        self.city_entry.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
 
         # Get the weather for the random city
         self.get_weather_for_city()
@@ -2471,29 +2507,21 @@ class WeatherDashboardGUI(IUserInterface):
             self.show_error(f"Location detection failed: {str(e)}")
 
     def toggle_auto_refresh(self):
-        """Toggle auto-refresh functionality with modern styling."""
+        """Toggle auto-refresh functionality with Bootstrap styling."""
         self.auto_refresh = not self.auto_refresh
         if self.auto_refresh:
             self.start_auto_refresh()
-            # Modern button styling with icon change
-            self.auto_refresh_btn.configure(
-                text="⏱️ ON",  # Very concise modern indicator
-                bg=GlassmorphicStyle.SUCCESS,
-                activebackground=GlassmorphicStyle.SUCCESS_LIGHT,
-                highlightbackground=GlassmorphicStyle.SUCCESS,  # Match for rounded corners
-                highlightcolor=GlassmorphicStyle.SUCCESS,
-            )
+            # Update Bootstrap button for active state
+            self.auto_refresh_btn.configure(text="⏱️ ON")
+            # Change to success style for active state
+            self.auto_refresh_btn.configure(style="success")
             self.update_status("Auto-refresh enabled (5 minutes)")
         else:
             self.stop_auto_refresh()
-            # Restore original styling
-            self.auto_refresh_btn.configure(
-                text="Auto",  # Keep it short for modern look
-                bg=GlassmorphicStyle.ACCENT,
-                activebackground=GlassmorphicStyle.ACCENT_LIGHT,
-                highlightbackground=GlassmorphicStyle.ACCENT,  # Match for rounded corners
-                highlightcolor=GlassmorphicStyle.ACCENT,
-            )
+            # Restore original Bootstrap styling
+            self.auto_refresh_btn.configure(text="⏱️ Auto")
+            # Change back to info style
+            self.auto_refresh_btn.configure(style="info")
             self.update_status("Auto-refresh disabled")
 
     def start_auto_refresh(self):
