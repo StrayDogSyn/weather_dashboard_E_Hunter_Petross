@@ -1373,7 +1373,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Activities content with improved scrolling and wider layout
         self.activities_content = ModernScrollableFrame(activities_frame)
-        self.activities_content.pack(fill=tk.BOTH, expand=True, padx=5, pady=(5, 10))  # Reduced horizontal padding
+        self.activities_content.pack(fill=tk.BOTH, expand=True, padx=2, pady=(5, 10))  # Minimal padding for full width
 
     def create_poetry_tab(self):
         """Create weather poetry tab."""
@@ -2087,7 +2087,7 @@ class WeatherDashboardGUI(IUserInterface):
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
                 elevated=True
             )
-            top_frame.pack(fill=tk.X, padx=20, pady=(10, 15))  # More compact for grid layout
+            top_frame.pack(fill=tk.X, padx=10, pady=(10, 12))  # Reduced for more grid space
 
             # Top recommendation header - more compact
             header_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
@@ -2159,7 +2159,7 @@ class WeatherDashboardGUI(IUserInterface):
             bg_color=GlassmorphicStyle.GLASS_BG,
             elevated=True
         )
-        all_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(8, 15))  # Reduced spacing for more grid space
+        all_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(8, 15))  # Minimal outer padding for full width usage
 
         # Header for grid layout
         header_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
@@ -2177,25 +2177,37 @@ class WeatherDashboardGUI(IUserInterface):
             bg=all_frame.bg_color,
         ).pack()
 
-        # Display activities in a responsive grid layout
+        # Create a staggered layout that uses the full window width
         total_activities = len(suggestions.suggested_activities)
-        # Use 3 columns if more than 6 activities, otherwise 2 columns
-        cards_per_row = 3 if total_activities > 6 else 2
-        current_row_frame = None
         
+        # Create a main container for the staggered layout - full width
+        main_grid_container = tk.Frame(all_frame, bg=all_frame.bg_color)
+        main_grid_container.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)  # Minimal padding for full width
+        
+        # Configure grid weights for full width utilization
+        main_grid_container.grid_columnconfigure(0, weight=1)
+        main_grid_container.grid_columnconfigure(1, weight=1)
+        main_grid_container.grid_columnconfigure(2, weight=1)
+        
+        # Create cards in a staggered pattern using grid
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
-            # Create new row frame every 'cards_per_row' cards
-            if (i - 1) % cards_per_row == 0:
-                current_row_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
-                current_row_frame.pack(fill=tk.X, padx=10, pady=5)
+            # Calculate position in staggered layout
+            row = (i - 1) // 3
+            col = (i - 1) % 3
             
-            # Create individual activity card in grid layout
+            # Create individual activity card using grid layout
             activity_card = GlassmorphicFrame(
-                current_row_frame,
+                main_grid_container,
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
             )
-            # Use side=LEFT to place cards horizontally, with equal expansion
-            activity_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=8, pady=8)
+            # Use grid instead of pack for better control and full width usage
+            activity_card.grid(row=row, column=col, sticky="nsew", padx=4, pady=4)
+            
+            # Ensure cards have minimum width but can expand to fill space
+            activity_card.configure(width=250)  # Minimum width for readability
+            
+            # Make sure the grid row expands properly
+            main_grid_container.grid_rowconfigure(row, weight=1)
 
             # Activity header with name and score
             activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
@@ -2240,7 +2252,7 @@ class WeatherDashboardGUI(IUserInterface):
                 ),
                 fg=GlassmorphicStyle.TEXT_SECONDARY,
                 bg=activity_card.bg_color,
-                wraplength=300,  # Smaller wrap for grid cards
+                wraplength=220,  # Optimized for 3-column grid layout
                 justify=tk.CENTER,  # Center justify for grid layout
                 anchor="center"
             )
