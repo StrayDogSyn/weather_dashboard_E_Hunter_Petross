@@ -433,17 +433,8 @@ class BootstrapButton(ttk_bs.Button):
             text = f"{icon} {text}"
             kwargs["text"] = text
         
-        # Initialize with ttkbootstrap styling
+        # Initialize with ttkbootstrap - it inherits from ttk.Button
         super().__init__(parent, **kwargs)
-        
-        # Apply style manually after creation
-        if hasattr(parent, 'style') and hasattr(parent.style, 'configure'):
-            try:
-                style_name = f"{style}.TButton"
-                parent.style.configure(style_name)
-                self.configure(style=style_name)
-            except:
-                pass  # Fallback to default styling
 
 
 class BootstrapFrame(ttk_bs.Frame):
@@ -1290,7 +1281,7 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=0, padx=(20, 10), pady=5, sticky="e")
 
-        self.city1_entry = ModernEntry(input_frame, width=20)
+        self.city1_entry = BootstrapEntry(input_frame, width=20)
         self.city1_entry.grid(row=0, column=1, padx=10, pady=8, ipady=6)
 
         tk.Label(
@@ -1301,7 +1292,7 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=2, padx=(30, 10), pady=5, sticky="e")
 
-        self.city2_entry = ModernEntry(input_frame, width=20)
+        self.city2_entry = BootstrapEntry(input_frame, width=20)
         self.city2_entry.grid(row=0, column=3, padx=10, pady=8, ipady=6)
 
         self.compare_btn = ModernButton(
@@ -2097,6 +2088,7 @@ class WeatherDashboardGUI(IUserInterface):
             icon = type_icons.get(getattr(poem, "poem_type", ""), "✨")
 
             # Use .title if it exists, else fallback to .poem_type or class name
+
             if hasattr(poem, "title"):
                 title_text = f"{icon} {poem.title} {icon}"
             elif hasattr(poem, "poem_type"):
@@ -2561,53 +2553,90 @@ class WeatherDashboardGUI(IUserInterface):
             self.show_error(f"Failed to open dashboard: {str(e)}")
 
 
-class ModernEntry(tk.Entry):
-    """Modern styled entry with enhanced visibility and 3D effects."""
-
-    def __init__(self, parent, **kwargs):
-        super().__init__(
-            parent,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "bold",
-            ),
-            bg="#404040",  # Much lighter background for better visibility
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            insertbackground=GlassmorphicStyle.ACCENT,  # Cursor color
-            relief="raised",  # 3D raised effect
-            borderwidth=3,  # Thicker border for 3D effect
-            highlightthickness=3,
-            highlightcolor=GlassmorphicStyle.ACCENT,
-            highlightbackground="#666666",  # More visible border
-            selectbackground=GlassmorphicStyle.ACCENT,  # Selection background
-            selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
-            **kwargs,
+class ResponsiveLayout:
+    """Helper class for responsive layout management."""
+    
+    @staticmethod
+    def create_card_grid(parent, cards_per_row=2, spacing=10):
+        """Create a responsive grid layout for cards."""
+        container = BootstrapFrame(parent)
+        container.pack(fill=tk.BOTH, expand=True, padx=spacing, pady=spacing)
+        return container
+    
+    @staticmethod
+    def create_button_toolbar(parent, buttons_config, spacing=5):
+        """Create a modern button toolbar with proper spacing."""
+        toolbar = BootstrapFrame(parent)
+        toolbar.pack(fill=tk.X, pady=spacing)
+        
+        for config in buttons_config:
+            btn = BootstrapButton(
+                toolbar,
+                text=config.get("text", ""),
+                icon=config.get("icon", ""),
+                style=config.get("style", "primary"),
+                command=config.get("command", None)
+            )
+            btn.pack(side=tk.LEFT, padx=spacing)
+            
+            # Add separator if specified
+            if config.get("separator", False):
+                ttk_bs.Separator(toolbar, orient='vertical').pack(
+                    side=tk.LEFT, fill=tk.Y, padx=spacing
+                )
+        
+        return toolbar
+    
+    @staticmethod
+    def create_info_card(parent, title, content, icon="ℹ️"):
+        """Create a modern information card with Bootstrap styling."""
+        card = ttk_bs.LabelFrame(parent, text=f"{icon} {title}", padding=15)
+        card.pack(fill=tk.X, pady=10)
+        
+        content_label = ttk_bs.Label(
+            card,
+            text=content,
+            font=("Segoe UI", 11),
+            wraplength=400
         )
+        content_label.pack(anchor=tk.W)
+        
+        return card
 
-        # Add padding and better height
-        self.configure(width=25)
 
-        # Bind focus events for enhanced interactivity
-        self.bind("<FocusIn>", self._on_focus_in)
-        self.bind("<FocusOut>", self._on_focus_out)
-        self.bind("<Button-1>", self._on_click)
-
-    def _on_focus_in(self, event):
-        """Handle focus in event."""
-        self.configure(
-            highlightbackground=GlassmorphicStyle.ACCENT,
-            bg="#555555",  # Even lighter when focused
-            relief="sunken",  # Pressed effect when focused
-            borderwidth=2,
+class ModernLayoutMixin:
+    """Mixin to add modern layout capabilities to GUI classes."""
+    
+    def create_modern_sidebar(self, parent, width=300):
+        """Create a modern sidebar with Bootstrap styling."""
+        sidebar = BootstrapFrame(parent)
+        sidebar.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
+        
+        # Add scrolling capability
+        canvas = tk.Canvas(sidebar, width=width, highlightthickness=0)
+        scrollbar = ttk_bs.Scrollbar(sidebar, orient="vertical", command=canvas.yview)
+        scrollable_frame = BootstrapFrame(canvas)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
-
-    def _on_focus_out(self, event):
-        """Handle focus out event."""
-        self.configure(
-            highlightbackground="#666666", bg="#404040", relief="raised", borderwidth=3
-        )
-
-    def _on_click(self, event):
-        """Handle click event for additional feedback."""
-        self.focus_set()
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        scrollbar.pack(side="right", fill="y")
+        canvas.pack(side="left", fill="both", expand=True)
+        
+        # Mouse wheel scrolling
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        canvas.bind("<MouseWheel>", _on_mousewheel)
+        
+        return scrollable_frame
+    
+    def create_modern_card(self, parent, title, icon="📄"):
+        """Create a modern card layout with Bootstrap styling."""
+        card = ttk_bs.LabelFrame(parent, text=f"{icon} {title}", padding=20)
+        card.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        return card
