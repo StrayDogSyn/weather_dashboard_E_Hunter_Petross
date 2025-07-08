@@ -2179,18 +2179,23 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create a flexible layout that maximizes horizontal space usage with smart positioning
         total_activities = len(suggestions.suggested_activities)
-        max_cards_per_row = 4  # Allow up to 4 cards per row for better space usage
+        
+        # Adjust max cards per row based on total activities for optimal layout
+        if total_activities == 5:
+            max_cards_per_row = 5  # All 5 cards on same row
+        else:
+            max_cards_per_row = 4  # Standard 4 cards per row
         
         # Create main grid container for proper centering
         grid_container = tk.Frame(all_frame, bg=all_frame.bg_color)
-        grid_container.pack(expand=True, pady=10)  # Center the entire grid
+        grid_container.pack(fill=tk.BOTH, expand=True, pady=10)  # Fill both directions for maximum width
         
         # Calculate rows and create grid layout
         num_rows = (total_activities + max_cards_per_row - 1) // max_cards_per_row
         
         # Configure grid weights for proper centering and expansion
         for col in range(max_cards_per_row):
-            grid_container.grid_columnconfigure(col, weight=1)
+            grid_container.grid_columnconfigure(col, weight=1, minsize=150)  # Minimum column width
         for row in range(num_rows):
             grid_container.grid_rowconfigure(row, weight=1)
         
@@ -2198,13 +2203,9 @@ class WeatherDashboardGUI(IUserInterface):
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
             # Smart positioning logic for better visual balance
             if total_activities == 5:
-                # Special case for 5 cards: 4 in first row, 1 centered in second row
-                if i <= 4:
-                    row = 0
-                    col = i - 1
-                else:
-                    row = 1
-                    col = 1  # Center the 5th card (column 1 out of 0-3)
+                # Special case for 5 cards: all 5 in a single row
+                row = 0
+                col = i - 1  # Cards 1-5 go in columns 0-4
             elif total_activities == 6:
                 # Special case for 6 cards: 4 in first row, 2 centered in second row
                 if i <= 4:
@@ -2226,20 +2227,28 @@ class WeatherDashboardGUI(IUserInterface):
                 row = (i - 1) // max_cards_per_row
                 col = (i - 1) % max_cards_per_row
             
-            # Create individual activity card
+            # Create individual activity card with reduced width for 5-card layout
             activity_card = GlassmorphicFrame(
                 grid_container,
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
             )
             
+            # Adjust padding based on number of cards for optimal fit
+            if total_activities == 5:
+                card_padx = 4  # Reduced horizontal padding for 5 cards
+                wrap_length = 140  # Narrower text wrap for 5 cards
+            else:
+                card_padx = 8  # Standard padding for 4 or fewer cards
+                wrap_length = 180  # Standard text wrap
+            
             # Use grid for perfect alignment and centering
             activity_card.grid(
                 row=row, 
                 column=col, 
-                padx=8, 
+                padx=card_padx, 
                 pady=6, 
                 sticky="nsew",  # Expand in all directions
-                ipadx=5, 
+                ipadx=3,  # Reduced internal padding
                 ipady=5
             )
 
@@ -2286,7 +2295,7 @@ class WeatherDashboardGUI(IUserInterface):
                 ),
                 fg=GlassmorphicStyle.TEXT_SECONDARY,
                 bg=activity_card.bg_color,
-                wraplength=180,  # Optimized for 4-column flexible layout
+                wraplength=wrap_length,  # Dynamic wrap length based on card count
                 justify=tk.CENTER,  # Center justify for grid layout
                 anchor="center"
             )
