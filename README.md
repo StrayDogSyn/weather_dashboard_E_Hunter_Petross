@@ -361,3 +361,65 @@ The Weather Dashboard includes a beautifully designed poetry feature that genera
 - **Decorative Elements**: Subtle borders, accent lines, and thematic icons
 
 The poetry display uses modern UI techniques to present weather-inspired poems in an engaging, visually pleasing format.
+
+## 🛠️ Development & Maintenance
+
+### Quick Setup
+
+For new developers or setting up on a new machine:
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd weather_dashboard_E_Hunter_Petross
+
+# Run automated setup
+python scripts/setup.py
+```
+
+### Project Cleanup
+
+To clean up temporary files and cache:
+
+```bash
+python scripts/cleanup.py
+```
+
+### Project Structure
+
+```
+weather_dashboard_E_Hunter_Petross/
+├── 📁 src/                 # Main application source code
+│   ├── 📁 config/          # Configuration management
+│   ├── 📁 core/            # Core business logic
+│   ├── 📁 models/          # Data models and structures
+│   ├── 📁 services/        # External service integrations
+│   ├── 📁 ui/              # User interface components
+│   └── 📁 utils/           # Utility functions
+├── 📁 tests/               # Test suite
+├── 📁 docs/                # Documentation
+├── 📁 data/                # Database and data files
+├── 📁 scripts/             # Development scripts
+├── 🔧 requirements.txt     # Python dependencies
+├── ⚙️ pyproject.toml       # Project configuration
+└── 📄 README.md           # This file
+```
+
+### Code Quality
+
+This project maintains high code quality standards:
+
+- **Type Checking**: MyPy static type analysis
+- **Code Formatting**: Black code formatter
+- **Linting**: Flake8 with comprehensive rules
+- **Testing**: Pytest with comprehensive test coverage
+- **Security**: Bandit security scanning
+
+### UI Styling
+
+The application now uses **ttkbootstrap** for modern Bootstrap-inspired styling:
+
+- Professional dark theme ("superhero")
+- Responsive design principles
+- Consistent visual hierarchy
+- Enhanced accessibility features
