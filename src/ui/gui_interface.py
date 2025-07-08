@@ -2078,7 +2078,7 @@ class WeatherDashboardGUI(IUserInterface):
             no_activities_label.pack(pady=50)
             return
 
-        # Top recommendation
+        # Top recommendation with increased spacing
         if suggestions.top_suggestion:
             top_activity, top_score = suggestions.suggested_activities[0]
 
@@ -2087,11 +2087,11 @@ class WeatherDashboardGUI(IUserInterface):
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
                 elevated=True
             )
-            top_frame.pack(fill=tk.X, padx=10, pady=10)
+            top_frame.pack(fill=tk.X, padx=15, pady=(15, 20))  # Increased padding
 
-            # Top recommendation header
+            # Top recommendation header with more spacing
             header_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            header_frame.pack(fill=tk.X, pady=(15, 5))
+            header_frame.pack(fill=tk.X, pady=(20, 10))  # Increased top/bottom padding
 
             tk.Label(
                 header_frame,
@@ -2105,9 +2105,9 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-            # Activity name
+            # Activity name with more spacing
             name_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            name_frame.pack(fill=tk.X, pady=5)
+            name_frame.pack(fill=tk.X, pady=(10, 15))  # Increased spacing
 
             icon = "🏠" if top_activity.indoor else "🌞"
             tk.Label(
@@ -2122,9 +2122,9 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-            # Activity description with text wrapping
+            # Activity description with better spacing
             desc_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            desc_frame.pack(fill=tk.X, pady=(5, 10), padx=20)
+            desc_frame.pack(fill=tk.X, pady=(10, 15), padx=25)  # Increased padding
 
             desc_label = tk.Label(
                 desc_frame,
@@ -2141,9 +2141,9 @@ class WeatherDashboardGUI(IUserInterface):
             )
             desc_label.pack(fill=tk.X, anchor="w")
 
-            # Score
+            # Score with more spacing
             score_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            score_frame.pack(fill=tk.X, pady=(0, 15))
+            score_frame.pack(fill=tk.X, pady=(10, 25))  # Increased bottom padding
 
             tk.Label(
                 score_frame,
@@ -2153,17 +2153,17 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-        # All suggestions
+        # All suggestions with better spacing
         all_frame = GlassmorphicFrame(
             self.activities_content.scrollable_frame,
             bg_color=GlassmorphicStyle.GLASS_BG,
             elevated=True
         )
-        all_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
+        all_frame.pack(fill=tk.X, padx=15, pady=(10, 15))  # Increased spacing from top recommendation
 
-        # Header for all suggestions
+        # Header for all suggestions with more spacing
         header_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
-        header_frame.pack(fill=tk.X, pady=(15, 10))
+        header_frame.pack(fill=tk.X, pady=(20, 15))  # Increased padding
 
         tk.Label(
             header_frame,
@@ -2177,22 +2177,22 @@ class WeatherDashboardGUI(IUserInterface):
             bg=all_frame.bg_color,
         ).pack()
 
-        # Display all activities with better formatting
+        # Display all activities with better spacing and formatting
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
-            # Create individual activity card
+            # Create individual activity card with more spacing
             activity_card = GlassmorphicFrame(
                 all_frame,
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
             )
-            activity_card.pack(fill=tk.X, padx=15, pady=5)
+            activity_card.pack(fill=tk.X, padx=20, pady=8)  # Increased horizontal and vertical padding
 
             # Activity header with name and score
             activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
-            activity_header.pack(fill=tk.X, pady=(10, 5), padx=15)
+            activity_header.pack(fill=tk.X, pady=(15, 10), padx=20)  # Increased padding
 
             icon = "🏠" if activity.indoor else "🌞"
             
-            # Left side - activity name
+            # Left side - activity name with better spacing
             name_label = tk.Label(
                 activity_header,
                 text=f"{i}. {icon} {activity.name}",
@@ -2216,9 +2216,9 @@ class WeatherDashboardGUI(IUserInterface):
             )
             score_label.pack(side=tk.RIGHT, anchor="e")
 
-            # Activity description
+            # Activity description with better spacing
             desc_frame = tk.Frame(activity_card, bg=activity_card.bg_color)
-            desc_frame.pack(fill=tk.X, pady=(0, 10), padx=15)
+            desc_frame.pack(fill=tk.X, pady=(5, 20), padx=25)  # Increased padding
 
             desc_label = tk.Label(
                 desc_frame,
@@ -2234,6 +2234,14 @@ class WeatherDashboardGUI(IUserInterface):
                 anchor="nw"
             )
             desc_label.pack(fill=tk.X, anchor="w")
+
+        # Add some spacing at the bottom for better visual flow
+        bottom_spacer = tk.Frame(
+            self.activities_content.scrollable_frame, 
+            bg=GlassmorphicStyle.BACKGROUND,
+            height=30
+        )
+        bottom_spacer.pack(fill=tk.X, pady=20)
 
         # Update the display
         self.activities_content.scrollable_frame.update_idletasks()
