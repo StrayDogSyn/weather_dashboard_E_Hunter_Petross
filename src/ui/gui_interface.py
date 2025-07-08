@@ -2186,26 +2186,54 @@ class WeatherDashboardGUI(IUserInterface):
         else:
             max_cards_per_row = 4  # Standard 4 cards per row
         
-        # Create main grid container for proper centering
+        # Create main grid container for proper centering with improved spacing
         grid_container = tk.Frame(all_frame, bg=all_frame.bg_color)
-        grid_container.pack(fill=tk.BOTH, expand=True, pady=10)  # Fill both directions for maximum width
+        
+        # Add explicit left margin padding for better visual centering
+        if total_activities == 1:
+            # Single card - center with significant side padding
+            grid_container.pack(fill=tk.BOTH, expand=True, padx=(200, 200), pady=10)
+        elif total_activities == 2:
+            # Two cards - moderate side padding for centering
+            grid_container.pack(fill=tk.BOTH, expand=True, padx=(150, 150), pady=10)
+        elif total_activities == 3:
+            # Three cards - add left margin for better visual balance
+            grid_container.pack(fill=tk.BOTH, expand=True, padx=(80, 80), pady=10)
+        elif total_activities == 4:
+            # Four cards - minimal padding to use available space
+            grid_container.pack(fill=tk.BOTH, expand=True, padx=(20, 20), pady=10)
+        else:
+            # Five or more cards - use full width
+            grid_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
         # Calculate rows and create grid layout
         num_rows = (total_activities + max_cards_per_row - 1) // max_cards_per_row
         
+        # Simplified grid configuration for better centering
+        if total_activities <= 4:
+            # Use actual number of columns for cards <= 4
+            grid_columns = total_activities if total_activities <= 4 else max_cards_per_row
+        else:
+            # Use max cards per row for 5+ activities
+            grid_columns = max_cards_per_row
+        
         # Configure grid weights for proper centering and expansion
-        for col in range(max_cards_per_row):
-            grid_container.grid_columnconfigure(col, weight=1, minsize=150)  # Minimum column width
+        for col in range(grid_columns):
+            grid_container.grid_columnconfigure(col, weight=1, minsize=180)
         for row in range(num_rows):
             grid_container.grid_rowconfigure(row, weight=1)
         
         # Create cards using smart grid layout for optimal positioning
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
-            # Smart positioning logic for better visual balance
+            # Simplified positioning logic for better visual balance
             if total_activities == 5:
                 # Special case for 5 cards: all 5 in a single row
                 row = 0
                 col = i - 1  # Cards 1-5 go in columns 0-4
+            elif total_activities <= 4:
+                # For 1-4 cards, use simple column positioning
+                row = 0
+                col = i - 1  # Cards positioned directly in columns 0, 1, 2, 3
             elif total_activities == 6:
                 # Special case for 6 cards: 4 in first row, 2 centered in second row
                 if i <= 4:
@@ -2223,9 +2251,21 @@ class WeatherDashboardGUI(IUserInterface):
                     row = 1
                     col = (i - 5)  # Place remaining cards starting from column 0
             else:
-                # Default grid layout for other cases
+                # Default grid layout with centering for fewer cards
                 row = (i - 1) // max_cards_per_row
-                col = (i - 1) % max_cards_per_row
+                col_in_row = (i - 1) % max_cards_per_row
+                
+                # Calculate centering offset for partial rows
+                if row == num_rows - 1:  # Last row
+                    cards_in_last_row = total_activities - (row * max_cards_per_row)
+                    if cards_in_last_row < max_cards_per_row:
+                        # Center the cards in the last row
+                        offset = (max_cards_per_row - cards_in_last_row) // 2
+                        col = col_in_row + offset
+                    else:
+                        col = col_in_row
+                else:
+                    col = col_in_row
             
             # Create individual activity card with reduced width for 5-card layout
             activity_card = GlassmorphicFrame(
