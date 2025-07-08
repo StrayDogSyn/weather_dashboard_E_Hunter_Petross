@@ -2177,7 +2177,7 @@ class WeatherDashboardGUI(IUserInterface):
             bg=all_frame.bg_color,
         ).pack()
 
-        # Create a flexible layout that maximizes horizontal space usage with proper centering
+        # Create a flexible layout that maximizes horizontal space usage with smart positioning
         total_activities = len(suggestions.suggested_activities)
         max_cards_per_row = 4  # Allow up to 4 cards per row for better space usage
         
@@ -2194,10 +2194,37 @@ class WeatherDashboardGUI(IUserInterface):
         for row in range(num_rows):
             grid_container.grid_rowconfigure(row, weight=1)
         
-        # Create cards using grid layout for perfect centering
+        # Create cards using smart grid layout for optimal positioning
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
-            row = (i - 1) // max_cards_per_row
-            col = (i - 1) % max_cards_per_row
+            # Smart positioning logic for better visual balance
+            if total_activities == 5:
+                # Special case for 5 cards: 4 in first row, 1 centered in second row
+                if i <= 4:
+                    row = 0
+                    col = i - 1
+                else:
+                    row = 1
+                    col = 1  # Center the 5th card (column 1 out of 0-3)
+            elif total_activities == 6:
+                # Special case for 6 cards: 4 in first row, 2 centered in second row
+                if i <= 4:
+                    row = 0
+                    col = i - 1
+                else:
+                    row = 1
+                    col = (i - 5) + 1  # Center the last 2 cards (columns 1-2 out of 0-3)
+            elif total_activities == 7:
+                # Special case for 7 cards: 4 in first row, 3 centered in second row
+                if i <= 4:
+                    row = 0
+                    col = i - 1
+                else:
+                    row = 1
+                    col = (i - 5)  # Place remaining cards starting from column 0
+            else:
+                # Default grid layout for other cases
+                row = (i - 1) // max_cards_per_row
+                col = (i - 1) % max_cards_per_row
             
             # Create individual activity card
             activity_card = GlassmorphicFrame(
