@@ -38,11 +38,11 @@ class WeatherDashboard:
         """Setup global hotkeys for dashboard operations."""
         # Bind hotkeys to the main window
         self.parent.bind('<Control-d>', self.toggle_dashboard)
-        self.parent.bind('<Control-1>', lambda e: self.show_chart('temperature'))
-        self.parent.bind('<Control-2>', lambda e: self.show_chart('metrics'))
-        self.parent.bind('<Control-3>', lambda e: self.show_chart('forecast'))
-        self.parent.bind('<Control-4>', lambda e: self.show_chart('humidity_pressure'))
-        self.parent.bind('<Control-r>', self.refresh_all_charts)
+        self.parent.bind('<Control-1>', lambda e: self.show_chart_with_feedback('temperature'))
+        self.parent.bind('<Control-2>', lambda e: self.show_chart_with_feedback('metrics'))
+        self.parent.bind('<Control-3>', lambda e: self.show_chart_with_feedback('forecast'))
+        self.parent.bind('<Control-4>', lambda e: self.show_chart_with_feedback('humidity_pressure'))
+        self.parent.bind('<Control-r>', lambda e: self.refresh_all_charts_with_feedback())
         self.parent.bind('<Control-h>', self.show_help)
         
         # Make sure the main window can receive focus for hotkeys
@@ -163,7 +163,7 @@ class WeatherDashboard:
             self.chart_buttons[chart_id] = btn
         
         # Refresh button
-        refresh_btn = tk.Button(
+        self.refresh_btn = tk.Button(
             button_frame,
             text="🔄 Refresh All\n(Ctrl+R)",
             font=("Segoe UI", 10),
@@ -174,9 +174,9 @@ class WeatherDashboard:
             padx=15,
             pady=8,
             cursor="hand2",
-            command=self.refresh_all_charts,
+            command=self.refresh_all_charts_with_feedback,
         )
-        refresh_btn.pack(side=tk.RIGHT, padx=5)
+        self.refresh_btn.pack(side=tk.RIGHT, padx=5)
         
         # Charts container with grid layout
         charts_container = GlassmorphicFrame(main_frame)
@@ -342,11 +342,11 @@ for hotkeys to work properly.
             return
             
         # Bind hotkeys to dashboard window for when it has focus
-        self.dashboard_window.bind('<Control-1>', lambda e: self.show_chart('temperature'))
-        self.dashboard_window.bind('<Control-2>', lambda e: self.show_chart('metrics'))
-        self.dashboard_window.bind('<Control-3>', lambda e: self.show_chart('forecast'))
-        self.dashboard_window.bind('<Control-4>', lambda e: self.show_chart('humidity_pressure'))
-        self.dashboard_window.bind('<Control-r>', self.refresh_all_charts)
+        self.dashboard_window.bind('<Control-1>', lambda e: self.show_chart_with_feedback('temperature'))
+        self.dashboard_window.bind('<Control-2>', lambda e: self.show_chart_with_feedback('metrics'))
+        self.dashboard_window.bind('<Control-3>', lambda e: self.show_chart_with_feedback('forecast'))
+        self.dashboard_window.bind('<Control-4>', lambda e: self.show_chart_with_feedback('humidity_pressure'))
+        self.dashboard_window.bind('<Control-r>', lambda e: self.refresh_all_charts_with_feedback())
         self.dashboard_window.bind('<Control-h>', self.show_help)
         self.dashboard_window.bind('<Control-d>', self.toggle_dashboard)
         
@@ -354,14 +354,30 @@ for hotkeys to work properly.
         self.dashboard_window.focus_set()
 
     def show_chart_with_feedback(self, chart_type: str):
-        """Show chart with visual feedback on the button."""
-        # Remove visual feedback from all buttons
-        for btn in self.chart_buttons.values():
-            btn.config(relief="flat")
+        """Show chart with visual button feedback."""
+        # Reset all button colors
+        for btn_id, btn in self.chart_buttons.items():
+            btn.configure(bg=GlassmorphicStyle.ACCENT)
+        
+        # Highlight the active button
+        if chart_type in self.chart_buttons:
+            self.chart_buttons[chart_type].configure(bg=GlassmorphicStyle.ACCENT_DARK)
         
         # Show the chart
         self.show_chart(chart_type)
+
+    def refresh_all_charts_with_feedback(self):
+        """Refresh all charts with visual feedback."""
+        # Change button color to indicate refresh is happening
+        original_bg = self.refresh_btn.cget('bg')
+        self.refresh_btn.configure(bg=GlassmorphicStyle.WARNING, text="🔄 Refreshing...\n(Ctrl+R)")
         
-        # Add visual feedback to the selected button
-        if chart_type in self.chart_buttons:
-            self.chart_buttons[chart_type].config(relief="raised")
+        # Update the window to show the change
+        if self.dashboard_window:
+            self.dashboard_window.update()
+        
+        # Perform the actual refresh
+        self.refresh_all_charts()
+        
+        # Restore button appearance
+        self.refresh_btn.configure(bg=original_bg, text="🔄 Refresh All\n(Ctrl+R)")
