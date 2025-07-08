@@ -1331,39 +1331,47 @@ class WeatherDashboardGUI(IUserInterface):
         self.journal_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
 
     def create_activities_tab(self):
-        """Create activity suggestions tab."""
-        activities_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
+        """Create activity suggestions tab with Bootstrap styling."""
+        activities_frame = BootstrapFrame(self.notebook)
         self.notebook.add(activities_frame, text="🎯 Activities")
 
-        # Controls
-        controls_frame = GlassmorphicFrame(activities_frame, elevated=True)
+        # Controls with Bootstrap styling
+        controls_frame = BootstrapFrame(activities_frame, style="dark")
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
-        self.get_activities_btn = ModernButton(
-            controls_frame,
-            text="🎯 Get Suggestions",
+        # Button container
+        button_container = BootstrapFrame(controls_frame, style="dark")
+        button_container.pack(pady=15)
+
+        self.get_activities_btn = BootstrapButton(
+            button_container,
+            text="Get Suggestions",
+            icon="🎯",
+            style="primary",
             command=self.get_activity_suggestions,
         )
-        self.get_activities_btn.pack(side=tk.LEFT, padx=20, pady=15)
+        self.get_activities_btn.pack(side=tk.LEFT, padx=10)
 
         # Activity filter buttons
-        self.indoor_filter_btn = ModernButton(
-            controls_frame,
-            text="🏠 Indoor Only",
-            style="secondary",
+        self.indoor_filter_btn = BootstrapButton(
+            button_container,
+            text="Indoor Only",
+            icon="🏠",
+            style="info",
             command=lambda: self.filter_activities("indoor"),
         )
-        self.indoor_filter_btn.pack(side=tk.LEFT, padx=10, pady=15)
+        self.indoor_filter_btn.pack(side=tk.LEFT, padx=5)
 
-        self.outdoor_filter_btn = ModernButton(
-            controls_frame,
-            text="🌞 Outdoor Only",
-            style="secondary",
+        self.outdoor_filter_btn = BootstrapButton(
+            button_container,
+            text="Outdoor Only",
+            icon="🌞",
+            style="warning",
             command=lambda: self.filter_activities("outdoor"),
         )
-        self.outdoor_filter_btn.pack(side=tk.LEFT, padx=10, pady=15)
+        self.outdoor_filter_btn.pack(side=tk.LEFT, padx=5)
 
-        # Activities content
+        # Activities content with improved scrolling
         self.activities_content = ModernScrollableFrame(activities_frame)
         self.activities_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
 
@@ -1944,8 +1952,114 @@ class WeatherDashboardGUI(IUserInterface):
         )
         summary_label.pack()
 
+    def display_no_weather_message_activities(self) -> None:
+        """Display message when no weather data is available for activities."""
+        # Clear existing content
+        for widget in self.activities_content.scrollable_frame.winfo_children():
+            widget.destroy()
+
+        # Create a message frame
+        message_frame = GlassmorphicFrame(
+            self.activities_content.scrollable_frame,
+            bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
+            elevated=True
+        )
+        message_frame.pack(fill=tk.X, padx=20, pady=50)
+
+        # Info icon and message
+        icon_label = tk.Label(
+            message_frame,
+            text="🌡️",
+            font=(GlassmorphicStyle.FONT_FAMILY, 48),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=message_frame.bg_color,
+        )
+        icon_label.pack(pady=(20, 10))
+
+        title_label = tk.Label(
+            message_frame,
+            text="Weather Data Required",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=message_frame.bg_color,
+        )
+        title_label.pack(pady=(0, 10))
+
+        desc_label = tk.Label(
+            message_frame,
+            text="Please get weather data from the 'Current Weather' tab first to receive personalized activity suggestions.",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+            ),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=message_frame.bg_color,
+            wraplength=400,
+            justify=tk.CENTER,
+        )
+        desc_label.pack(pady=(0, 20))
+
+        self.update_status("Please get weather data first to get activity suggestions")
+
+    def display_activity_error(self, error_message: str) -> None:
+        """Display error message in activities tab instead of popup."""
+        # Clear existing content
+        for widget in self.activities_content.scrollable_frame.winfo_children():
+            widget.destroy()
+
+        # Create error frame
+        error_frame = GlassmorphicFrame(
+            self.activities_content.scrollable_frame,
+            bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
+            elevated=True
+        )
+        error_frame.pack(fill=tk.X, padx=20, pady=50)
+
+        # Error icon and message
+        icon_label = tk.Label(
+            error_frame,
+            text="⚠️",
+            font=(GlassmorphicStyle.FONT_FAMILY, 48),
+            fg=GlassmorphicStyle.ERROR,
+            bg=error_frame.bg_color,
+        )
+        icon_label.pack(pady=(20, 10))
+
+        title_label = tk.Label(
+            error_frame,
+            text="Error Getting Activities",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_LARGE,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.ERROR,
+            bg=error_frame.bg_color,
+        )
+        title_label.pack(pady=(0, 10))
+
+        desc_label = tk.Label(
+            error_frame,
+            text=error_message,
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+            ),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=error_frame.bg_color,
+            wraplength=400,
+            justify=tk.CENTER,
+        )
+        desc_label.pack(pady=(0, 20))
+
+        self.update_status(f"Error: {error_message}", is_error=True)
+
     def display_activity_suggestions(self, suggestions: ActivitySuggestion) -> None:
-        """Display activity suggestions."""
+        """Display activity suggestions with improved formatting."""
         # Clear existing content
         for widget in self.activities_content.scrollable_frame.winfo_children():
             widget.destroy()
@@ -1968,11 +2082,19 @@ class WeatherDashboardGUI(IUserInterface):
         if suggestions.top_suggestion:
             top_activity, top_score = suggestions.suggested_activities[0]
 
-            top_frame = GlassmorphicFrame(self.activities_content.scrollable_frame)
+            top_frame = GlassmorphicFrame(
+                self.activities_content.scrollable_frame,
+                bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
+                elevated=True
+            )
             top_frame.pack(fill=tk.X, padx=10, pady=10)
 
+            # Top recommendation header
+            header_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
+            header_frame.pack(fill=tk.X, pady=(15, 5))
+
             tk.Label(
-                top_frame,
+                header_frame,
                 text="🏆 TOP RECOMMENDATION",
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
@@ -1981,11 +2103,16 @@ class WeatherDashboardGUI(IUserInterface):
                 ),
                 fg=GlassmorphicStyle.SUCCESS,
                 bg=top_frame.bg_color,
-            ).pack(pady=(15, 5))
+            ).pack()
 
+            # Activity name
+            name_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
+            name_frame.pack(fill=tk.X, pady=5)
+
+            icon = "🏠" if top_activity.indoor else "🌞"
             tk.Label(
-                top_frame,
-                text=top_activity.name,
+                name_frame,
+                text=f"{icon} {top_activity.name}",
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
                     GlassmorphicStyle.FONT_SIZE_LARGE,
@@ -1995,8 +2122,12 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-            tk.Label(
-                top_frame,
+            # Activity description with text wrapping
+            desc_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
+            desc_frame.pack(fill=tk.X, pady=(5, 10), padx=20)
+
+            desc_label = tk.Label(
+                desc_frame,
                 text=top_activity.description,
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
@@ -2004,23 +2135,39 @@ class WeatherDashboardGUI(IUserInterface):
                 ),
                 fg=GlassmorphicStyle.TEXT_SECONDARY,
                 bg=top_frame.bg_color,
-            ).pack(pady=(5, 10))
+                wraplength=500,  # Reduced for better wrapping
+                justify=tk.LEFT,
+                anchor="nw"  # Northwest anchor for better alignment
+            )
+            desc_label.pack(fill=tk.X, anchor="w")
+
+            # Score
+            score_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
+            score_frame.pack(fill=tk.X, pady=(0, 15))
 
             tk.Label(
-                top_frame,
+                score_frame,
                 text=f"Suitability Score: {top_score:.1f}/10",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
                 fg=GlassmorphicStyle.ACCENT,
                 bg=top_frame.bg_color,
-            ).pack(pady=(0, 15))
+            ).pack()
 
         # All suggestions
-        all_frame = GlassmorphicFrame(self.activities_content.scrollable_frame)
+        all_frame = GlassmorphicFrame(
+            self.activities_content.scrollable_frame,
+            bg_color=GlassmorphicStyle.GLASS_BG,
+            elevated=True
+        )
         all_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
+        # Header for all suggestions
+        header_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
+        header_frame.pack(fill=tk.X, pady=(15, 10))
+
         tk.Label(
-            all_frame,
-            text="💡 All Suggestions",
+            header_frame,
+            text="💡 All Activity Suggestions",
             font=(
                 GlassmorphicStyle.FONT_FAMILY,
                 GlassmorphicStyle.FONT_SIZE_MEDIUM,
@@ -2028,32 +2175,68 @@ class WeatherDashboardGUI(IUserInterface):
             ),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=all_frame.bg_color,
-        ).pack(pady=(15, 10))
+        ).pack()
 
-        for i, (activity, score) in enumerate(suggestions.suggested_activities[1:], 2):
-            activity_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
-            activity_frame.pack(fill=tk.X, padx=20, pady=2)
+        # Display all activities with better formatting
+        for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
+            # Create individual activity card
+            activity_card = GlassmorphicFrame(
+                all_frame,
+                bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+            )
+            activity_card.pack(fill=tk.X, padx=15, pady=5)
+
+            # Activity header with name and score
+            activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
+            activity_header.pack(fill=tk.X, pady=(10, 5), padx=15)
 
             icon = "🏠" if activity.indoor else "🌞"
-
-            tk.Label(
-                activity_frame,
+            
+            # Left side - activity name
+            name_label = tk.Label(
+                activity_header,
                 text=f"{i}. {icon} {activity.name}",
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
                     GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                    "bold"
                 ),
                 fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=all_frame.bg_color,
-            ).pack(side=tk.LEFT)
+                bg=activity_card.bg_color,
+            )
+            name_label.pack(side=tk.LEFT, anchor="w")
 
-            tk.Label(
-                activity_frame,
-                text=f"Score: {score:.1f}",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            # Right side - score
+            score_label = tk.Label(
+                activity_header,
+                text=f"Score: {score:.1f}/10",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
                 fg=GlassmorphicStyle.ACCENT,
-                bg=all_frame.bg_color,
-            ).pack(side=tk.RIGHT)
+                bg=activity_card.bg_color,
+            )
+            score_label.pack(side=tk.RIGHT, anchor="e")
+
+            # Activity description
+            desc_frame = tk.Frame(activity_card, bg=activity_card.bg_color)
+            desc_frame.pack(fill=tk.X, pady=(0, 10), padx=15)
+
+            desc_label = tk.Label(
+                desc_frame,
+                text=activity.description,
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_SMALL,
+                ),
+                fg=GlassmorphicStyle.TEXT_SECONDARY,
+                bg=activity_card.bg_color,
+                wraplength=450,  # Reduced for better card layout
+                justify=tk.LEFT,
+                anchor="nw"
+            )
+            desc_label.pack(fill=tk.X, anchor="w")
+
+        # Update the display
+        self.activities_content.scrollable_frame.update_idletasks()
 
     def display_weather_poem(self, poem) -> None:
         """Display weather poem in the poetry tab with enhanced visual styling."""
@@ -2115,7 +2298,7 @@ class WeatherDashboardGUI(IUserInterface):
         # Poem text
         poem_text = poem.text if hasattr(poem, "text") else str(poem)
 
-        # Create a decorative frame for the poem text
+        # Create a decorative frame for the poem content
         poem_text_frame = tk.Frame(
             poem_frame,
             bg="#252535",
