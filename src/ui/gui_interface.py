@@ -1371,9 +1371,9 @@ class WeatherDashboardGUI(IUserInterface):
         )
         self.outdoor_filter_btn.pack(side=tk.LEFT, padx=5)
 
-        # Activities content with improved scrolling
+        # Activities content with improved scrolling and wider layout
         self.activities_content = ModernScrollableFrame(activities_frame)
-        self.activities_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+        self.activities_content.pack(fill=tk.BOTH, expand=True, padx=5, pady=(5, 10))  # Reduced horizontal padding
 
     def create_poetry_tab(self):
         """Create weather poetry tab."""
@@ -2078,7 +2078,7 @@ class WeatherDashboardGUI(IUserInterface):
             no_activities_label.pack(pady=50)
             return
 
-        # Top recommendation with increased spacing
+        # Top recommendation with full width layout
         if suggestions.top_suggestion:
             top_activity, top_score = suggestions.suggested_activities[0]
 
@@ -2087,7 +2087,7 @@ class WeatherDashboardGUI(IUserInterface):
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
                 elevated=True
             )
-            top_frame.pack(fill=tk.X, padx=15, pady=(15, 20))  # Increased padding
+            top_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(15, 20))  # Reduced outer margins for wider cards
 
             # Top recommendation header with more spacing
             header_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
@@ -2135,7 +2135,7 @@ class WeatherDashboardGUI(IUserInterface):
                 ),
                 fg=GlassmorphicStyle.TEXT_SECONDARY,
                 bg=top_frame.bg_color,
-                wraplength=500,  # Reduced for better wrapping
+                wraplength=800,  # Increased for wider layout
                 justify=tk.LEFT,
                 anchor="nw"  # Northwest anchor for better alignment
             )
@@ -2153,13 +2153,13 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
             ).pack()
 
-        # All suggestions with better spacing
+        # All suggestions with full width layout
         all_frame = GlassmorphicFrame(
             self.activities_content.scrollable_frame,
             bg_color=GlassmorphicStyle.GLASS_BG,
             elevated=True
         )
-        all_frame.pack(fill=tk.X, padx=15, pady=(10, 15))  # Increased spacing from top recommendation
+        all_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=(10, 15))  # Reduced outer margins for wider cards
 
         # Header for all suggestions with more spacing
         header_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
@@ -2177,14 +2177,14 @@ class WeatherDashboardGUI(IUserInterface):
             bg=all_frame.bg_color,
         ).pack()
 
-        # Display all activities with better spacing and formatting
+        # Display all activities with full width cards
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
-            # Create individual activity card with more spacing
+            # Create individual activity card using full width
             activity_card = GlassmorphicFrame(
                 all_frame,
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
             )
-            activity_card.pack(fill=tk.X, padx=20, pady=8)  # Increased horizontal and vertical padding
+            activity_card.pack(fill=tk.BOTH, expand=True, padx=15, pady=8)  # Reduced margins for wider individual cards
 
             # Activity header with name and score
             activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
@@ -2229,7 +2229,7 @@ class WeatherDashboardGUI(IUserInterface):
                 ),
                 fg=GlassmorphicStyle.TEXT_SECONDARY,
                 bg=activity_card.bg_color,
-                wraplength=450,  # Reduced for better card layout
+                wraplength=700,  # Increased for wider layout
                 justify=tk.LEFT,
                 anchor="nw"
             )
