@@ -2177,89 +2177,93 @@ class WeatherDashboardGUI(IUserInterface):
             bg=all_frame.bg_color,
         ).pack()
 
-        # Create a flexible layout that maximizes horizontal space usage
+        # Create a flexible layout that maximizes horizontal space usage with proper centering
         total_activities = len(suggestions.suggested_activities)
         max_cards_per_row = 4  # Allow up to 4 cards per row for better space usage
         
-        # Calculate grid layout
-        rows = []
-        for i in range(0, total_activities, max_cards_per_row):
-            row_activities = suggestions.suggested_activities[i:i + max_cards_per_row]
-            rows.append(row_activities)
+        # Create main grid container for proper centering
+        grid_container = tk.Frame(all_frame, bg=all_frame.bg_color)
+        grid_container.pack(expand=True, pady=10)  # Center the entire grid
         
-        # Create each row with proper spacing and centering
-        for row_index, row_activities in enumerate(rows):
-            cards_in_row = len(row_activities)
+        # Calculate rows and create grid layout
+        num_rows = (total_activities + max_cards_per_row - 1) // max_cards_per_row
+        
+        # Configure grid weights for proper centering and expansion
+        for col in range(max_cards_per_row):
+            grid_container.grid_columnconfigure(col, weight=1)
+        for row in range(num_rows):
+            grid_container.grid_rowconfigure(row, weight=1)
+        
+        # Create cards using grid layout for perfect centering
+        for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
+            row = (i - 1) // max_cards_per_row
+            col = (i - 1) % max_cards_per_row
             
-            # Create row container with centering support
-            row_container = tk.Frame(all_frame, bg=all_frame.bg_color)
-            row_container.pack(fill=tk.X, pady=3)
+            # Create individual activity card
+            activity_card = GlassmorphicFrame(
+                grid_container,
+                bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+            )
             
-            # Calculate padding for centering when not full
-            if cards_in_row < max_cards_per_row:
-                # Center partial rows by adding side padding
-                side_padding = (max_cards_per_row - cards_in_row) * 60  # Approximate card width compensation
-                row_container.pack_configure(padx=side_padding)
+            # Use grid for perfect alignment and centering
+            activity_card.grid(
+                row=row, 
+                column=col, 
+                padx=8, 
+                pady=6, 
+                sticky="nsew",  # Expand in all directions
+                ipadx=5, 
+                ipady=5
+            )
+
+            # Activity header - more compact for 4-column layout
+            activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
+            activity_header.pack(fill=tk.X, pady=(12, 8), padx=10)  # Reduced padding
+
+            icon = "🏠" if activity.indoor else "🌞"
             
-            # Create cards for this row
-            for i, (activity, score) in enumerate(row_activities, row_index * max_cards_per_row + 1):
-                # Create individual activity card
-                activity_card = GlassmorphicFrame(
-                    row_container,
-                    bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
-                )
-                
-                # Pack cards side by side - always expand for consistent appearance
-                activity_card.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=3, pady=3)
+            # Activity name (centered for better grid appearance)
+            name_label = tk.Label(
+                activity_header,
+                text=f"{i}. {icon} {activity.name}",
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                    "bold"
+                ),
+                fg=GlassmorphicStyle.TEXT_PRIMARY,
+                bg=activity_card.bg_color,
+            )
+            name_label.pack(anchor="center")  # Center the activity name
 
-                # Activity header - more compact for 4-column layout
-                activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
-                activity_header.pack(fill=tk.X, pady=(12, 8), padx=10)  # Reduced padding
+            # Score (centered below name for grid layout)
+            score_label = tk.Label(
+                activity_header,
+                text=f"Score: {score:.1f}/10",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
+                fg=GlassmorphicStyle.ACCENT,
+                bg=activity_card.bg_color,
+            )
+            score_label.pack(anchor="center", pady=(5, 0))
 
-                icon = "🏠" if activity.indoor else "🌞"
-                
-                # Activity name (centered for better grid appearance)
-                name_label = tk.Label(
-                    activity_header,
-                    text=f"{i}. {icon} {activity.name}",
-                    font=(
-                        GlassmorphicStyle.FONT_FAMILY,
-                        GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                        "bold"
-                    ),
-                    fg=GlassmorphicStyle.TEXT_PRIMARY,
-                    bg=activity_card.bg_color,
-                )
-                name_label.pack(anchor="center")  # Center the activity name
+            # Activity description - more compact for 4-column layout
+            desc_frame = tk.Frame(activity_card, bg=activity_card.bg_color)
+            desc_frame.pack(fill=tk.X, pady=(8, 15), padx=10)  # Reduced padding
 
-                # Score (centered below name for grid layout)
-                score_label = tk.Label(
-                    activity_header,
-                    text=f"Score: {score:.1f}/10",
-                    font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
-                    fg=GlassmorphicStyle.ACCENT,
-                    bg=activity_card.bg_color,
-                )
-                score_label.pack(anchor="center", pady=(5, 0))
-
-                # Activity description - more compact for 4-column layout
-                desc_frame = tk.Frame(activity_card, bg=activity_card.bg_color)
-                desc_frame.pack(fill=tk.X, pady=(8, 15), padx=10)  # Reduced padding
-
-                desc_label = tk.Label(
-                    desc_frame,
-                    text=activity.description,
-                    font=(
-                        GlassmorphicStyle.FONT_FAMILY,
-                        GlassmorphicStyle.FONT_SIZE_SMALL,
-                    ),
-                    fg=GlassmorphicStyle.TEXT_SECONDARY,
-                    bg=activity_card.bg_color,
-                    wraplength=180,  # Optimized for 4-column flexible layout
-                    justify=tk.CENTER,  # Center justify for grid layout
-                    anchor="center"
-                )
-                desc_label.pack(anchor="center")
+            desc_label = tk.Label(
+                desc_frame,
+                text=activity.description,
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_SMALL,
+                ),
+                fg=GlassmorphicStyle.TEXT_SECONDARY,
+                bg=activity_card.bg_color,
+                wraplength=180,  # Optimized for 4-column flexible layout
+                justify=tk.CENTER,  # Center justify for grid layout
+                anchor="center"
+            )
+            desc_label.pack(anchor="center")
 
         # Add some spacing at the bottom for better visual flow
         bottom_spacer = tk.Frame(
