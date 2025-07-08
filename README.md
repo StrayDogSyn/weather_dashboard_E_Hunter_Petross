@@ -387,7 +387,7 @@ python scripts/cleanup.py
 
 ### Project Structure
 
-```
+```text
 weather_dashboard_E_Hunter_Petross/
 ├── 📁 src/                 # Main application source code
 │   ├── 📁 config/          # Configuration management
