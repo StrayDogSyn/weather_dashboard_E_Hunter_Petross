@@ -82,6 +82,9 @@ class WeatherDashboard:
         # Load initial charts
         self.refresh_all_charts()
         
+        # Bind hotkeys to dashboard window as well
+        self.setup_dashboard_hotkeys()
+        
         # Setup window close event
         self.dashboard_window.protocol("WM_DELETE_WINDOW", self.hide_dashboard)
 
@@ -139,6 +142,9 @@ class WeatherDashboard:
             ("💧 Humidity & Pressure", "humidity_pressure", "Ctrl+4"),
         ]
         
+        # Store button references for visual feedback
+        self.chart_buttons = {}
+        
         for text, chart_id, hotkey in charts_info:
             btn = tk.Button(
                 button_frame,
@@ -151,9 +157,10 @@ class WeatherDashboard:
                 padx=15,
                 pady=8,
                 cursor="hand2",
-                command=lambda cid=chart_id: self.show_chart(cid),
+                command=lambda cid=chart_id: self.show_chart_with_feedback(cid),
             )
             btn.pack(side=tk.LEFT, padx=5)
+            self.chart_buttons[chart_id] = btn
         
         # Refresh button
         refresh_btn = tk.Button(
@@ -328,3 +335,33 @@ for hotkeys to work properly.
             command=help_window.destroy,
         )
         close_btn.pack(pady=20)
+
+    def setup_dashboard_hotkeys(self):
+        """Setup hotkeys specifically for the dashboard window."""
+        if not self.dashboard_window:
+            return
+            
+        # Bind hotkeys to dashboard window for when it has focus
+        self.dashboard_window.bind('<Control-1>', lambda e: self.show_chart('temperature'))
+        self.dashboard_window.bind('<Control-2>', lambda e: self.show_chart('metrics'))
+        self.dashboard_window.bind('<Control-3>', lambda e: self.show_chart('forecast'))
+        self.dashboard_window.bind('<Control-4>', lambda e: self.show_chart('humidity_pressure'))
+        self.dashboard_window.bind('<Control-r>', self.refresh_all_charts)
+        self.dashboard_window.bind('<Control-h>', self.show_help)
+        self.dashboard_window.bind('<Control-d>', self.toggle_dashboard)
+        
+        # Make dashboard window focusable for hotkeys
+        self.dashboard_window.focus_set()
+
+    def show_chart_with_feedback(self, chart_type: str):
+        """Show chart with visual feedback on the button."""
+        # Remove visual feedback from all buttons
+        for btn in self.chart_buttons.values():
+            btn.config(relief="flat")
+        
+        # Show the chart
+        self.show_chart(chart_type)
+        
+        # Add visual feedback to the selected button
+        if chart_type in self.chart_buttons:
+            self.chart_buttons[chart_type].config(relief="raised")
