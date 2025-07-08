@@ -82,6 +82,9 @@ class WeatherDashboard:
         # Load initial charts
         self.refresh_all_charts()
         
+        # Set initial active chart (temperature by default)
+        self.show_chart_with_feedback('temperature')
+        
         # Bind hotkeys to dashboard window as well
         self.setup_dashboard_hotkeys()
         
