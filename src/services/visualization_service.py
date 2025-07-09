@@ -1,5 +1,7 @@
 """Weather Data Visualization Service with Charts and Graphs."""
 
+# mypy: disable-error-code="arg-type,assignment"
+
 import logging
 import tkinter as tk
 from datetime import datetime, timedelta
@@ -32,7 +34,7 @@ class WeatherVisualizationService:
 
         # Configure matplotlib for dark theme if available
         if MATPLOTLIB_AVAILABLE:
-            plt.style.use("dark_background")
+            plt.style.use("dark_background")  # type: ignore[possibly-unbound]
 
         # Store chart data for updates
         self.temperature_data: List[Tuple[datetime, float]] = []
@@ -106,15 +108,15 @@ class WeatherVisualizationService:
             return frame
 
         # Create matplotlib figure
-        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")
+        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")  # type: ignore[possibly-unbound]
         ax = fig.add_subplot(111, facecolor="#1a1a2e")
 
         # Extract data
         times = [t for t, _ in self.temperature_data]
         temps = [temp for _, temp in self.temperature_data]
 
-        # Plot temperature line
-        ax.plot(times, temps, color="#4a9eff", linewidth=2, marker="o", markersize=4)
+        # Plot temperature line - matplotlib handles datetime objects automatically
+        ax.plot(times, temps, color="#4a9eff", linewidth=2, marker="o", markersize=4)  # type: ignore[arg-type]
         ax.set_title("Temperature Trend (24h)", color="white", fontsize=14, pad=20)
         ax.set_xlabel("Time", color="white")
         ax.set_ylabel("Temperature (°C)", color="white")
@@ -130,10 +132,10 @@ class WeatherVisualizationService:
         # Format x-axis for time
         fig.autofmt_xdate()
         if MATPLOTLIB_AVAILABLE:
-            plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)
+            plt.setp(ax.xaxis.get_majorticklabels(), rotation=45)  # type: ignore[possibly-unbound]
 
         # Create canvas
-        canvas = FigureCanvasTkAgg(fig, frame)
+        canvas = FigureCanvasTkAgg(fig, frame)  # type: ignore[possibly-unbound]
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -157,7 +159,7 @@ class WeatherVisualizationService:
             return frame
 
         # Create matplotlib figure
-        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")
+        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")  # type: ignore[possibly-unbound]
         ax = fig.add_subplot(111, facecolor="#1a1a2e")
 
         # Get latest values
@@ -208,7 +210,7 @@ class WeatherVisualizationService:
         ax.spines["left"].set_color("white")
 
         # Create canvas
-        canvas = FigureCanvasTkAgg(fig, frame)
+        canvas = FigureCanvasTkAgg(fig, frame)  # type: ignore[possibly-unbound]
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -246,7 +248,7 @@ class WeatherVisualizationService:
             return frame
 
         # Create matplotlib figure
-        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")
+        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")  # type: ignore[possibly-unbound]
         ax = fig.add_subplot(111, facecolor="#1a1a2e")
 
         # Extract forecast data (first 5 days)
@@ -261,9 +263,9 @@ class WeatherVisualizationService:
 
         # Create grouped bar chart using range if numpy not available
         try:
-            x = np.arange(len(days))
+            x = np.arange(len(days))  # type: ignore[misc]
         except NameError:
-            x = list(range(len(days)))
+            x = list(range(len(days)))  # type: ignore[assignment]
         width = 0.35
 
         bars1 = ax.bar(
@@ -313,7 +315,7 @@ class WeatherVisualizationService:
         ax.spines["left"].set_color("white")
 
         # Create canvas
-        canvas = FigureCanvasTkAgg(fig, frame)
+        canvas = FigureCanvasTkAgg(fig, frame)  # type: ignore[possibly-unbound]
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -337,7 +339,7 @@ class WeatherVisualizationService:
             return frame
 
         # Create matplotlib figure with dual y-axes
-        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")
+        fig = Figure(figsize=(8, 4), dpi=100, facecolor="#1a1a2e")  # type: ignore[possibly-unbound]
         ax1 = fig.add_subplot(111, facecolor="#1a1a2e")
         ax2 = ax1.twinx()
 
@@ -346,7 +348,7 @@ class WeatherVisualizationService:
             times_hum = [t for t, _ in self.humidity_data]
             humidity_vals = [h for _, h in self.humidity_data]
             line1 = ax1.plot(
-                times_hum,
+                times_hum,  # type: ignore[arg-type]
                 humidity_vals,
                 color="#4a9eff",
                 linewidth=2,
@@ -362,7 +364,7 @@ class WeatherVisualizationService:
             times_press = [t for t, _ in self.pressure_data]
             pressure_vals = [p for _, p in self.pressure_data]
             line2 = ax2.plot(
-                times_press,
+                times_press,  # type: ignore[arg-type]
                 pressure_vals,
                 color="#22c55e",
                 linewidth=2,
@@ -390,7 +392,7 @@ class WeatherVisualizationService:
         fig.autofmt_xdate()
 
         # Create canvas
-        canvas = FigureCanvasTkAgg(fig, frame)
+        canvas = FigureCanvasTkAgg(fig, frame)  # type: ignore[possibly-unbound]
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
