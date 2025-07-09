@@ -17,34 +17,44 @@ class WeatherDashboard:
         """Initialize the weather dashboard."""
         self.parent = parent
         self.logger = logging.getLogger(__name__)
-        
+
         # Initialize visualization service
         self.viz_service = WeatherVisualizationService()
-        
+
         # Dashboard window
         self.dashboard_window: Optional[tk.Toplevel] = None
-        
+
         # Chart containers
         self.chart_frames: Dict[str, tk.Widget] = {}
-        
+
         # Current weather and forecast data
         self.current_weather: Optional[CurrentWeather] = None
         self.current_forecast: Optional[WeatherForecast] = None
-        
+
         # Setup hotkeys
         self.setup_hotkeys()
 
     def setup_hotkeys(self):
         """Setup global hotkeys for dashboard operations."""
         # Bind hotkeys to the main window
-        self.parent.bind('<Control-d>', self.toggle_dashboard)
-        self.parent.bind('<Control-1>', lambda e: self.show_chart_with_feedback('temperature'))
-        self.parent.bind('<Control-2>', lambda e: self.show_chart_with_feedback('metrics'))
-        self.parent.bind('<Control-3>', lambda e: self.show_chart_with_feedback('forecast'))
-        self.parent.bind('<Control-4>', lambda e: self.show_chart_with_feedback('humidity_pressure'))
-        self.parent.bind('<Control-r>', lambda e: self.refresh_all_charts_with_feedback())
-        self.parent.bind('<Control-h>', self.show_help)
-        
+        self.parent.bind("<Control-d>", self.toggle_dashboard)
+        self.parent.bind(
+            "<Control-1>", lambda e: self.show_chart_with_feedback("temperature")
+        )
+        self.parent.bind(
+            "<Control-2>", lambda e: self.show_chart_with_feedback("metrics")
+        )
+        self.parent.bind(
+            "<Control-3>", lambda e: self.show_chart_with_feedback("forecast")
+        )
+        self.parent.bind(
+            "<Control-4>", lambda e: self.show_chart_with_feedback("humidity_pressure")
+        )
+        self.parent.bind(
+            "<Control-r>", lambda e: self.refresh_all_charts_with_feedback()
+        )
+        self.parent.bind("<Control-h>", self.show_help)
+
         # Make sure the main window can receive focus for hotkeys
         self.parent.focus_set()
 
@@ -66,28 +76,28 @@ class WeatherDashboard:
         self.dashboard_window.title("Weather Data Visualization Dashboard")
         self.dashboard_window.geometry("1200x800")
         self.dashboard_window.configure(bg=GlassmorphicStyle.BACKGROUND)
-        
+
         # Make window resizable
         self.dashboard_window.resizable(True, True)
-        
+
         # Setup window icon and styling
         try:
             self.dashboard_window.iconname("Weather Dashboard")
         except:
             pass  # Ignore if icon setting fails
-        
+
         # Create main layout
         self.create_dashboard_layout()
-        
+
         # Load initial charts
         self.refresh_all_charts()
-        
+
         # Set initial active chart (temperature by default)
-        self.show_chart_with_feedback('temperature')
-        
+        self.show_chart_with_feedback("temperature")
+
         # Bind hotkeys to dashboard window as well
         self.setup_dashboard_hotkeys()
-        
+
         # Setup window close event
         self.dashboard_window.protocol("WM_DELETE_WINDOW", self.hide_dashboard)
 
@@ -105,11 +115,11 @@ class WeatherDashboard:
             bg_color=GlassmorphicStyle.BACKGROUND,
         )
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         # Title bar
         title_frame = GlassmorphicFrame(main_frame, elevated=True)
         title_frame.pack(fill=tk.X, pady=(0, 10))
-        
+
         title_label = tk.Label(
             title_frame,
             text="🌤️ Weather Data Visualization Dashboard",
@@ -118,7 +128,7 @@ class WeatherDashboard:
             bg=title_frame.bg_color,
         )
         title_label.pack(pady=15)
-        
+
         # Hotkey info
         hotkey_info = tk.Label(
             title_frame,
@@ -128,15 +138,15 @@ class WeatherDashboard:
             bg=title_frame.bg_color,
         )
         hotkey_info.pack(pady=(0, 10))
-        
+
         # Chart controls
         controls_frame = GlassmorphicFrame(main_frame, elevated=True)
         controls_frame.pack(fill=tk.X, pady=(0, 10))
-        
+
         # Control buttons
         button_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
         button_frame.pack(pady=10)
-        
+
         # Chart selection buttons
         charts_info = [
             ("📈 Temperature Trend", "temperature", "Ctrl+1"),
@@ -144,10 +154,10 @@ class WeatherDashboard:
             ("🌤️ 5-Day Forecast", "forecast", "Ctrl+3"),
             ("💧 Humidity & Pressure", "humidity_pressure", "Ctrl+4"),
         ]
-        
+
         # Store button references for visual feedback
         self.chart_buttons = {}
-        
+
         for text, chart_id, hotkey in charts_info:
             btn = tk.Button(
                 button_frame,
@@ -164,7 +174,7 @@ class WeatherDashboard:
             )
             btn.pack(side=tk.LEFT, padx=5)
             self.chart_buttons[chart_id] = btn
-        
+
         # Refresh button
         self.refresh_btn = tk.Button(
             button_frame,
@@ -180,17 +190,17 @@ class WeatherDashboard:
             command=self.refresh_all_charts_with_feedback,
         )
         self.refresh_btn.pack(side=tk.RIGHT, padx=5)
-        
+
         # Charts container with grid layout
         charts_container = GlassmorphicFrame(main_frame)
         charts_container.pack(fill=tk.BOTH, expand=True)
-        
+
         # Configure grid layout (2x2)
         charts_container.grid_rowconfigure(0, weight=1)
         charts_container.grid_rowconfigure(1, weight=1)
         charts_container.grid_columnconfigure(0, weight=1)
         charts_container.grid_columnconfigure(1, weight=1)
-        
+
         # Create chart placeholder frames
         chart_positions = [
             ("temperature", 0, 0),
@@ -198,7 +208,7 @@ class WeatherDashboard:
             ("forecast", 1, 0),
             ("humidity_pressure", 1, 1),
         ]
-        
+
         for chart_id, row, col in chart_positions:
             chart_frame = GlassmorphicFrame(
                 charts_container,
@@ -213,19 +223,21 @@ class WeatherDashboard:
         if chart_type not in self.chart_frames:
             self.logger.warning(f"Unknown chart type: {chart_type}")
             return
-        
+
         # Clear existing chart
         frame = self.chart_frames[chart_type]
         for widget in frame.winfo_children():
             widget.destroy()
-        
+
         # Create new chart based on type
         if chart_type == "temperature":
             chart = self.viz_service.create_temperature_trend_chart(frame)
         elif chart_type == "metrics":
             chart = self.viz_service.create_weather_metrics_chart(frame)
         elif chart_type == "forecast":
-            chart = self.viz_service.create_forecast_comparison_chart(frame, self.current_forecast)
+            chart = self.viz_service.create_forecast_comparison_chart(
+                frame, self.current_forecast
+            )
         elif chart_type == "humidity_pressure":
             chart = self.viz_service.create_humidity_pressure_chart(frame)
         else:
@@ -240,7 +252,7 @@ class WeatherDashboard:
             )
             label.pack(expand=True)
             return
-        
+
         # Pack the chart
         if chart != frame:  # Only pack if it's a different widget
             chart.pack(fill=tk.BOTH, expand=True)
@@ -249,11 +261,11 @@ class WeatherDashboard:
         """Refresh all charts with current data."""
         if self.dashboard_window is None or not self.dashboard_window.winfo_exists():
             return
-        
+
         # Refresh each chart
         for chart_type in self.chart_frames.keys():
             self.show_chart(chart_type)
-        
+
         # Log refresh completion
         self.logger.info("Dashboard charts refreshed")
 
@@ -261,7 +273,7 @@ class WeatherDashboard:
         """Update dashboard with new weather data."""
         self.current_weather = weather
         self.viz_service.add_weather_data_point(weather)
-        
+
         # Refresh charts if dashboard is visible
         if self.dashboard_window and self.dashboard_window.winfo_exists():
             self.refresh_all_charts()
@@ -269,7 +281,7 @@ class WeatherDashboard:
     def update_forecast_data(self, forecast: WeatherForecast):
         """Update dashboard with new forecast data."""
         self.current_forecast = forecast
-        
+
         # Refresh forecast chart if dashboard is visible
         if self.dashboard_window and self.dashboard_window.winfo_exists():
             self.show_chart("forecast")
@@ -282,16 +294,16 @@ class WeatherDashboard:
         help_window.configure(bg=GlassmorphicStyle.BACKGROUND)
         help_window.transient(self.parent)
         help_window.grab_set()
-        
+
         # Center the window
-        help_window.geometry("+%d+%d" % (
-            self.parent.winfo_rootx() + 100,
-            self.parent.winfo_rooty() + 100
-        ))
-        
+        help_window.geometry(
+            "+%d+%d"
+            % (self.parent.winfo_rootx() + 100, self.parent.winfo_rooty() + 100)
+        )
+
         help_frame = GlassmorphicFrame(help_window, elevated=True)
         help_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-        
+
         title = tk.Label(
             help_frame,
             text="🔗 Dashboard Hotkeys",
@@ -300,7 +312,7 @@ class WeatherDashboard:
             bg=help_frame.bg_color,
         )
         title.pack(pady=(10, 20))
-        
+
         hotkeys_text = """
 Ctrl + D    Toggle Dashboard
 Ctrl + 1    Show Temperature Trend
@@ -313,7 +325,7 @@ Ctrl + H    Show This Help
 Note: Make sure the main window has focus
 for hotkeys to work properly.
         """
-        
+
         help_label = tk.Label(
             help_frame,
             text=hotkeys_text.strip(),
@@ -323,7 +335,7 @@ for hotkeys to work properly.
             justify=tk.LEFT,
         )
         help_label.pack(pady=10)
-        
+
         close_btn = tk.Button(
             help_frame,
             text="Close",
@@ -343,16 +355,26 @@ for hotkeys to work properly.
         """Setup hotkeys specifically for the dashboard window."""
         if not self.dashboard_window:
             return
-            
+
         # Bind hotkeys to dashboard window for when it has focus
-        self.dashboard_window.bind('<Control-1>', lambda e: self.show_chart_with_feedback('temperature'))
-        self.dashboard_window.bind('<Control-2>', lambda e: self.show_chart_with_feedback('metrics'))
-        self.dashboard_window.bind('<Control-3>', lambda e: self.show_chart_with_feedback('forecast'))
-        self.dashboard_window.bind('<Control-4>', lambda e: self.show_chart_with_feedback('humidity_pressure'))
-        self.dashboard_window.bind('<Control-r>', lambda e: self.refresh_all_charts_with_feedback())
-        self.dashboard_window.bind('<Control-h>', self.show_help)
-        self.dashboard_window.bind('<Control-d>', self.toggle_dashboard)
-        
+        self.dashboard_window.bind(
+            "<Control-1>", lambda e: self.show_chart_with_feedback("temperature")
+        )
+        self.dashboard_window.bind(
+            "<Control-2>", lambda e: self.show_chart_with_feedback("metrics")
+        )
+        self.dashboard_window.bind(
+            "<Control-3>", lambda e: self.show_chart_with_feedback("forecast")
+        )
+        self.dashboard_window.bind(
+            "<Control-4>", lambda e: self.show_chart_with_feedback("humidity_pressure")
+        )
+        self.dashboard_window.bind(
+            "<Control-r>", lambda e: self.refresh_all_charts_with_feedback()
+        )
+        self.dashboard_window.bind("<Control-h>", self.show_help)
+        self.dashboard_window.bind("<Control-d>", self.toggle_dashboard)
+
         # Make dashboard window focusable for hotkeys
         self.dashboard_window.focus_set()
 
@@ -361,26 +383,28 @@ for hotkeys to work properly.
         # Reset all button colors
         for btn_id, btn in self.chart_buttons.items():
             btn.configure(bg=GlassmorphicStyle.ACCENT)
-        
+
         # Highlight the active button
         if chart_type in self.chart_buttons:
             self.chart_buttons[chart_type].configure(bg=GlassmorphicStyle.ACCENT_DARK)
-        
+
         # Show the chart
         self.show_chart(chart_type)
 
     def refresh_all_charts_with_feedback(self):
         """Refresh all charts with visual feedback."""
         # Change button color to indicate refresh is happening
-        original_bg = self.refresh_btn.cget('bg')
-        self.refresh_btn.configure(bg=GlassmorphicStyle.WARNING, text="🔄 Refreshing...\n(Ctrl+R)")
-        
+        original_bg = self.refresh_btn.cget("bg")
+        self.refresh_btn.configure(
+            bg=GlassmorphicStyle.WARNING, text="🔄 Refreshing...\n(Ctrl+R)"
+        )
+
         # Update the window to show the change
         if self.dashboard_window:
             self.dashboard_window.update()
-        
+
         # Perform the actual refresh
         self.refresh_all_charts()
-        
+
         # Restore button appearance
         self.refresh_btn.configure(bg=original_bg, text="🔄 Refresh All\n(Ctrl+R)")
