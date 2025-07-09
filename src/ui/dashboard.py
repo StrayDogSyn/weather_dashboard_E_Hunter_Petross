@@ -83,7 +83,7 @@ class WeatherDashboard:
         # Setup window icon and styling
         try:
             self.dashboard_window.iconname("Weather Dashboard")
-        except:
+        except Exception:
             pass  # Ignore if icon setting fails
 
         # Create main layout
@@ -316,7 +316,7 @@ class WeatherDashboard:
         hotkeys_text = """
 Ctrl + D    Toggle Dashboard
 Ctrl + 1    Show Temperature Trend
-Ctrl + 2    Show Weather Metrics  
+Ctrl + 2    Show Weather Metrics
 Ctrl + 3    Show 5-Day Forecast
 Ctrl + 4    Show Humidity & Pressure
 Ctrl + R    Refresh All Charts
