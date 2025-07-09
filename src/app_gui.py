@@ -484,7 +484,9 @@ class WeatherDashboardGUIApp:
                 logging.error(f"Error getting activities: {e}")
                 self.gui.root.after(
                     0,
-                    lambda exc=e: self.gui.display_activity_error(f"Error getting activities: {exc}"),
+                    lambda exc=e: self.gui.display_activity_error(
+                        f"Error getting activities: {exc}"
+                    ),
                 )
 
         threading.Thread(target=get_activities_async, daemon=True).start()
@@ -509,11 +511,12 @@ class WeatherDashboardGUIApp:
 
             # Create filtered ActivitySuggestion object for display
             from src.models.capstone_models import ActivitySuggestion
+
             filtered_suggestion = ActivitySuggestion(
                 weather=self.gui.current_weather,
-                suggested_activities=activities[:10] if activities else []
+                suggested_activities=activities[:10] if activities else [],
             )
-            
+
             self.gui.display_activity_suggestions(filtered_suggestion)
 
         except Exception as e:

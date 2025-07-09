@@ -6,9 +6,9 @@ with custom styling and modern visual elements including weather icons,
 animations, and enhanced visual effects.
 """
 
-# Modern UI imports with ttkbootstrap
 import json
 import logging
+import random
 import threading
 import tkinter as tk
 import tkinter.font as tkFont
@@ -16,10 +16,14 @@ from datetime import date, datetime
 from tkinter import messagebox, simpledialog, ttk
 from typing import Any, Callable, Dict, List, Optional
 
-# Bootstrap-inspired styling
 import ttkbootstrap as ttk_bs
 from ttkbootstrap.constants import (
-    PRIMARY, SECONDARY, SUCCESS, INFO, WARNING, DANGER, LIGHT, DARK
+    DANGER,
+    DARK,
+    INFO,
+    LIGHT,
+    PRIMARY,
+    SECONDARY,
 )
 
 from src.config.config import config_manager
@@ -32,7 +36,6 @@ from src.models.capstone_models import (
     WeatherPoem,
 )
 from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
-
 
 # Note: WeatherDashboard import will be added after class definition to avoid circular import
 
@@ -432,21 +435,21 @@ class BootstrapButton(ttk_bs.Button):
         if icon:
             text = f"{icon} {text}"
             kwargs["text"] = text
-        
+
         # Initialize with ttkbootstrap - it inherits from ttk.Button
         super().__init__(parent, **kwargs)
 
 
 class BootstrapFrame(ttk_bs.Frame):
     """Modern Bootstrap-style frame using ttkbootstrap."""
-    
+
     def __init__(self, parent, style="", **kwargs):
         super().__init__(parent, **kwargs)
 
 
 class BootstrapEntry(ttk_bs.Entry):
     """Modern Bootstrap-style entry using ttkbootstrap."""
-    
+
     def __init__(self, parent, style="primary", **kwargs):
         super().__init__(parent, **kwargs)
 
@@ -772,7 +775,7 @@ class WeatherDashboardGUI(IUserInterface):
         # Initialize ttkbootstrap style first
         self.style = ttk_bs.Style(theme="superhero")  # Dark modern theme
         self.root = self.style.master
-        
+
         self.config = config_manager.config
         self.logger = logging.getLogger(__name__)
         self.current_weather = None
@@ -785,11 +788,12 @@ class WeatherDashboardGUI(IUserInterface):
             300000  # Default refresh interval: 5 minutes (in milliseconds)
         )
         self.refresh_timer = None  # Store the timer ID for auto-refresh
-        
+
         # Initialize dashboard (import here to avoid circular import)
         from src.ui.dashboard import WeatherDashboard
+
         self.dashboard = WeatherDashboard(self.root)
-        
+
         self.setup_window()
         self.setup_styles()
         self.create_layout()
@@ -803,7 +807,7 @@ class WeatherDashboardGUI(IUserInterface):
         # Cleanup stray widgets on startup
         self.cleanup_stray_widgets()
 
-    def setup_window(self):
+    def setup_window(self) -> None:
         """Setup main window properties."""
         self.root.title("JTC Capstone - Team 5")
         self.root.geometry("1300x900")  # Increased height for better content fit
@@ -819,7 +823,7 @@ class WeatherDashboardGUI(IUserInterface):
         # Set up close handler to properly clean up
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
 
-    def setup_styles(self):
+    def setup_styles(self) -> None:
         """Setup custom styles."""
         style = ttk.Style()
         style.theme_use("clam")
@@ -855,7 +859,7 @@ class WeatherDashboardGUI(IUserInterface):
             ],
         )
 
-    def create_layout(self):
+    def create_layout(self) -> None:
         """Create the main GUI layout."""
         # Header
         self.create_header()
@@ -950,7 +954,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.search_btn.pack(side=tk.LEFT, padx=2)
 
         # Modern separator using Bootstrap
-        ttk_bs.Separator(actions_frame, orient='vertical').pack(
+        ttk_bs.Separator(actions_frame, orient="vertical").pack(
             side=tk.LEFT, fill=tk.Y, padx=3, pady=3
         )
 
@@ -984,7 +988,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.dashboard_btn.pack(side=tk.LEFT, padx=2)
 
         # Modern separator using Bootstrap
-        ttk_bs.Separator(actions_frame, orient='vertical').pack(
+        ttk_bs.Separator(actions_frame, orient="vertical").pack(
             side=tk.LEFT, fill=tk.Y, padx=3, pady=3
         )
 
@@ -1141,7 +1145,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Placeholder text functionality for Bootstrap entry
         self.city_entry.insert(0, "e.g., New York, London...")
-        
+
         def on_entry_click(event):
             if self.city_entry.get() == "e.g., New York, London...":
                 self.city_entry.delete(0, tk.END)
@@ -1373,7 +1377,9 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Activities content with improved scrolling and wider layout
         self.activities_content = ModernScrollableFrame(activities_frame)
-        self.activities_content.pack(fill=tk.BOTH, expand=True, padx=2, pady=(5, 10))  # Minimal padding for full width
+        self.activities_content.pack(
+            fill=tk.BOTH, expand=True, padx=2, pady=(5, 10)
+        )  # Minimal padding for full width
 
     def create_poetry_tab(self):
         """Create weather poetry tab."""
@@ -1504,7 +1510,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.update_status(f"Weather updated for {weather_data.location.display_name}")
 
         # Update dashboard with new weather data
-        if hasattr(self, 'dashboard'):
+        if hasattr(self, "dashboard"):
             self.dashboard.update_weather_data(weather_data)
 
         # Update timestamp
@@ -1518,7 +1524,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.current_forecast_data = forecast_data
 
         # Update dashboard with new forecast data
-        if hasattr(self, 'dashboard'):
+        if hasattr(self, "dashboard"):
             self.dashboard.update_forecast_data(forecast_data)
 
         # Clear existing forecast
@@ -1748,7 +1754,7 @@ class WeatherDashboardGUI(IUserInterface):
             ),
         )
 
-    def cleanup_stray_widgets(self):
+    def cleanup_stray_widgets(self) -> None:
         """Clean up any stray widgets that might be showing in the UI."""
         # Iterate through all children of the root window
         for widget in self.root.winfo_children():
@@ -1784,7 +1790,7 @@ class WeatherDashboardGUI(IUserInterface):
                                 pass
 
     # GUI-specific methods
-    def get_weather_for_city(self):
+    def get_weather_for_city(self) -> None:
         """Get weather for entered city."""
         city = self.city_entry.get().strip()
         if not city:
@@ -1962,7 +1968,7 @@ class WeatherDashboardGUI(IUserInterface):
         message_frame = GlassmorphicFrame(
             self.activities_content.scrollable_frame,
             bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
-            elevated=True
+            elevated=True,
         )
         message_frame.pack(fill=tk.X, padx=20, pady=50)
 
@@ -2015,7 +2021,7 @@ class WeatherDashboardGUI(IUserInterface):
         error_frame = GlassmorphicFrame(
             self.activities_content.scrollable_frame,
             bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
-            elevated=True
+            elevated=True,
         )
         error_frame.pack(fill=tk.X, padx=20, pady=50)
 
@@ -2085,9 +2091,11 @@ class WeatherDashboardGUI(IUserInterface):
             top_frame = GlassmorphicFrame(
                 self.activities_content.scrollable_frame,
                 bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
-                elevated=True
+                elevated=True,
             )
-            top_frame.pack(fill=tk.X, padx=10, pady=(10, 12))  # Reduced for more grid space
+            top_frame.pack(
+                fill=tk.X, padx=10, pady=(10, 12)
+            )  # Reduced for more grid space
 
             # Top recommendation header - more compact
             header_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
@@ -2137,7 +2145,7 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=top_frame.bg_color,
                 wraplength=800,  # Increased for wider layout
                 justify=tk.LEFT,
-                anchor="nw"  # Northwest anchor for better alignment
+                anchor="nw",  # Northwest anchor for better alignment
             )
             desc_label.pack(fill=tk.X, anchor="w")
 
@@ -2148,7 +2156,11 @@ class WeatherDashboardGUI(IUserInterface):
             tk.Label(
                 score_frame,
                 text=f"Suitability Score: {top_score:.1f}/10",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_SMALL,
+                    "bold",
+                ),
                 fg=GlassmorphicStyle.ACCENT,
                 bg=top_frame.bg_color,
             ).pack()
@@ -2157,9 +2169,11 @@ class WeatherDashboardGUI(IUserInterface):
         all_frame = GlassmorphicFrame(
             self.activities_content.scrollable_frame,
             bg_color=GlassmorphicStyle.GLASS_BG,
-            elevated=True
+            elevated=True,
         )
-        all_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(8, 15))  # Minimal outer padding for full width usage
+        all_frame.pack(
+            fill=tk.BOTH, expand=True, padx=10, pady=(8, 15)
+        )  # Minimal outer padding for full width usage
 
         # Header for grid layout
         header_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
@@ -2179,16 +2193,16 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create a flexible layout that maximizes horizontal space usage with smart positioning
         total_activities = len(suggestions.suggested_activities)
-        
+
         # Adjust max cards per row based on total activities for optimal layout
         if total_activities == 5:
             max_cards_per_row = 5  # All 5 cards on same row
         else:
             max_cards_per_row = 4  # Standard 4 cards per row
-        
+
         # Create main grid container for proper centering with improved spacing
         grid_container = tk.Frame(all_frame, bg=all_frame.bg_color)
-        
+
         # Add explicit left margin padding for better visual centering
         if total_activities == 1:
             # Single card - center with significant side padding
@@ -2205,24 +2219,26 @@ class WeatherDashboardGUI(IUserInterface):
         else:
             # Five or more cards - use full width
             grid_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         # Calculate rows and create grid layout
         num_rows = (total_activities + max_cards_per_row - 1) // max_cards_per_row
-        
+
         # Simplified grid configuration for better centering
         if total_activities <= 4:
             # Use actual number of columns for cards <= 4
-            grid_columns = total_activities if total_activities <= 4 else max_cards_per_row
+            grid_columns = (
+                total_activities if total_activities <= 4 else max_cards_per_row
+            )
         else:
             # Use max cards per row for 5+ activities
             grid_columns = max_cards_per_row
-        
+
         # Configure grid weights for proper centering and expansion
         for col in range(grid_columns):
             grid_container.grid_columnconfigure(col, weight=1, minsize=180)
         for row in range(num_rows):
             grid_container.grid_rowconfigure(row, weight=1)
-        
+
         # Create cards using smart grid layout for optimal positioning
         for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
             # Simplified positioning logic for better visual balance
@@ -2241,7 +2257,9 @@ class WeatherDashboardGUI(IUserInterface):
                     col = i - 1
                 else:
                     row = 1
-                    col = (i - 5) + 1  # Center the last 2 cards (columns 1-2 out of 0-3)
+                    col = (
+                        i - 5
+                    ) + 1  # Center the last 2 cards (columns 1-2 out of 0-3)
             elif total_activities == 7:
                 # Special case for 7 cards: 4 in first row, 3 centered in second row
                 if i <= 4:
@@ -2249,12 +2267,12 @@ class WeatherDashboardGUI(IUserInterface):
                     col = i - 1
                 else:
                     row = 1
-                    col = (i - 5)  # Place remaining cards starting from column 0
+                    col = i - 5  # Place remaining cards starting from column 0
             else:
                 # Default grid layout with centering for fewer cards
                 row = (i - 1) // max_cards_per_row
                 col_in_row = (i - 1) % max_cards_per_row
-                
+
                 # Calculate centering offset for partial rows
                 if row == num_rows - 1:  # Last row
                     cards_in_last_row = total_activities - (row * max_cards_per_row)
@@ -2266,13 +2284,12 @@ class WeatherDashboardGUI(IUserInterface):
                         col = col_in_row
                 else:
                     col = col_in_row
-            
+
             # Create individual activity card with reduced width for 5-card layout
             activity_card = GlassmorphicFrame(
-                grid_container,
-                bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
+                grid_container, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
             )
-            
+
             # Adjust padding based on number of cards for optimal fit
             if total_activities == 5:
                 card_padx = 4  # Reduced horizontal padding for 5 cards
@@ -2280,16 +2297,16 @@ class WeatherDashboardGUI(IUserInterface):
             else:
                 card_padx = 8  # Standard padding for 4 or fewer cards
                 wrap_length = 180  # Standard text wrap
-            
+
             # Use grid for perfect alignment and centering
             activity_card.grid(
-                row=row, 
-                column=col, 
-                padx=card_padx, 
-                pady=6, 
+                row=row,
+                column=col,
+                padx=card_padx,
+                pady=6,
                 sticky="nsew",  # Expand in all directions
                 ipadx=3,  # Reduced internal padding
-                ipady=5
+                ipady=5,
             )
 
             # Activity header - more compact for 4-column layout
@@ -2297,7 +2314,7 @@ class WeatherDashboardGUI(IUserInterface):
             activity_header.pack(fill=tk.X, pady=(12, 8), padx=10)  # Reduced padding
 
             icon = "🏠" if activity.indoor else "🌞"
-            
+
             # Activity name (centered for better grid appearance)
             name_label = tk.Label(
                 activity_header,
@@ -2305,7 +2322,7 @@ class WeatherDashboardGUI(IUserInterface):
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
                     GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                    "bold"
+                    "bold",
                 ),
                 fg=GlassmorphicStyle.TEXT_PRIMARY,
                 bg=activity_card.bg_color,
@@ -2316,7 +2333,11 @@ class WeatherDashboardGUI(IUserInterface):
             score_label = tk.Label(
                 activity_header,
                 text=f"Score: {score:.1f}/10",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_SMALL,
+                    "bold",
+                ),
                 fg=GlassmorphicStyle.ACCENT,
                 bg=activity_card.bg_color,
             )
@@ -2337,15 +2358,15 @@ class WeatherDashboardGUI(IUserInterface):
                 bg=activity_card.bg_color,
                 wraplength=wrap_length,  # Dynamic wrap length based on card count
                 justify=tk.CENTER,  # Center justify for grid layout
-                anchor="center"
+                anchor="center",
             )
             desc_label.pack(anchor="center")
 
         # Add some spacing at the bottom for better visual flow
         bottom_spacer = tk.Frame(
-            self.activities_content.scrollable_frame, 
+            self.activities_content.scrollable_frame,
             bg=GlassmorphicStyle.BACKGROUND,
-            height=30
+            height=30,
         )
         bottom_spacer.pack(fill=tk.X, pady=20)
 
@@ -2403,7 +2424,6 @@ class WeatherDashboardGUI(IUserInterface):
             text=title_text,
             font=("Georgia", 22, "bold"),  # More elegant font with increased size
             fg="#80a0ff",  # Softer blue for better aesthetics
-
             bg="#1d1d2b",
             justify=tk.CENTER,
         )
@@ -2739,10 +2759,8 @@ class WeatherDashboardGUI(IUserInterface):
         else:
             return temp_celsius, "°C"
 
-    def get_random_city_weather(self):
+    def get_random_city_weather(self) -> None:
         """Get weather for a random city for demonstration purposes."""
-        import random
-
         # List of interesting cities around the world
         cities = [
             "Tokyo",
@@ -2837,14 +2855,16 @@ class WeatherDashboardGUI(IUserInterface):
             # Update dashboard with current weather data
             if self.current_weather:
                 self.dashboard.update_weather_data(self.current_weather)
-            
+
             # Update forecast data if available
             if self.current_forecast_data:
                 self.dashboard.update_forecast_data(self.current_forecast_data)
-            
+
             # Show the dashboard
             self.dashboard.show_dashboard()
-            self.update_status("Dashboard opened - Use Ctrl+1-4 for charts, Ctrl+D to toggle")
+            self.update_status(
+                "Dashboard opened - Use Ctrl+1-4 for charts, Ctrl+D to toggle"
+            )
         except Exception as e:
             self.logger.error(f"Error opening dashboard: {e}")
             self.show_error(f"Failed to open dashboard: {str(e)}")
@@ -2852,86 +2872,83 @@ class WeatherDashboardGUI(IUserInterface):
 
 class ResponsiveLayout:
     """Helper class for responsive layout management."""
-    
+
     @staticmethod
     def create_card_grid(parent, cards_per_row=2, spacing=10):
         """Create a responsive grid layout for cards."""
         container = BootstrapFrame(parent)
         container.pack(fill=tk.BOTH, expand=True, padx=spacing, pady=spacing)
         return container
-    
+
     @staticmethod
     def create_button_toolbar(parent, buttons_config, spacing=5):
         """Create a modern button toolbar with proper spacing."""
         toolbar = BootstrapFrame(parent)
         toolbar.pack(fill=tk.X, pady=spacing)
-        
+
         for config in buttons_config:
             btn = BootstrapButton(
                 toolbar,
                 text=config.get("text", ""),
                 icon=config.get("icon", ""),
                 style=config.get("style", "primary"),
-                command=config.get("command", None)
+                command=config.get("command", None),
             )
             btn.pack(side=tk.LEFT, padx=spacing)
-            
+
             # Add separator if specified
             if config.get("separator", False):
-                ttk_bs.Separator(toolbar, orient='vertical').pack(
+                ttk_bs.Separator(toolbar, orient="vertical").pack(
                     side=tk.LEFT, fill=tk.Y, padx=spacing
                 )
-        
+
         return toolbar
-    
+
     @staticmethod
     def create_info_card(parent, title, content, icon="ℹ️"):
         """Create a modern information card with Bootstrap styling."""
         card = ttk_bs.LabelFrame(parent, text=f"{icon} {title}", padding=15)
         card.pack(fill=tk.X, pady=10)
-        
+
         content_label = ttk_bs.Label(
-            card,
-            text=content,
-            font=("Segoe UI", 11),
-            wraplength=400
+            card, text=content, font=("Segoe UI", 11), wraplength=400
         )
         content_label.pack(anchor=tk.W)
-        
+
         return card
 
 
 class ModernLayoutMixin:
     """Mixin to add modern layout capabilities to GUI classes."""
-    
+
     def create_modern_sidebar(self, parent, width=300):
         """Create a modern sidebar with Bootstrap styling."""
         sidebar = BootstrapFrame(parent)
         sidebar.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
-        
+
         # Add scrolling capability
         canvas = tk.Canvas(sidebar, width=width, highlightthickness=0)
         scrollbar = ttk_bs.Scrollbar(sidebar, orient="vertical", command=canvas.yview)
         scrollable_frame = BootstrapFrame(canvas)
-        
+
         scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
-        
+
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
-        
+
         scrollbar.pack(side="right", fill="y")
         canvas.pack(side="left", fill="both", expand=True)
-        
+
         # Mouse wheel scrolling
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+
         canvas.bind("<MouseWheel>", _on_mousewheel)
-        
+
         return scrollable_frame
-    
+
     def create_modern_card(self, parent, title, icon="📄"):
         """Create a modern card layout with Bootstrap styling."""
         card = ttk_bs.LabelFrame(parent, text=f"{icon} {title}", padding=20)
