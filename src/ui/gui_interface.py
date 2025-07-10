@@ -782,7 +782,9 @@ class WeatherDashboardGUI(IUserInterface):
         self.current_forecast_data = (
             None  # Store forecast data for temperature unit changes
         )
-        self.current_comparison_data = None  # Store comparison data for temperature unit changes
+        self.current_comparison_data = (
+            None  # Store comparison data for temperature unit changes
+        )
         self.temperature_unit = "C"  # Default to Celsius, can be "C" or "F"
         self.auto_refresh = False  # Auto-refresh state
         self.refresh_interval = (
@@ -1892,7 +1894,7 @@ class WeatherDashboardGUI(IUserInterface):
         """Display weather comparison."""
         # Store the comparison data for temperature unit refresh
         self.current_comparison_data = comparison
-        
+
         # Clear existing results
         for widget in self.comparison_results.winfo_children():
             widget.destroy()

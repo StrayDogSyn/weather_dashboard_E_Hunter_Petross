@@ -44,7 +44,9 @@ class APIConfiguration:
 
     # AI API configuration for enhanced poetry generation
     openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
-    ai_model: str = field(default_factory=lambda: os.getenv("AI_MODEL", "gpt-3.5-turbo"))
+    ai_model: str = field(
+        default_factory=lambda: os.getenv("AI_MODEL", "gpt-3.5-turbo")
+    )
     ai_max_tokens: int = field(
         default_factory=lambda: int(os.getenv("AI_MAX_TOKENS", "150"))
     )
