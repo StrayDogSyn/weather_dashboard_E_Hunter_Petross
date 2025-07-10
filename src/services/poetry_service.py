@@ -1,14 +1,18 @@
 """
 Weather Poetry Service for Weather Dashboard.
 
-This service generates weather-inspired poetry and creative phrases.
+This service generates weather-inspired poetry and creative phrases using both
+template-based generation and AI-powered creation for unique content.
 """
 
 import logging
 import random
+import requests
+import json
 from datetime import datetime
 from typing import Dict, List, Optional
 
+from ..config import config_manager
 from ..models.capstone_models import WeatherPoem
 from ..models.weather_models import CurrentWeather, WeatherCondition
 
@@ -19,8 +23,18 @@ class WeatherPoetryService:
     def __init__(self):
         """Initialize the poetry service."""
         self.logger = logging.getLogger(__name__)
+        self.config = config_manager.config.api
         self._load_poetry_templates()
-        self.logger.info("Weather poetry service initialized")
+        
+        # AI API settings
+        self.ai_enabled = bool(self.config.openai_api_key)
+        self.ai_fallback_chance = 0.3  # 30% chance to use AI when available
+        
+        if self.ai_enabled:
+            self.logger.info("Weather poetry service initialized with AI enhancement")
+        else:
+            self.logger.info("Weather poetry service initialized with template-based generation")
+            self.logger.debug("AI enhancement disabled - no OpenAI API key configured")
 
     def _load_poetry_templates(self):
         """Load poetry templates and word banks."""
@@ -144,19 +158,31 @@ class WeatherPoetryService:
         """
         condition = weather.condition
         temp_range = self.get_temperature_range(weather.temperature.to_celsius())
+        haiku_text = None
 
-        # Get haiku templates for the weather condition
-        templates = self.haiku_templates.get(
-            condition, self.haiku_templates[WeatherCondition.CLEAR]
-        )
-        haiku_text = random.choice(templates)
+        # Try AI generation first if enabled and random chance triggers
+        if self.ai_enabled and random.random() < self.ai_fallback_chance:
+            ai_haiku = self._generate_ai_haiku(weather)
+            if ai_haiku:
+                haiku_text = ai_haiku
+                self.logger.info(f"Generated AI haiku for {weather.location.display_name}")
 
-        # Sometimes create a custom haiku based on temperature
-        if random.random() < 0.3:  # 30% chance for temperature-focused haiku
-            temp_descriptor = random.choice(self.temperature_descriptors[temp_range])
-            custom_haikus = self._create_temperature_haiku(temp_descriptor, condition)
-            if custom_haikus:
-                haiku_text = random.choice(custom_haikus)
+        # Fallback to template-based generation
+        if not haiku_text:
+            # Get haiku templates for the weather condition
+            templates = self.haiku_templates.get(
+                condition, self.haiku_templates[WeatherCondition.CLEAR]
+            )
+            haiku_text = random.choice(templates)
+
+            # Sometimes create a custom haiku based on temperature
+            if random.random() < 0.3:  # 30% chance for temperature-focused haiku
+                temp_descriptor = random.choice(self.temperature_descriptors[temp_range])
+                custom_haikus = self._create_temperature_haiku(temp_descriptor, condition)
+                if custom_haikus:
+                    haiku_text = random.choice(custom_haikus)
+            
+            self.logger.info(f"Generated template haiku for {weather.location.display_name}")
 
         poem = WeatherPoem(
             text=haiku_text,
@@ -165,7 +191,6 @@ class WeatherPoetryService:
             temperature_range=temp_range,
         )
 
-        self.logger.info(f"Generated haiku for {weather.location.display_name}")
         return poem
 
     def generate_fun_phrase(self, weather: CurrentWeather) -> WeatherPoem:
@@ -180,17 +205,29 @@ class WeatherPoetryService:
         """
         condition = weather.condition
         temp_range = self.get_temperature_range(weather.temperature.to_celsius())
+        phrase_text = None
 
-        # Get phrases for the weather condition
-        phrases = self.weather_phrases.get(
-            condition, self.weather_phrases[WeatherCondition.CLEAR]
-        )
-        phrase_text = random.choice(phrases)
+        # Try AI generation first if enabled and random chance triggers
+        if self.ai_enabled and random.random() < self.ai_fallback_chance:
+            ai_phrase = self._generate_ai_phrase(weather)
+            if ai_phrase:
+                phrase_text = ai_phrase
+                self.logger.info(f"Generated AI phrase for {weather.location.display_name}")
 
-        # Add temperature flavor 20% of the time
-        if random.random() < 0.2:
-            temp_descriptor = random.choice(self.temperature_descriptors[temp_range])
-            phrase_text = f"{phrase_text[:-2]} with {temp_descriptor} vibes! 🌡️"
+        # Fallback to template-based generation
+        if not phrase_text:
+            # Get phrases for the weather condition
+            phrases = self.weather_phrases.get(
+                condition, self.weather_phrases[WeatherCondition.CLEAR]
+            )
+            phrase_text = random.choice(phrases)
+
+            # Add temperature flavor 20% of the time
+            if random.random() < 0.2:
+                temp_descriptor = random.choice(self.temperature_descriptors[temp_range])
+                phrase_text = f"{phrase_text[:-2]} with {temp_descriptor} vibes! 🌡️"
+            
+            self.logger.info(f"Generated template phrase for {weather.location.display_name}")
 
         poem = WeatherPoem(
             text=phrase_text,
@@ -199,7 +236,6 @@ class WeatherPoetryService:
             temperature_range=temp_range,
         )
 
-        self.logger.info(f"Generated fun phrase for {weather.location.display_name}")
         return poem
 
     def generate_limerick(self, weather: CurrentWeather) -> WeatherPoem:
@@ -215,25 +251,36 @@ class WeatherPoetryService:
         condition = weather.condition
         temp_range = self.get_temperature_range(weather.temperature.to_celsius())
         city_name = weather.location.name
+        limerick_text = None
 
-        # Basic limerick templates
-        limericks = {
-            WeatherCondition.CLEAR: [
-                f"There once was a day so bright, / When {city_name} basked in sunlight, / The sky was so blue, / With not a cloud too, / A truly magnificent sight!",
-                f"The sun over {city_name} did gleam, / Like something out of a dream, / So golden and warm, / In perfect good form, / A day that made spirits beam!",
-            ],
-            WeatherCondition.RAIN: [
-                f"The rain in {city_name} came down, / Making puddles all over town, / Each drop was a gift, / Giving spirits a lift, / No reason at all for a frown!",
-                f"There once was some rain from above, / That {city_name} welcomed with love, / It pattered and played, / A wet serenade, / As gentle as song of a dove!",
-            ],
-            WeatherCondition.SNOW: [
-                f"The snow over {city_name} fell white, / Creating a magical sight, / Each flake was so pure, / So gentle and sure, / A winter wonderland delight!",
-                f"In {city_name} the snowflakes dance, / Giving winter a fighting chance, / They swirl and they play, / All throughout the day, / In nature's white winter romance!",
-            ],
-        }
+        # Try AI generation first if enabled and random chance triggers
+        if self.ai_enabled and random.random() < self.ai_fallback_chance:
+            ai_limerick = self._generate_ai_limerick(weather)
+            if ai_limerick:
+                limerick_text = ai_limerick
+                self.logger.info(f"Generated AI limerick for {weather.location.display_name}")
 
-        templates = limericks.get(condition, limericks[WeatherCondition.CLEAR])
-        limerick_text = random.choice(templates)
+        # Fallback to template-based generation
+        if not limerick_text:
+            # Basic limerick templates
+            limericks = {
+                WeatherCondition.CLEAR: [
+                    f"There once was a day so bright, / When {city_name} basked in sunlight, / The sky was so blue, / With not a cloud too, / A truly magnificent sight!",
+                    f"The sun over {city_name} did gleam, / Like something out of a dream, / So golden and warm, / In perfect good form, / A day that made spirits beam!",
+                ],
+                WeatherCondition.RAIN: [
+                    f"The rain in {city_name} came down, / Making puddles all over town, / Each drop was a gift, / Giving spirits a lift, / No reason at all for a frown!",
+                    f"There once was some rain from above, / That {city_name} welcomed with love, / It pattered and played, / A wet serenade, / As gentle as song of a dove!",
+                ],
+                WeatherCondition.SNOW: [
+                    f"The snow over {city_name} fell white, / Creating a magical sight, / Each flake was so pure, / So gentle and sure, / A winter wonderland delight!",
+                    f"In {city_name} the snowflakes dance, / Giving winter a fighting chance, / They swirl and they play, / All throughout the day, / In nature's white winter romance!",
+                ],
+            }
+
+            templates = limericks.get(condition, limericks[WeatherCondition.CLEAR])
+            limerick_text = random.choice(templates)
+            self.logger.info(f"Generated template limerick for {weather.location.display_name}")
 
         poem = WeatherPoem(
             text=limerick_text,
@@ -242,7 +289,6 @@ class WeatherPoetryService:
             temperature_range=temp_range,
         )
 
-        self.logger.info(f"Generated limerick for {weather.location.display_name}")
         return poem
 
     def _create_temperature_haiku(
@@ -268,6 +314,118 @@ class WeatherPoetryService:
             ],
         }
         return temp_haikus.get(temp_descriptor, [])
+
+    def _call_ai_api(self, prompt: str) -> Optional[str]:
+        """
+        Call AI API to generate creative content.
+        
+        Args:
+            prompt: The prompt to send to the AI
+            
+        Returns:
+            Generated text or None if API call fails
+        """
+        if not self.ai_enabled:
+            return None
+            
+        try:
+            headers = {
+                "Authorization": f"Bearer {self.config.openai_api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "model": self.config.ai_model,
+                "messages": [
+                    {
+                        "role": "system", 
+                        "content": "You are a creative weather poet who writes beautiful, unique poetry about weather conditions. Your poems should be weather-themed, creative, and capture the essence of the moment."
+                    },
+                    {"role": "user", "content": prompt}
+                ],
+                "max_tokens": self.config.ai_max_tokens,
+                "temperature": self.config.ai_temperature,
+                "top_p": 1,
+                "frequency_penalty": 0.5,
+                "presence_penalty": 0.3
+            }
+            
+            response = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if "choices" in data and len(data["choices"]) > 0:
+                    return data["choices"][0]["message"]["content"].strip()
+            else:
+                self.logger.warning(f"AI API request failed with status {response.status_code}")
+                
+        except Exception as e:
+            self.logger.error(f"Error calling AI API: {e}")
+            
+        return None
+    
+    def _generate_ai_haiku(self, weather: CurrentWeather) -> Optional[str]:
+        """Generate AI-powered haiku about the weather."""
+        temp_celsius = weather.temperature.to_celsius()
+        condition_name = weather.condition.name.lower().replace('_', ' ')
+        location = weather.location.name
+        
+        prompt = f"""Write a beautiful haiku (5-7-5 syllable pattern) about the current weather in {location}.
+        
+Weather details:
+- Condition: {condition_name}
+- Temperature: {temp_celsius:.1f}°C
+- Description: {weather.description}
+- Location: {location}
+
+The haiku should capture the mood and feeling of this weather. Make it evocative and poetic.
+Only return the haiku, nothing else."""
+        
+        return self._call_ai_api(prompt)
+    
+    def _generate_ai_limerick(self, weather: CurrentWeather) -> Optional[str]:
+        """Generate AI-powered limerick about the weather."""
+        temp_celsius = weather.temperature.to_celsius()
+        condition_name = weather.condition.name.lower().replace('_', ' ')
+        location = weather.location.name
+        
+        prompt = f"""Write a playful limerick (AABBA rhyme scheme) about the current weather in {location}.
+        
+Weather details:
+- Condition: {condition_name}
+- Temperature: {temp_celsius:.1f}°C
+- Description: {weather.description}
+- Location: {location}
+
+The limerick should be light-hearted, fun, and weather-themed. Make it clever and entertaining.
+Only return the limerick, nothing else."""
+        
+        return self._call_ai_api(prompt)
+    
+    def _generate_ai_phrase(self, weather: CurrentWeather) -> Optional[str]:
+        """Generate AI-powered creative phrase about the weather."""
+        temp_celsius = weather.temperature.to_celsius()
+        condition_name = weather.condition.name.lower().replace('_', ' ')
+        location = weather.location.name
+        
+        prompt = f"""Write a creative, fun phrase or short poem about the current weather in {location}.
+        
+Weather details:
+- Condition: {condition_name}
+- Temperature: {temp_celsius:.1f}°C
+- Description: {weather.description}
+- Location: {location}
+
+The phrase should be engaging, unique, and capture the essence of this weather moment. 
+It can be poetic, whimsical, or playful. Keep it to 1-2 sentences.
+Only return the phrase, nothing else."""
+        
+        return self._call_ai_api(prompt)
 
     def generate_weather_poetry(
         self, weather: CurrentWeather, poetry_type: str = "random"
