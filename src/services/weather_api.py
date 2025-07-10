@@ -30,11 +30,16 @@ LocationData = Location
 class OpenWeatherMapAPI(IWeatherAPI):
     """OpenWeatherMap API implementation."""
 
-    def __init__(self):
-        """Initialize the weather API service."""
+    def __init__(self, language: str = "en"):
+        """Initialize the weather API service.
+
+        Args:
+            language: Language code for weather descriptions (default: "en")
+        """
         self.config = config_manager.config.api
         self.api_key = self.config.api_key
         self.base_url = self.config.base_url
+        self.language = language
         self.session = requests.Session()
 
         # Setup session headers
@@ -166,7 +171,12 @@ class OpenWeatherMapAPI(IWeatherAPI):
         Returns:
             WeatherData or None if error
         """
-        params = {"q": city, "units": units}
+        params = {
+            "q": city,
+            "units": units,
+            "lang": self.language,  # Configurable language for weather descriptions
+            "mode": "json",  # Response format
+        }
 
         data = self._make_request("weather", params)
         if not data:
@@ -224,6 +234,8 @@ class OpenWeatherMapAPI(IWeatherAPI):
             "q": city,
             "units": units,
             "cnt": days * 8,  # 8 forecasts per day (3-hour intervals)
+            "lang": self.language,  # Configurable language for weather descriptions
+            "mode": "json",  # Response format
         }
 
         data = self._make_request("forecast", params)
@@ -341,7 +353,12 @@ class OpenWeatherMapAPI(IWeatherAPI):
         """
         # Use geocoding API
         url = self.config.geocoding_url + "/direct"
-        params = {"q": query, "limit": limit, "appid": self.api_key}
+        params = {
+            "q": query,
+            "limit": limit,
+            "appid": self.api_key,
+            "lang": self.language,  # Configurable language for location names
+        }
 
         try:
             response = self.session.get(url, params=params, timeout=self.config.timeout)
@@ -378,7 +395,13 @@ class OpenWeatherMapAPI(IWeatherAPI):
         Returns:
             WeatherData or None if error
         """
-        params = {"lat": latitude, "lon": longitude, "units": units}
+        params = {
+            "lat": latitude,
+            "lon": longitude,
+            "units": units,
+            "lang": self.language,  # Configurable language for weather descriptions
+            "mode": "json",  # Response format
+        }
 
         data = self._make_request("weather", params)
         if not data:
@@ -436,6 +459,8 @@ class OpenWeatherMapAPI(IWeatherAPI):
             "lon": longitude,
             "units": units,
             "cnt": days * 8,  # 8 forecasts per day (3-hour intervals)
+            "lang": self.language,  # Configurable language for weather descriptions
+            "mode": "json",  # Response format
         }
 
         data = self._make_request("forecast", params)
