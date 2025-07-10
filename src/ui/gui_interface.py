@@ -2533,7 +2533,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create scrollable area with enhanced styling
         collection_scroll = ModernScrollableFrame(
-            self.poetry_content, bg_color="#151525"  # Darker background for contrast
+            self.poetry_content, bg="#151525"  # Darker background for contrast
         )
         collection_scroll.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
