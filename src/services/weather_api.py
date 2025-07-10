@@ -2,7 +2,7 @@
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 
@@ -353,7 +353,7 @@ class OpenWeatherMapAPI(IWeatherAPI):
         """
         # Use geocoding API
         url = self.config.geocoding_url + "/direct"
-        params = {
+        params: Dict[str, Union[str, int]] = {
             "q": query,
             "limit": limit,
             "appid": self.api_key,
