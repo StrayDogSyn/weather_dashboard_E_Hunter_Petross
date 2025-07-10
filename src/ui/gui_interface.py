@@ -782,6 +782,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.current_forecast_data = (
             None  # Store forecast data for temperature unit changes
         )
+        self.current_comparison_data = None  # Store comparison data for temperature unit changes
         self.temperature_unit = "C"  # Default to Celsius, can be "C" or "F"
         self.auto_refresh = False  # Auto-refresh state
         self.refresh_interval = (
@@ -1889,6 +1890,9 @@ class WeatherDashboardGUI(IUserInterface):
     # Display methods for capstone features
     def display_weather_comparison(self, comparison: WeatherComparison) -> None:
         """Display weather comparison."""
+        # Store the comparison data for temperature unit refresh
+        self.current_comparison_data = comparison
+        
         # Clear existing results
         for widget in self.comparison_results.winfo_children():
             widget.destroy()
@@ -2740,9 +2744,9 @@ class WeatherDashboardGUI(IUserInterface):
 
     def refresh_comparison_temperatures(self):
         """Refresh comparison temperature displays."""
-        # This will be called when comparison data is available
-        # The comparison display will be updated with the correct temperature unit
-        pass
+        # Re-display comparison if data is available
+        if hasattr(self, "current_comparison_data") and self.current_comparison_data:
+            self.display_weather_comparison(self.current_comparison_data)
 
     def convert_temperature(self, temp_celsius: float) -> tuple[float, str]:
         """Convert temperature to the current unit.
