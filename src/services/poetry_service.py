@@ -399,7 +399,7 @@ class WeatherPoetryService:
         location = weather.location.name
 
         prompt = f"""Write a beautiful haiku (5-7-5 syllable pattern) about the current weather in {location}.
-        
+
 Weather details:
 - Condition: {condition_name}
 - Temperature: {temp_celsius:.1f}°C
@@ -418,7 +418,7 @@ Only return the haiku, nothing else."""
         location = weather.location.name
 
         prompt = f"""Write a playful limerick (AABBA rhyme scheme) about the current weather in {location}.
-        
+
 Weather details:
 - Condition: {condition_name}
 - Temperature: {temp_celsius:.1f}°C
