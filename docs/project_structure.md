@@ -5,10 +5,10 @@
 ```text
 weather_dashboard_E_Hunter_Petross/
 ├── 📄 main.py                    # Main application entry point
-├── 📄 run_gui.py                 # Simplified GUI launcher (always works)
-├── 📄 requirements.txt           # Python dependencies (minimal)
-├── 📄 .env.example              # Environment configuration template
-├── 📄 README.md                 # Professional project documentation
+├── 📄 requirements.txt           # Python dependencies
+├── 📄 requirements-dev.txt       # Development dependencies
+├── 📄 pyproject.toml            # Project configuration and metadata
+├── 📄 README.md                 # Project documentation
 ├── 📄 LICENSE                   # MIT License
 ├── 📄 settings.json             # Application settings
 ├── 📁 src/                      # Source code directory
@@ -50,17 +50,29 @@ weather_dashboard_E_Hunter_Petross/
 │       ├── 📄 validators.py           # Input validation
 │       └── 📄 formatters.py           # Data formatting
 ├── 📁 docs/                     # Documentation
-│   ├── 📄 README.md
-│   ├── 📄 user_guide.md
-│   ├── � architecture.md         # Architecture documentation
-│   ├── 📄 security.md             # Security guidelines
-│   ├── � project_structure.md    # This file - project organization
-│   ├── 📄 refactor_complete.md    # Refactoring summary
-│   └── 📄 Week11_Reflection.md    # Capstone reflection
+│   ├── 📄 README.md              # Documentation index
+│   ├── 📄 architecture.md        # Architecture documentation
+│   ├── 📄 security.md           # Security guidelines
+│   ├── 📄 project_structure.md  # This file - project organization
+│   ├── 📄 SQL_DATABASE.md       # Database documentation
+│   └── 📄 Week11_Reflection.md  # Capstone reflection
+├── 📁 tests/                    # Test suite
+│   ├── 📄 __init__.py
+│   ├── 📄 README.md             # Test documentation
+│   ├── 📄 requirements-test.txt # Test dependencies
+│   ├── 📄 run_tests.py         # Test runner
+│   ├── 📄 settings.json        # Test configuration
+│   └── 📄 test_*.py           # Test files
 ├── 📁 cache/                    # Application cache (runtime)
-├── 📁 data/                     # Application data (runtime)
-├── � logs/                     # Application logs (runtime)
-└── � exports/                  # Data exports (runtime)
+├── 📁 data/                     # Application data
+│   ├── 📄 weather_dashboard.db  # SQLite database
+│   ├── 📁 json_backup/         # JSON data backups
+│   └── 📁 screenshots/         # Application screenshots
+├── 📁 logs/                     # Application logs
+├── 📁 exports/                  # Data exports
+└── 📁 scripts/                  # Utility scripts
+    ├── 📄 cleanup.py           # Cleanup utilities
+    └── 📄 setup.py            # Setup utilities
 ```
 
 ## 🧹 Cleanup & Organization Completed
@@ -106,20 +118,17 @@ weather_dashboard_E_Hunter_Petross/
 
 ### ✅ Ready for Use
 
-- Clean, focused TKinter GUI application
-- No CLI dependencies or legacy code
-- Professional file organization
-- Proper Python naming conventions
-- Comprehensive documentation
-- Minimal dependencies
+- Modern TKinter GUI application with glass effects
+- SQLite database integration for persistent storage
+- Comprehensive test suite
+- Well-organized project structure
+- Complete documentation
+- CI/CD ready with test requirements
 
-### 🚀 Launch Commands
+### 🚀 Launch Command
 
 ```bash
-# Recommended: Simplified launcher (always works)
-python run_gui.py
-
-# Alternative: Main application entry point
+# Launch the Weather Dashboard
 python main.py
 ```
 
@@ -133,12 +142,17 @@ python main.py
 - **Weather Poetry** - AI-generated poems
 - **Data Management** - Caching and persistence
 
-## 📦 Dependencies (Minimal)
+## 📦 Core Dependencies
 
-- `requests` - HTTP client for weather API
-- `python-dotenv` - Environment variable management
-- `pydantic` - Data validation and modeling
 - `tkinter` - GUI framework (built into Python)
+- `requests` - HTTP client for weather API
+- `SQLAlchemy` - SQL database ORM
+- `matplotlib` - Data visualization
+- `openai` - AI poetry generation
+- `pydantic` - Data validation
+- `python-dotenv` - Environment configuration
+
+Development dependencies are specified in `requirements-dev.txt` and test dependencies in `tests/requirements-test.txt`.
 
 The project is now clean, focused, and ready for professional use or demonstration! 🎉
 
