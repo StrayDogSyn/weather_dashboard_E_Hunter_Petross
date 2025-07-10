@@ -437,14 +437,14 @@ Only return the limerick, nothing else."""
         location = weather.location.name
 
         prompt = f"""Write a creative, fun phrase or short poem about the current weather in {location}.
-        
+
 Weather details:
 - Condition: {condition_name}
 - Temperature: {temp_celsius:.1f}°C
 - Description: {weather.description}
 - Location: {location}
 
-The phrase should be engaging, unique, and capture the essence of this weather moment. 
+The phrase should be engaging, unique, and capture the essence of this weather moment.
 It can be poetic, whimsical, or playful. Keep it to 1-2 sentences.
 Only return the phrase, nothing else."""
 
