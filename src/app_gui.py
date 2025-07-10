@@ -141,35 +141,35 @@ class WeatherDashboardGUIApp:
         self.gui.set_callback(
             "get_current_location_weather", self._handle_current_location_weather
         )
-        
+
         # Application exit callback
         self.gui.set_callback("on_app_exit", self._handle_app_exit)
-        
+
     def _handle_app_exit(self):
         """Handle application exit to ensure all data is saved."""
         logging.info("Saving session data before application exit")
         try:
             # Save favorite cities
             if self.weather_service:
-                # This will explicitly save favorites 
+                # This will explicitly save favorites
                 # Favorite cities are automatically saved whenever they're modified,
                 # but we'll force a save to be certain
                 try:
-                    if hasattr(self.weather_service, '_save_favorite_cities'):
+                    if hasattr(self.weather_service, "_save_favorite_cities"):
                         self.weather_service._save_favorite_cities()
                 except Exception as e:
                     logging.warning(f"Could not save favorite cities: {e}")
-                
+
             # Ensure journal entries are saved
             if self.journal_service:
                 try:
                     # The journal_service saves entries after each add/edit
                     # but we'll force a final save if the method exists
-                    if hasattr(self.journal_service, '_save_entries'):
+                    if hasattr(self.journal_service, "_save_entries"):
                         self.journal_service._save_entries()
                 except Exception as e:
                     logging.warning(f"Could not save journal entries: {e}")
-                    
+
             logging.info("Session data saved successfully")
         except Exception as e:
             logging.error(f"Error saving session data: {e}")
