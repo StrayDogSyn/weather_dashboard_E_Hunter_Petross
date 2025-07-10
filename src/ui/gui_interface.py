@@ -2847,6 +2847,11 @@ class WeatherDashboardGUI(IUserInterface):
     def on_close(self):
         """Clean up and close the application."""
         self.stop_auto_refresh()  # Stop auto-refresh timer
+        
+        # Signal to app controller that we're closing
+        if self.callbacks.get("on_app_exit"):
+            self.callbacks["on_app_exit"]()
+            
         self.root.destroy()
 
     def show_dashboard(self):
