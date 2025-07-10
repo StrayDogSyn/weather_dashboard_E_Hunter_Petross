@@ -317,7 +317,11 @@ class WeatherService:
                     favorite = FavoriteCity(
                         location=location,
                         nickname=city_data.get("nickname"),
-                        added_date=datetime.fromisoformat(city_data["added_date"]),
+                        added_date=(
+                            datetime.fromisoformat(city_data["added_date"])
+                            if city_data.get("added_date")
+                            else datetime.now()
+                        ),
                         last_viewed=(
                             datetime.fromisoformat(city_data["last_viewed"])
                             if city_data.get("last_viewed")

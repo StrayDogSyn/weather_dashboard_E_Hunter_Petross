@@ -2820,15 +2820,13 @@ class WeatherDashboardGUI(IUserInterface):
             self.start_auto_refresh()
             # Update Bootstrap button for active state
             self.auto_refresh_btn.configure(text="⏱️ ON")
-            # Change to success style for active state
-            self.auto_refresh_btn.configure(style="success")
+            # Note: BootstrapButton doesn't support style changes after creation
             self.update_status("Auto-refresh enabled (5 minutes)")
         else:
             self.stop_auto_refresh()
             # Restore original Bootstrap styling
             self.auto_refresh_btn.configure(text="⏱️ Auto")
-            # Change back to info style
-            self.auto_refresh_btn.configure(style="info")
+            # Note: BootstrapButton doesn't support style changes after creation
             self.update_status("Auto-refresh disabled")
 
     def start_auto_refresh(self):

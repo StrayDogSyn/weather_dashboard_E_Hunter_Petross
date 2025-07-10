@@ -22,7 +22,7 @@ class WeatherJournalService:
         """Initialize the journal service."""
         self.storage = storage
         self.logger = logging.getLogger(__name__)
-        self.journal_file = "weather_journal.json"
+        self.journal_file = "journal_entries.json"
 
         # Load existing entries
         self.entries = self._load_entries()

@@ -187,18 +187,20 @@ class SQLDataStorage(IDataStorage):
 
     def _save_favorite_cities(self, session: Session, data: Dict[str, Any]) -> bool:
         """Save favorite cities to database."""
-        favorites = data.get("favorites", [])
+        cities = data.get("cities", [])  # WeatherService uses "cities" key
 
         # Clear existing favorites
         session.query(FavoriteCities).delete()
 
         # Add new favorites
-        for fav in favorites:
+        for city_data in cities:
+            # Handle nested location structure from WeatherService
+            location = city_data.get("location", {})
             city = FavoriteCities(
-                city_name=fav.get("city", ""),
-                country_code=fav.get("country", ""),
-                latitude=fav.get("latitude"),
-                longitude=fav.get("longitude"),
+                city_name=location.get("name", ""),
+                country_code=location.get("country", ""),
+                latitude=location.get("latitude"),
+                longitude=location.get("longitude"),
             )
             session.add(city)
 
@@ -208,24 +210,26 @@ class SQLDataStorage(IDataStorage):
     def _load_favorite_cities(self, session: Session) -> Dict[str, Any]:
         """Load favorite cities from database."""
         cities = session.query(FavoriteCities).all()
-        favorites = []
+        cities_data = []
 
         for city in cities:
-            fav = {
-                "city": city.city_name,
-                "country": city.country_code,
-                "added_at": (
+            city_data = {
+                "location": {
+                    "name": city.city_name,
+                    "country": city.country_code,
+                    "latitude": city.latitude,
+                    "longitude": city.longitude,
+                },
+                "nickname": city.city_name,  # Use city name as nickname
+                "added_date": (
                     city.added_at.isoformat() if city.added_at is not None else None
                 ),
+                "last_viewed": None,  # Not stored in current schema
             }
-            if city.latitude is not None:
-                fav["latitude"] = city.latitude
-            if city.longitude is not None:
-                fav["longitude"] = city.longitude
-            favorites.append(fav)
+            cities_data.append(city_data)
 
         return {
-            "favorites": favorites,
+            "cities": cities_data,
             "last_updated": datetime.utcnow().isoformat() + "Z",
         }
 
