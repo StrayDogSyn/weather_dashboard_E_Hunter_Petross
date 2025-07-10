@@ -5,12 +5,13 @@ This service generates weather-inspired poetry and creative phrases using both
 template-based generation and AI-powered creation for unique content.
 """
 
+import json
 import logging
 import random
-import requests
-import json
 from datetime import datetime
 from typing import Dict, List, Optional
+
+import requests
 
 from ..config import config_manager
 from ..models.capstone_models import WeatherPoem

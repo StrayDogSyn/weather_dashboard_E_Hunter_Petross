@@ -3,8 +3,8 @@
 Test script to verify the enhanced poetry service functionality.
 """
 
-import sys
 import os
+import sys
 
 # Add the src directory to the Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
@@ -14,17 +14,18 @@ def test_poetry_service():
     """Test the enhanced poetry service with template-based generation."""
 
     try:
-        from src.services.poetry_service import WeatherPoetryService
+        from datetime import datetime
+
         from src.models.weather_models import (
+            AtmosphericPressure,
             CurrentWeather,
-            WeatherCondition,
+            Location,
             Temperature,
             TemperatureUnit,
-            Location,
-            AtmosphericPressure,
+            WeatherCondition,
             Wind,
         )
-        from datetime import datetime
+        from src.services.poetry_service import WeatherPoetryService
 
         # Create a mock weather object
         location = Location(
