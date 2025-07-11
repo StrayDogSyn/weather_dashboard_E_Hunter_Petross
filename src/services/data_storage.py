@@ -24,6 +24,24 @@ class FileDataStorage(IDataStorage):
 
         logging.info(f"File storage initialized at: {self.data_dir.absolute()}")
 
+    def _json_serialize(self, obj: Any) -> str:
+        """
+        Custom JSON serializer to handle datetime and other special types.
+
+        Args:
+            obj: Object to serialize
+
+        Returns:
+            String representation of the object
+        """
+        if hasattr(obj, "isoformat"):
+            try:
+                return obj.isoformat()
+            except Exception as e:
+                logging.warning(f"Failed to serialize datetime object: {e}")
+                return str(obj)
+        return str(obj)
+
     def save_data(self, data: Dict[str, Any], filename: str) -> bool:
         """
         Save data to file.
@@ -42,12 +60,35 @@ class FileDataStorage(IDataStorage):
             if not filepath.suffix:
                 filepath = filepath.with_suffix(".json")
 
+            # Validate data before saving
+            if not isinstance(data, dict):
+                raise ValueError(f"Expected dict, got {type(data)}")
+
+            # Create backup of existing file if it exists
+            if filepath.exists():
+                backup_dir = self.data_dir / "json_backup"
+                backup_dir.mkdir(exist_ok=True)
+
+                from datetime import datetime
+
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                backup_path = backup_dir / f"{filepath.stem}.json.backup_{timestamp}"
+
+                import shutil
+
+                shutil.copy2(filepath, backup_path)
+                logging.info(f"Created backup at {backup_path}")
+
+            # Save with custom serializer for dates
             with open(filepath, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, default=str)
+                json.dump(data, f, indent=2, default=self._json_serialize)
 
             logging.info(f"Data saved to {filepath}")
             return True
 
+        except ValueError as e:
+            logging.error(f"Invalid data format for {filepath}: {e}")
+            return False
         except Exception as e:
             logging.error(f"Error saving data to {filepath}: {e}")
             return False

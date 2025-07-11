@@ -36,17 +36,24 @@ class WeatherJournalService:
 
             entries = []
             for entry_data in data["entries"]:
-                entry = JournalEntry(
-                    date=datetime.fromisoformat(entry_data["date"]).date(),
-                    location=entry_data["location"],
-                    weather_summary=entry_data["weather_summary"],
-                    temperature=entry_data["temperature"],
-                    condition=entry_data["condition"],
-                    mood=MoodType(entry_data["mood"]),
-                    notes=entry_data["notes"],
-                    activities=entry_data.get("activities", []),
-                    created_at=datetime.fromisoformat(entry_data["created_at"]),
-                )
+                try:
+                    date_str = entry_data.get("date", "")
+                    created_at_str = entry_data.get("created_at", datetime.now().isoformat())
+                    
+                    entry = JournalEntry(
+                        date=self._validate_date(date_str),
+                        location=entry_data.get("location", ""),
+                        weather_summary=entry_data.get("weather_summary", ""),
+                        temperature=float(entry_data.get("temperature", 0.0)),
+                        condition=entry_data.get("condition", ""),
+                        mood=MoodType(entry_data.get("mood", "neutral")),
+                        notes=entry_data.get("notes", ""),
+                        activities=entry_data.get("activities", []),
+                        created_at=datetime.fromisoformat(created_at_str),
+                    )
+                except (ValueError, TypeError, AttributeError) as e:
+                    self.logger.error(f"Error parsing journal entry: {e}")
+                    continue
                 entries.append(entry)
 
             self.logger.info(f"Loaded {len(entries)} journal entries")
@@ -61,17 +68,7 @@ class WeatherJournalService:
         try:
             data = {
                 "entries": [
-                    {
-                        "date": entry.date.isoformat(),
-                        "location": entry.location,
-                        "weather_summary": entry.weather_summary,
-                        "temperature": entry.temperature,
-                        "condition": entry.condition,
-                        "mood": entry.mood.value,
-                        "notes": entry.notes,
-                        "activities": entry.activities,
-                        "created_at": entry.created_at.isoformat(),
-                    }
+                    self._serialize_entry(entry)
                     for entry in self.entries
                 ]
             }
@@ -303,3 +300,54 @@ class WeatherJournalService:
                 self.logger.error(f"Error exporting to {filename}: {e}")
 
         return content
+
+    def _validate_date(self, date_obj: Any) -> date:
+        """
+        Validate and convert date object.
+
+        Args:
+            date_obj: Date object or string to validate
+
+        Returns:
+            datetime.date object
+
+        Raises:
+            ValueError if date is invalid
+        """
+        if isinstance(date_obj, date):
+            return date_obj
+        elif isinstance(date_obj, datetime):
+            return date_obj.date()
+        elif isinstance(date_obj, str):
+            try:
+                return datetime.fromisoformat(date_obj).date()
+            except ValueError:
+                raise ValueError(f"Invalid date format: {date_obj}")
+        else:
+            raise ValueError(f"Invalid date type: {type(date_obj)}")
+
+    def _serialize_entry(self, entry: JournalEntry) -> Dict[str, Any]:
+        """
+        Safely serialize a journal entry to dictionary.
+
+        Args:
+            entry: JournalEntry to serialize
+
+        Returns:
+            Dictionary representation of the entry
+        """
+        try:
+            return {
+                "date": entry.date.isoformat() if entry.date else "",
+                "location": entry.location or "",
+                "weather_summary": entry.weather_summary or "",
+                "temperature": entry.temperature if entry.temperature is not None else 0.0,
+                "condition": entry.condition or "",
+                "mood": entry.mood.value if entry.mood else "neutral",
+                "notes": entry.notes or "",
+                "activities": entry.activities or [],
+                "created_at": entry.created_at.isoformat() if entry.created_at else datetime.now().isoformat()
+            }
+        except Exception as e:
+            self.logger.error(f"Error serializing entry: {e}")
+            raise
