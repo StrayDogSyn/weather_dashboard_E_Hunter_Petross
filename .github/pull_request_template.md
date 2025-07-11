@@ -1,6 +1,6 @@
-## 📋 Pull Request Description
+# Pull Request Description
 
-### What does this PR do?
+## 📋 What does this PR do?
 <!-- Provide a brief description of the changes -->
 
 ### Type of Change

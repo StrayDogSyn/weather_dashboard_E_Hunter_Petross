@@ -78,6 +78,7 @@ To maintain code quality and prevent main branch corruption:
 ### Status Checks
 
 Future CI/CD integration will include:
+
 - Code quality checks (Black, Flake8)
 - Type checking (MyPy)
 - Test suite execution

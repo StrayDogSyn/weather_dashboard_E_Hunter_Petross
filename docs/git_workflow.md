@@ -88,12 +88,14 @@ git branch -d feature/descriptive-name
 ### For Team Members
 
 1. **Clone Repository**:
+
    ```bash
    git clone https://github.com/StrayDogSyn/weather_dashboard_E_Hunter_Petross.git
    cd weather_dashboard_E_Hunter_Petross
    ```
 
 2. **Set Up Development Environment**:
+
    ```bash
    # Install dependencies
    pip install -r requirements.txt
@@ -105,11 +107,13 @@ git branch -d feature/descriptive-name
    ```
 
 3. **Create Feature Branch**:
+
    ```bash
    git checkout -b feature/your-feature
    ```
 
 4. **Make Changes and Test**:
+
    ```bash
    # Make your changes
    python -m pytest tests/
@@ -128,16 +132,19 @@ git branch -d feature/descriptive-name
 
 1. **Fork Repository** on GitHub
 2. **Clone Your Fork**:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/weather_dashboard_E_Hunter_Petross.git
    ```
 
 3. **Add Upstream Remote**:
+
    ```bash
    git remote add upstream https://github.com/StrayDogSyn/weather_dashboard_E_Hunter_Petross.git
    ```
 
 4. **Keep Fork Updated**:
+
    ```bash
    git fetch upstream
    git checkout main
@@ -152,6 +159,7 @@ git branch -d feature/descriptive-name
 For critical production issues that need immediate attention:
 
 1. **Create Hotfix Branch from Main**:
+
    ```bash
    git checkout main
    git pull origin main
@@ -159,6 +167,7 @@ For critical production issues that need immediate attention:
    ```
 
 2. **Make Minimal Fix**:
+
    ```bash
    # Make only the necessary changes
    git add .
@@ -177,11 +186,13 @@ For critical production issues that need immediate attention:
 If a merge causes issues:
 
 1. **Identify Problem Commit**:
+
    ```bash
    git log --oneline
    ```
 
 2. **Create Revert**:
+
    ```bash
    git revert <commit-hash>
    git push origin main
