@@ -21,6 +21,7 @@ weather_dashboard_E_Hunter_Petross/
 │   ├── 📄 project_structure.md  # Project structure guide
 │   ├── 📄 security.md          # Security guidelines
 │   ├── 📄 SQL_DATABASE.md      # Database documentation
+│   ├── 📄 git_workflow.md      # Git workflow and branching strategy
 │   └── 📄 Week13_Reflection.md  # Latest progress reflection
 ├── 📁 src/                      # Source code directory
 │   ├── 📄 __init__.py
