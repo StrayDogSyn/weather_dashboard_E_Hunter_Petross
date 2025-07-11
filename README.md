@@ -1,7 +1,11 @@
 # 🌤️ Weather Dashboard - TKinter GUI
 
-> **📋 WEEK 12 SUBMISSION STATUS: ✅ READY**  
-> All core requirements met. Application tested and functional.
+> **📋 WEEK 13 SUBMISSION STATUS: ✅ READY**  
+> All core requirements met, including:  
+> ✅ GitHub Repository Updated  
+> ✅ UI Design Implemented  
+> ✅ API Integration Complete  
+> ✅ Core Features Functional
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 [![Code Quality](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -140,26 +144,45 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 
 ### Dependencies
 
-- **TKinter**: Built-in Python GUI framework
-- **requests**: HTTP client for weather API
+- **TKinter & ttkbootstrap**: Modern GUI framework with Bootstrap-inspired styling
+- **SQLAlchemy**: SQL database ORM for robust data management
+- **requests**: HTTP client for weather API integration
+- **matplotlib**: Data visualization and charting
 - **python-dotenv**: Environment variable management
 - **pydantic**: Data validation and modeling
+- **openai**: AI-powered weather poetry generation
+- **black & flake8**: Code formatting and linting
+- **mypy**: Static type checking
 
 ### File Structure
 
 ```text
 weather_dashboard_E_Hunter_Petross/
-├── main.py                 # Main application entry point
-├── run_gui.py              # Simplified GUI launcher
-├── src/
-│   ├── ui/
-│   │   └── gui_interface.py # TKinter GUI implementation
-│   ├── core/               # Core business logic
-│   ├── services/           # External service integrations
-│   ├── models/            # Data models and schemas
-│   └── config/            # Configuration management
-├── requirements.txt       # Python dependencies
-└── .env.example          # Environment configuration template
+├── 📄 main.py                    # Main application entry point
+├── 📄 requirements.txt           # Python dependencies
+├── 📄 requirements-dev.txt       # Development dependencies
+├── 📄 requirements-test.txt      # Testing dependencies
+├── 📄 pyproject.toml            # Project configuration
+├── 📄 settings.json             # Application settings
+├── 📁 src/                      # Source code directory
+│   ├── 📄 app_gui.py            # Main GUI controller
+│   ├── 📁 ui/                   # User interface layer
+│   │   ├── 📄 gui_interface.py  # Modern TKinter GUI
+│   │   └── 📄 dashboard.py      # Data visualization
+│   ├── 📁 core/                 # Business logic
+│   ├── 📁 services/             # External integrations
+│   ├── 📁 models/               # Data models
+│   ├── 📁 interfaces/           # Abstract interfaces
+│   ├── 📁 config/               # Configuration
+│   └── 📁 utils/                # Utilities
+├── 📁 data/                     # Application data
+│   ├── 📄 weather_dashboard.db  # SQLite database
+│   ├── 📁 json_backup/          # Data backups
+│   └── 📁 screenshots/          # UI screenshots
+├── 📁 docs/                     # Documentation
+├── 📁 tests/                    # Test suite
+├── 📁 logs/                     # Application logs
+└── 📁 scripts/                  # Utility scripts
 ```
 
 ## 🌟 Capstone Highlights
@@ -202,15 +225,27 @@ This project implements Clean Architecture with clear separation of concerns:
 
 ## 🧪 Testing
 
-Testing framework setup is ready for future implementation:
+The project includes a comprehensive test suite:
 
 ```bash
-# Install testing dependencies (when needed)
-pip install pytest pytest-cov
+# Install testing dependencies
+pip install -r tests/requirements-test.txt
 
-# Run tests (when test suite is implemented)
-python -m pytest tests/ -v
+# Run the test suite
+python -m pytest tests/ -v --cov=src
+
+# Run specific test files
+python -m pytest tests/test_weather_models.py -v
+python -m pytest tests/test_weather_service.py -v
 ```
+
+### Test Coverage
+
+- **Models**: Data model validation and integrity
+- **Services**: Core business logic and API integration
+- **Cache**: Data caching behavior and persistence
+- **Validators**: Input validation and error handling
+- **Session**: User session persistence and state management
 
 ## 📚 Documentation
 
