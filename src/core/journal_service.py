@@ -38,8 +38,10 @@ class WeatherJournalService:
             for entry_data in data["entries"]:
                 try:
                     date_str = entry_data.get("date", "")
-                    created_at_str = entry_data.get("created_at", datetime.now().isoformat())
-                    
+                    created_at_str = entry_data.get(
+                        "created_at", datetime.now().isoformat()
+                    )
+
                     entry = JournalEntry(
                         date=self._validate_date(date_str),
                         location=entry_data.get("location", ""),
@@ -66,12 +68,7 @@ class WeatherJournalService:
     def _save_entries(self) -> bool:
         """Save journal entries to storage."""
         try:
-            data = {
-                "entries": [
-                    self._serialize_entry(entry)
-                    for entry in self.entries
-                ]
-            }
+            data = {"entries": [self._serialize_entry(entry) for entry in self.entries]}
 
             success = self.storage.save_data(data, self.journal_file)
             if success:
@@ -341,12 +338,18 @@ class WeatherJournalService:
                 "date": entry.date.isoformat() if entry.date else "",
                 "location": entry.location or "",
                 "weather_summary": entry.weather_summary or "",
-                "temperature": entry.temperature if entry.temperature is not None else 0.0,
+                "temperature": (
+                    entry.temperature if entry.temperature is not None else 0.0
+                ),
                 "condition": entry.condition or "",
                 "mood": entry.mood.value if entry.mood else "neutral",
                 "notes": entry.notes or "",
                 "activities": entry.activities or [],
-                "created_at": entry.created_at.isoformat() if entry.created_at else datetime.now().isoformat()
+                "created_at": (
+                    entry.created_at.isoformat()
+                    if entry.created_at
+                    else datetime.now().isoformat()
+                ),
             }
         except Exception as e:
             self.logger.error(f"Error serializing entry: {e}")
