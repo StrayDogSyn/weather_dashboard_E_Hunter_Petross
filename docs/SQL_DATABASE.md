@@ -1,23 +1,50 @@
 # SQL Database Integration
 
-The Weather Dashboard now supports SQL database storage using SQLite for improved data management, performance, and scalability.
+The Weather Dashboard uses SQLite for robust data management, offering improved performance, data integrity, and advanced querying capabilities.
 
 ## Overview
 
-The application has been enhanced with a flexible storage system that can use either:
+The application implements a hybrid storage system that supports:
 
-- **SQL Database** (SQLite) - Recommended for better performance and data integrity
-- **JSON Files** - Legacy storage method for backward compatibility
+- **SQL Database** (SQLite) - Primary storage for better performance and data integrity
+- **JSON Files** - Backup storage and data export functionality
+- **Automatic Backups** - Daily JSON backups of critical data
 
 ## Database Features
 
 ### 🗃️ Database Structure
 
-The SQLite database includes the following tables:
+The SQLite database (`data/weather_dashboard.db`) includes the following tables:
 
-1. **user_preferences** - User settings and preferences
-2. **favorite_cities** - User's favorite weather locations
-3. **weather_history** - Historical weather data
+1. **user_preferences**
+   - User interface settings
+   - Unit preferences (°C/°F)
+   - Auto-refresh intervals
+   - Visual theme settings
+
+2. **favorite_cities**
+   - City name and coordinates
+   - Display order
+   - Last update timestamp
+   - Custom city labels
+
+3. **weather_history**
+   - Historical weather data
+   - Timestamp and location
+   - Temperature, humidity, pressure
+   - Weather conditions and descriptions
+
+4. **journal_entries**
+   - Daily weather journal entries
+   - Mood and activity tracking
+   - Weather impact notes
+   - Timestamps and locations
+
+5. **activity_suggestions**
+   - Weather-based activity recommendations
+   - Condition mappings
+   - User feedback and ratings
+   - Seasonal adjustments
 4. **journal_entries** - Weather journal entries
 5. **activity_recommendations** - Activity suggestions based on weather
 

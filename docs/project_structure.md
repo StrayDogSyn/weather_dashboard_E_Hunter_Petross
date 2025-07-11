@@ -7,10 +7,21 @@ weather_dashboard_E_Hunter_Petross/
 ├── 📄 main.py                    # Main application entry point
 ├── 📄 requirements.txt           # Python dependencies
 ├── 📄 requirements-dev.txt       # Development dependencies
+├── 📄 requirements-test.txt      # Testing dependencies
 ├── 📄 pyproject.toml            # Project configuration and metadata
 ├── 📄 README.md                 # Project documentation
 ├── 📄 LICENSE                   # MIT License
 ├── 📄 settings.json             # Application settings
+├── 📁 data/                     # Application data directory
+│   ├── 📄 weather_dashboard.db   # SQLite database
+│   ├── 📁 json_backup/          # JSON data backups
+│   └── 📁 screenshots/          # UI screenshots
+├── 📁 docs/                     # Documentation directory
+│   ├── 📄 architecture.md       # Architecture documentation
+│   ├── 📄 project_structure.md  # Project structure guide
+│   ├── 📄 security.md          # Security guidelines
+│   ├── 📄 SQL_DATABASE.md      # Database documentation
+│   └── 📄 Week13_Reflection.md  # Latest progress reflection
 ├── 📁 src/                      # Source code directory
 │   ├── 📄 __init__.py
 │   ├── 📄 app_gui.py            # Main GUI application controller
