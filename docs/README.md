@@ -31,14 +31,8 @@ Database schema, data management, and storage implementation details.
 
 ### 📝 Weekly Progress
 
-- [Week 13 Reflection](Week13_Reflection.md) - Current development status
-- [Week 11 Reflection](Week11_Reflection.md) - Previous milestone
-
-Detailed documentation on the SQLite database implementation, data models, and migration process.
-
-### �📝 [Week 11 Reflection](Week11_Reflection.md)
-
-Capstone project reflection, planning, and milestone documentation.
+- [Week 13 Reflection](Week13_Reflection.md) - Current development status with API integration and UI implementation
+- [Week 11 Reflection](Week11_Reflection.md) - Initial planning and architecture decisions
 
 ## Quick Navigation
 
@@ -65,16 +59,32 @@ This section documents all major tools, extensions, libraries, and learning reso
 
 ### Python Libraries & Frameworks
 
+#### Core Libraries
+
 - **[tkinter](https://docs.python.org/3/library/tkinter.html)** - GUI framework (built-in Python library)
+- **[ttkbootstrap](https://ttkbootstrap.readthedocs.io/)** - Modern Bootstrap styling for tkinter
 - **[requests](https://requests.readthedocs.io/)** - HTTP library for API calls
 - **[SQLAlchemy](https://www.sqlalchemy.org/)** - SQL toolkit and ORM for database integration
-- **[json](https://docs.python.org/3/library/json.html)** - JSON data handling (built-in Python library)
-- **[datetime](https://docs.python.org/3/library/datetime.html)** - Date and time handling (built-in Python library)
-- **[typing](https://docs.python.org/3/library/typing.html)** - Type hints support (built-in Python library)
-- **[dataclasses](https://docs.python.org/3/library/dataclasses.html)** - Data class decorators (built-in Python library)
-- **[enum](https://docs.python.org/3/library/enum.html)** - Enumeration support (built-in Python library)
-- **[logging](https://docs.python.org/3/library/logging.html)** - Logging framework (built-in Python library)
-- **[sqlite3](https://docs.python.org/3/library/sqlite3.html)** - SQLite database interface (built-in Python library)
+- **[matplotlib](https://matplotlib.org/)** - Data visualization and charting
+- **[openai](https://github.com/openai/openai-python)** - AI poetry generation
+
+#### Built-in Libraries
+
+- **[json](https://docs.python.org/3/library/json.html)** - JSON data handling
+- **[datetime](https://docs.python.org/3/library/datetime.html)** - Date and time handling
+- **[typing](https://docs.python.org/3/library/typing.html)** - Type hints support
+- **[dataclasses](https://docs.python.org/3/library/dataclasses.html)** - Data class decorators
+- **[enum](https://docs.python.org/3/library/enum.html)** - Enumeration support
+- **[logging](https://docs.python.org/3/library/logging.html)** - Logging framework
+- **[sqlite3](https://docs.python.org/3/library/sqlite3.html)** - SQLite database interface
+
+#### Development Tools
+
+- **[black](https://black.readthedocs.io/)** - Code formatting
+- **[flake8](https://flake8.pycqa.org/)** - Style guide enforcement
+- **[mypy](http://mypy-lang.org/)** - Static type checking
+- **[pytest](https://docs.pytest.org/)** - Testing framework
+- **[pytest-cov](https://pytest-cov.readthedocs.io/)** - Test coverage reporting
 
 ### APIs & External Services
 
