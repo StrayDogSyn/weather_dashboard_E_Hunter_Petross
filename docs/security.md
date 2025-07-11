@@ -10,6 +10,10 @@
 - [x] API key masked in logs/error messages (only first 8 chars shown)
 - [x] `.env.example` template provided with security warnings
 - [x] No hardcoded API keys in source code
+- [x] SQLite database with secure local storage
+- [x] Input validation for all user inputs
+- [x] Error handling without exposing sensitive data
+- [x] Secure HTTP requests with proper error handling
 
 ### ⚠️ Security Best Practices
 
@@ -71,7 +75,24 @@ git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch .env'
 3. Force push to remote repository
 4. Notify team members to pull latest changes
 
-## 📊 API Usage Security
+## �️ Database Security
+
+### SQLite Security Considerations
+
+- **Local Storage**: Database file stored in `data/` directory (not committed to git)
+- **Access Control**: Database file permissions restricted to application user
+- **Data Validation**: All inputs validated before database storage
+- **Backup Security**: JSON backups created in secure local directory
+- **No Sensitive Data**: No personal or sensitive information stored in database
+
+### Database Best Practices
+
+- Regular data cleanup of old weather history
+- Encrypted backups for production deployments
+- Database file integrity checks
+- Secure deletion of old backup files
+
+## �📊 API Usage Security
 
 ### OpenWeatherMap Free Tier Limits
 
@@ -99,6 +120,10 @@ Before deploying or sharing code:
 - [ ] HTTPS used for all API calls
 - [ ] Input validation for user data
 - [ ] Proper exception handling
+- [ ] Database file not committed to git
+- [ ] Backup files secured and not committed
+- [ ] No hardcoded paths or sensitive information
+- [ ] Logging configured to avoid sensitive data exposure
 
 ## 📞 Security Contacts
 
@@ -108,7 +133,7 @@ Before deploying or sharing code:
 
 ---
 
-**Last Updated**: June 26, 2025
+**Last Updated**: July 11, 2025
 **Review Schedule**: Monthly security review recommended
 
 ## Resources & Attribution
