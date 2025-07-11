@@ -45,8 +45,6 @@ The SQLite database (`data/weather_dashboard.db`) includes the following tables:
    - Condition mappings
    - User feedback and ratings
    - Seasonal adjustments
-4. **journal_entries** - Weather journal entries
-5. **activity_recommendations** - Activity suggestions based on weather
 
 ### 📊 Automatic Data Migration
 
