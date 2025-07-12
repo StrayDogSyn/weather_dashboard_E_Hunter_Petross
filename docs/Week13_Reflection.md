@@ -7,8 +7,11 @@ The Weather Dashboard project has made significant progress, with successful imp
 ### 🔗 GitHub Repository Information
 
 - **Repository URL**: [Weather Dashboard](https://github.com/StrayDogSyn/weather_dashboard_E_Hunter_Petross)
-- **Current Branch**: main
+- **Current Branch**: main (protected)
+- **Development Branch**: feature/week13-enhancements
 - **Project Status**: Active Development - Core Features Implemented
+
+**⚠️ Important**: The main branch is protected. All development work is done on feature branches to prevent corruption and ensure code quality through pull requests.
 
 ## 🎨 UI Implementation Status
 

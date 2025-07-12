@@ -264,12 +264,57 @@ python -m pytest tests/test_weather_service.py -v
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
+### Branching Strategy
+
+**⚠️ Important: Never commit directly to `main` branch**
+
+1. **Create a feature branch** for all development work:
+
+   ```bash
+   git checkout main
+   git pull origin main
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Work on your feature branch**:
+
+   ```bash
+   # Make your changes
+   git add .
+   git commit -m "feat: your descriptive commit message"
+   git push -u origin feature/your-feature-name
+   ```
+
+3. **Create a Pull Request** when ready:
+   - Open a PR from your feature branch to `main`
+   - Add descriptive title and description
+   - Request code review before merging
+
+4. **Clean up after merge**:
+
+   ```bash
+   git checkout main
+   git pull origin main
+   git branch -d feature/your-feature-name
+   ```
+
+### Development Guidelines
+
+1. Fork the repository (if external contributor)
+2. Create a feature branch from `main`
+3. Make your changes following the coding standards
 4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
+5. Run the test suite to ensure everything passes
+6. Update documentation as needed
+7. Submit a pull request with clear description
+
+### Code Quality Standards
+
+- **Type Checking**: All code must pass MyPy static analysis
+- **Code Formatting**: Use Black formatter for consistent style
+- **Linting**: Code must pass Flake8 linting checks
+- **Testing**: New features require corresponding tests
+- **Documentation**: Update relevant documentation for changes
 
 ## 📄 License
 

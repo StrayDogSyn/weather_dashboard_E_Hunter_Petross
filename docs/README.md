@@ -29,7 +29,11 @@ Security best practices, API key management, and secure configuration guidelines
 
 Database schema, data management, and storage implementation details.
 
-### 📝 Weekly Progress
+### � [Git Workflow & Branching](git_workflow.md)
+
+Comprehensive guide to the project's git workflow, branching strategy, and collaboration guidelines.
+
+### �📝 Weekly Progress
 
 - [Week 13 Reflection](Week13_Reflection.md) - Current development status with API integration and UI implementation
 - [Week 11 Reflection](Week11_Reflection.md) - Initial planning and architecture decisions
