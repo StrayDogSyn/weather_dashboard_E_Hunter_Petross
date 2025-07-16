@@ -248,7 +248,9 @@ class ActivitySuggestionService:
         suitability = (
             "Highly suitable"
             if score >= 8
-            else "Suitable" if score >= 5 else "Moderately suitable"
+            else "Suitable"
+            if score >= 5
+            else "Moderately suitable"
         )
 
         if is_suitable:

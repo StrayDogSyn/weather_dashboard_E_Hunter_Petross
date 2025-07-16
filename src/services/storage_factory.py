@@ -21,8 +21,8 @@ class DataStorageFactory:
         Returns:
             IDataStorage implementation
         """
-        # Check environment variable for storage type
-        storage_type = os.getenv("WEATHER_STORAGE_TYPE", "file").lower()
+        # Check environment variable for storage type (default to SQL)
+        storage_type = os.getenv("WEATHER_STORAGE_TYPE", "sql").lower()
 
         try:
             if storage_type == "sql":

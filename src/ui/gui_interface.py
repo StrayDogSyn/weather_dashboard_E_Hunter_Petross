@@ -17,14 +17,7 @@ from tkinter import messagebox, simpledialog, ttk
 from typing import Any, Callable, Dict, List, Optional
 
 import ttkbootstrap as ttk_bs
-from ttkbootstrap.constants import (
-    DANGER,
-    DARK,
-    INFO,
-    LIGHT,
-    PRIMARY,
-    SECONDARY,
-)
+from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
 
 from src.config.config import config_manager
 from src.interfaces.weather_interfaces import IUserInterface
@@ -2420,9 +2413,7 @@ class WeatherDashboardGUI(IUserInterface):
             else:
                 title_text = f"{icon} Weather Poetry {icon}"
         else:
-            title_text = (
-                poem.title if hasattr(poem, "title") else "✨ Weather Poetry ✨"
-            )
+            title_text = poem.title if hasattr(poem, "title") else "✨ Weather Poetry ✨"
 
         # Modern font for title with larger size
         title_label = tk.Label(
