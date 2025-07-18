@@ -91,7 +91,9 @@ class Temperature:
         symbol = (
             "°C"
             if self.unit == TemperatureUnit.CELSIUS
-            else "°F" if self.unit == TemperatureUnit.FAHRENHEIT else "K"
+            else "°F"
+            if self.unit == TemperatureUnit.FAHRENHEIT
+            else "K"
         )
         return f"{self.value:.1f}{symbol}"
 

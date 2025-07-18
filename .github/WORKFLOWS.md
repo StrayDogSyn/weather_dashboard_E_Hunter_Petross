@@ -66,64 +66,84 @@ gh workflow run quick-test.yml --ref main -f test_type=integration
 
 **Triggers:**
 
-- Pull request opened, synchronized, or reopened
+- Pull requests to `main` or `develop` branches
+- PR events: opened, synchronize, reopened
 
 **Jobs:**
 
-- **Validate PR**: Code formatting, linting, testing, startup validation
-- **Comment**: Automated PR comment with results
+- **Validate PR**: Comprehensive validation including:
+  - Code formatting check (Black)
+  - Linting (Flake8)
+  - Unit tests (Pytest)
+  - Application startup test
+  - Automated PR comment with results
+
+**Permissions:**
+
+The workflow requires the following GitHub permissions:
+
+- `contents: read` - Read repository contents
+- `issues: write` - Create/update PR comments
+- `pull-requests: write` - Interact with pull requests
 
 **Features:**
 
-- Automatic code quality checks
-- Test execution validation
-- Application startup verification
-- PR status comments with results
+- ✅ Automatic code quality validation
+- ✅ Comprehensive test execution
+- ✅ Application startup verification
+- ✅ Smart PR commenting (updates existing bot comments)
+- ✅ Error handling and graceful degradation
 
-## 🛠️ Workflow Testing
+**Comment Format:**
 
-### Using the Python Test Script
+```markdown
+## 🤖 PR Validation Results
 
-The `workflow_test.py` script provides an easy interface for triggering workflows:
+**Status**: ✅ Passed / ❌ Failed
 
-```bash
-# List available workflows
-python workflow_test.py list
+### Checks Performed:
+- ✅ Code formatting (Black)
+- ✅ Linting (Flake8)
+- ✅ Unit tests (Pytest)
+- ✅ Application startup test
 
-# Run specific workflow
-python workflow_test.py quick-test
-
-# Run on specific branch
-python workflow_test.py ci-cd develop
-
-# Test all workflows
-python workflow_test.py test-all
-
-# Watch workflow progress
-python workflow_test.py watch
+🎉 All checks passed! This PR is ready for review.
 ```
 
-### Direct GitHub CLI Commands
+### 4. Python App CI (`python-app.yml`)
 
-```bash
-# List workflows
-gh workflow list
+**Note:** This is a legacy workflow that may be deprecated in favor of the main CI/CD pipeline.
 
-# Run CI/CD pipeline
-gh workflow run ci-cd.yml --ref main
+## ⚙️ Configuration & Troubleshooting
 
-# Run quick test with basic type
-gh workflow run quick-test.yml --ref main -f test_type=basic
+### GitHub Permissions
 
-# Watch running workflows
-gh run list
+If you encounter permission errors like:
 
-# Watch specific workflow run
-gh run watch [RUN_ID]
-
-# View workflow logs
-gh run view [RUN_ID] --log
+```text
+RequestError [HttpError]: Resource not accessible by integration
 ```
+
+This typically means the workflow lacks proper permissions. Ensure workflows include:
+
+```yaml
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+```
+
+### Repository Settings
+
+For workflows to function properly, verify these repository settings:
+
+1. **Actions Permissions**: Go to Settings → Actions → General
+   - Allow GitHub Actions to create and approve pull requests
+   - Allow GitHub Actions to submit approving reviews
+
+2. **Token Permissions**: Ensure `GITHUB_TOKEN` has sufficient permissions
+   - Read access to metadata
+   - Write access to issues and pull requests
 
 ## 📋 Prerequisites
 

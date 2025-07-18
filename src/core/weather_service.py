@@ -234,7 +234,6 @@ class WeatherService:
             if fav.location.name.lower() == city.lower() or (
                 fav.nickname and fav.nickname.lower() == city.lower()
             ):
-
                 removed_city = self.favorite_cities.pop(i)
                 self._save_favorite_cities()
 
