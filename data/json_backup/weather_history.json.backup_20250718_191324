@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 28.51,
+      "condition": "clear",
+      "timestamp": "2025-07-18T19:08:08"
+    }
+  ],
+  "last_updated": "2025-07-18T19:11:36.540692"
+}
