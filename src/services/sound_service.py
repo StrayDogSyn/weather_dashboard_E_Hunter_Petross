@@ -10,7 +10,7 @@ import os
 import threading
 import time
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 try:
     import pygame
@@ -75,7 +75,7 @@ class SoundEffectsService:
         self.logger = logging.getLogger(__name__)
         self.enabled = enabled
         self.volume = volume
-        self.sounds_cache: Dict[SoundType, any] = {}
+        self.sounds_cache: Dict[SoundType, Any] = {}
         
         # Define sound file mappings
         self.sound_files = {
@@ -112,6 +112,7 @@ class SoundEffectsService:
         """Detect available audio backend."""
         if PYGAME_AVAILABLE:
             try:
+                import pygame
                 pygame.mixer.init()
                 pygame.mixer.quit()
                 return "pygame"
@@ -128,6 +129,7 @@ class SoundEffectsService:
         """Initialize the audio system."""
         try:
             if self.audio_backend == "pygame":
+                import pygame
                 pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
                 self.logger.info("Pygame audio initialized for sound effects")
             elif self.audio_backend == "winsound":
@@ -157,6 +159,7 @@ class SoundEffectsService:
             if os.path.exists(file_path):
                 try:
                     if self.audio_backend == "pygame" and PYGAME_AVAILABLE:
+                        import pygame
                         sound = pygame.mixer.Sound(file_path)
                         self.sounds_cache[sound_type] = sound
                         loaded_count += 1
@@ -227,6 +230,7 @@ class SoundEffectsService:
         """Generate button click sound."""
         try:
             import numpy as np
+            import pygame
             
             duration = 0.1
             t = np.linspace(0, duration, int(sample_rate * duration))
@@ -250,6 +254,7 @@ class SoundEffectsService:
         """Generate success notification sound."""
         try:
             import numpy as np
+            import pygame
             
             duration = 0.5
             t = np.linspace(0, duration, int(sample_rate * duration))
@@ -278,6 +283,7 @@ class SoundEffectsService:
         """Generate error notification sound."""
         try:
             import numpy as np
+            import pygame
             
             duration = 0.3
             t = np.linspace(0, duration, int(sample_rate * duration))
@@ -300,6 +306,7 @@ class SoundEffectsService:
         """Generate weather-related sound effects."""
         try:
             import numpy as np
+            import pygame
             
             # Rain sound - white noise filtered
             duration = 1.0
@@ -332,6 +339,7 @@ class SoundEffectsService:
         """Generate notification sound effects."""
         try:
             import numpy as np
+            import pygame
             
             duration = 0.3
             t = np.linspace(0, duration, int(sample_rate * duration))
