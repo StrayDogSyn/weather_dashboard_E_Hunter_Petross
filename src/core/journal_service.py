@@ -48,7 +48,7 @@ class WeatherJournalService:
                         weather_summary=entry_data.get("weather_summary", ""),
                         temperature=float(entry_data.get("temperature", 0.0)),
                         condition=entry_data.get("condition", ""),
-                        mood=MoodType(entry_data.get("mood", "neutral")),
+                        mood=self._validate_mood(entry_data.get("mood", "neutral")),
                         notes=entry_data.get("notes", ""),
                         activities=entry_data.get("activities", []),
                         created_at=datetime.fromisoformat(created_at_str),
@@ -316,12 +316,72 @@ class WeatherJournalService:
         elif isinstance(date_obj, datetime):
             return date_obj.date()
         elif isinstance(date_obj, str):
+            # Handle empty strings gracefully
+            if not date_obj or date_obj.strip() == "":
+                return date.today()  # Return today's date for empty strings
             try:
                 return datetime.fromisoformat(date_obj).date()
             except ValueError:
-                raise ValueError(f"Invalid date format: {date_obj}")
+                # Try alternative date formats
+                try:
+                    return datetime.strptime(date_obj, "%Y-%m-%d").date()
+                except ValueError:
+                    try:
+                        return datetime.strptime(date_obj, "%m/%d/%Y").date()
+                    except ValueError:
+                        self.logger.warning(f"Could not parse date '{date_obj}', using today's date")
+                        return date.today()
         else:
-            raise ValueError(f"Invalid date type: {type(date_obj)}")
+            self.logger.warning(f"Invalid date type: {type(date_obj)}, using today's date")
+            return date.today()
+
+    def _validate_mood(self, mood_value: Any) -> MoodType:
+        """
+        Validate and convert mood value.
+
+        Args:
+            mood_value: Mood value to validate
+
+        Returns:
+            MoodType enum value
+        """
+        if isinstance(mood_value, MoodType):
+            return mood_value
+        elif isinstance(mood_value, str):
+            # Handle common mood variations
+            mood_lower = mood_value.lower().strip()
+            mood_mapping = {
+                'happy': MoodType.HAPPY,
+                'confident': MoodType.MOTIVATED,
+                'excited': MoodType.EXCITED,
+                'calm': MoodType.PEACEFUL,
+                'relaxed': MoodType.RELAXED,
+                'sad': MoodType.SAD,
+                'worried': MoodType.ANXIOUS,
+                'stressed': MoodType.ANXIOUS,
+                'angry': MoodType.ANXIOUS,  # Map to anxious as closest match
+                'frustrated': MoodType.ANXIOUS,  # Map to anxious as closest match
+                'neutral': MoodType.CONTENT,  # Map neutral to content
+            }
+            
+            # Try direct mapping first
+            if mood_lower in mood_mapping:
+                return mood_mapping[mood_lower]
+            
+            # Try to match with existing MoodType values
+            try:
+                return MoodType(mood_lower)
+            except ValueError:
+                # Try to find a close match
+                for mood_type in MoodType:
+                    if mood_type.value.lower() == mood_lower:
+                        return mood_type
+                
+                self.logger.warning(f"Could not parse mood '{mood_value}', using content")
+                return MoodType.CONTENT
+        else:
+            self.logger.warning(f"Invalid mood type: {type(mood_value)}, using content")
+            return MoodType.CONTENT
 
     def _serialize_entry(self, entry: JournalEntry) -> Dict[str, Any]:
         """
