@@ -1285,108 +1285,108 @@ class WeatherDashboardGUI(IUserInterface):
         comparison_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
         self.notebook.add(comparison_frame, text="🌍 Compare Cities")
 
-        # Controls - adjust padding for better window fit
+        # Controls - compact design for better window usage
         controls_frame = GlassmorphicFrame(comparison_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, padx=15, pady=(15, 10))
+        controls_frame.pack(fill=tk.X, padx=15, pady=(10, 8))
 
-        # Create a centered container that uses available space better
+        # Create a compact container
         main_container = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        main_container.pack(expand=True, pady=30, padx=40)
+        main_container.pack(pady=15, padx=30)
 
-        # Title for the section - centered
+        # Title for the section - more compact
         title_label = tk.Label(
             main_container,
             text="Compare Weather Between Two Cities",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_LARGE, "bold"),
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=controls_frame.bg_color,
         )
-        title_label.pack(pady=(0, 30))
+        title_label.pack(pady=(0, 15))
 
-        # City selection container with better spacing and centering
+        # City selection container - more compact
         selection_container = tk.Frame(main_container, bg=controls_frame.bg_color)
-        selection_container.pack(expand=True, pady=(0, 25))
+        selection_container.pack(pady=(0, 12))
 
         # Use grid for better control over layout
         selection_container.grid_columnconfigure(0, weight=1)
-        selection_container.grid_columnconfigure(1, weight=0, minsize=80)  # Space between dropdowns
+        selection_container.grid_columnconfigure(1, weight=0, minsize=60)  # Reduced space between dropdowns
         selection_container.grid_columnconfigure(2, weight=1)
 
-        # City 1 section - better positioned
+        # City 1 section - more compact
         city1_frame = tk.Frame(selection_container, bg=controls_frame.bg_color)
-        city1_frame.grid(row=0, column=0, padx=(0, 20), sticky="e")
+        city1_frame.grid(row=0, column=0, padx=(0, 15), sticky="e")
 
         city1_label = tk.Label(
             city1_frame,
             text="🏙️ First City:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=controls_frame.bg_color,
         )
-        city1_label.pack(pady=(0, 10))
+        city1_label.pack(pady=(0, 5))
 
-        # Larger dropdown for better visibility
+        # Slightly smaller dropdown
         self.city1_dropdown = ttk.Combobox(
             city1_frame,
-            width=25,
+            width=22,
             state="readonly",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
             style="Glassmorphic.TCombobox"
         )
-        self.city1_dropdown.pack(ipady=10)
+        self.city1_dropdown.pack(ipady=6)
 
-        # VS separator in the middle
+        # VS separator in the middle - smaller
         vs_label = tk.Label(
             selection_container,
             text="VS",
-            font=(GlassmorphicStyle.FONT_FAMILY, 18, "bold"),
+            font=(GlassmorphicStyle.FONT_FAMILY, 14, "bold"),
             fg=GlassmorphicStyle.ACCENT,
             bg=controls_frame.bg_color,
         )
-        vs_label.grid(row=0, column=1, padx=20)
+        vs_label.grid(row=0, column=1, padx=15)
 
-        # City 2 section - better positioned
+        # City 2 section - more compact
         city2_frame = tk.Frame(selection_container, bg=controls_frame.bg_color)
-        city2_frame.grid(row=0, column=2, padx=(20, 0), sticky="w")
+        city2_frame.grid(row=0, column=2, padx=(15, 0), sticky="w")
 
         city2_label = tk.Label(
             city2_frame,
             text="🌆 Second City:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL, "bold"),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=controls_frame.bg_color,
         )
-        city2_label.pack(pady=(0, 10))
+        city2_label.pack(pady=(0, 5))
 
         self.city2_dropdown = ttk.Combobox(
             city2_frame,
-            width=25,
+            width=22,
             state="readonly",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
             style="Glassmorphic.TCombobox"
         )
-        self.city2_dropdown.pack(ipady=10)
+        self.city2_dropdown.pack(ipady=6)
 
-        # Buttons container - centered with better spacing
+        # Buttons container - more compact
         buttons_frame = tk.Frame(main_container, bg=controls_frame.bg_color)
-        buttons_frame.pack(pady=(25, 0))
+        buttons_frame.pack(pady=(12, 0))
 
         self.compare_btn = ModernButton(
             buttons_frame,
             text="🌍 Compare Weather",
             command=self.compare_cities,
-            width=18
+            width=16
         )
-        self.compare_btn.pack(side=tk.LEFT, padx=(0, 20))
+        self.compare_btn.pack(side=tk.LEFT, padx=(0, 15))
 
         self.refresh_team_btn = ModernButton(
             buttons_frame,
             text="🔄 Refresh Cities",
             command=self.refresh_team_cities,
             style="secondary",
-            width=18
+            width=16
         )
-        self.refresh_team_btn.pack(side=tk.LEFT, padx=(20, 0))
+        self.refresh_team_btn.pack(side=tk.LEFT, padx=(15, 0))
 
         # Configure custom ttk style for the dropdowns
         self._configure_dropdown_style()
@@ -1394,9 +1394,9 @@ class WeatherDashboardGUI(IUserInterface):
         # Populate dropdowns with team cities
         self.populate_city_dropdowns()
 
-        # Comparison results
+        # Comparison results - give more space
         self.comparison_results = GlassmorphicFrame(comparison_frame, elevated=True)
-        self.comparison_results.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+        self.comparison_results.pack(fill=tk.BOTH, expand=True, padx=10, pady=(8, 10))
 
     def _configure_dropdown_style(self):
         """Configure custom styling for the dropdown menus to match glassmorphic theme."""
