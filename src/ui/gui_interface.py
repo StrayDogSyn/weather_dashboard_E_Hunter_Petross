@@ -410,8 +410,8 @@ class ModernButton(tk.Button):
         self.configure(highlightbackground=self.hover_bg, highlightcolor=self.hover_bg)
         # Subtle text brightening for modern feedback
         self.configure(fg="#ffffff")
-        # Play subtle hover sound
-        play_sound(SoundType.BUTTON_HOVER, 0.1)
+        # Play subtle hover sound - use BUTTON_CLICK at low volume
+        play_sound(SoundType.BUTTON_CLICK, 0.1)
 
     def _on_leave(self, event):
         self.is_hovered = False
@@ -819,7 +819,7 @@ class WeatherDashboardGUI(IUserInterface):
 
     def _on_tab_changed(self, event):
         """Handle tab switching with sound effect."""
-        play_sound(SoundType.TAB_SWITCH, 0.3)
+        play_sound(SoundType.BUTTON_CLICK, 0.3)
 
     def setup_window(self) -> None:
         """Setup main window properties."""
@@ -1885,13 +1885,13 @@ class WeatherDashboardGUI(IUserInterface):
 
     def view_journal_entries(self):
         """View journal entries with sound effect."""
-        play_sound(SoundType.CHIME, 0.3)
+        play_sound(SoundType.NOTIFICATION, 0.3)
         if "view_journal" in self.callbacks:
             self.callbacks["view_journal"]()
 
     def get_activity_suggestions(self):
         """Get activity suggestions with sound effect."""
-        play_sound(SoundType.ACTIVITY_SUGGEST, 0.4)
+        play_sound(SoundType.MAGIC, 0.4)
         if "get_activities" in self.callbacks:
             self.callbacks["get_activities"]()
 
@@ -2133,7 +2133,7 @@ class WeatherDashboardGUI(IUserInterface):
     def display_activity_suggestions(self, suggestions: ActivitySuggestion) -> None:
         """Display activity suggestions with improved formatting."""
         # Play activity display sound
-        play_sound(SoundType.ACTIVITY_SUGGEST, 0.6)
+        play_sound(SoundType.MAGIC, 0.6)
         
         # Clear existing content
         for widget in self.activities_content.scrollable_frame.winfo_children():
@@ -2445,7 +2445,7 @@ class WeatherDashboardGUI(IUserInterface):
     def display_weather_poem(self, poem) -> None:
         """Display weather poem in the poetry tab with enhanced visual styling and sound."""
         # Play magical poetry generation sound
-        play_sound(SoundType.POETRY_GENERATE, 0.6)
+        play_sound(SoundType.MAGIC, 0.6)
         
         # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():
@@ -2601,7 +2601,7 @@ class WeatherDashboardGUI(IUserInterface):
     def display_weather_poem_collection(self, poems) -> None:
         """Display a collection of weather poems with enhanced visual styling."""
         # Play collection display sound
-        play_sound(SoundType.POETRY_GENERATE, 0.5)
+        play_sound(SoundType.MAGIC, 0.5)
         
         # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():

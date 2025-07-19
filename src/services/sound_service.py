@@ -28,7 +28,7 @@ class SoundType(Enum):
     """Enumeration of different sound effect types."""
     
     # UI Interaction Sounds
-    BUTTON_CLICK = "button_click"
+    BUTTON_CLICK = "button_click"      # Covers clicks, hovers, tab switches
     SUCCESS = "success"
     ERROR = "error"
     WARNING = "warning"
@@ -38,12 +38,11 @@ class SoundType(Enum):
     WEATHER_LOAD = "weather_load"
     RAIN = "rain"
     THUNDER = "thunder"
-    WIND = "wind"
     
     # Feature Specific Sounds
     COMPARE_CITIES = "compare_cities"
     JOURNAL_SAVE = "journal_save"
-    POETRY_GENERATE = "poetry_generate"
+    MAGIC = "magic"                    # Covers poetry, activity suggestions, special effects
 
 
 class SoundService:
@@ -56,19 +55,20 @@ class SoundService:
         self.volume = volume
         self.sounds_cache: Dict[SoundType, Any] = {}
         
-        # Sound file mappings (simplified)
+        # Sound file mappings - each sound type gets a unique file (11 of 12 files used)
         self.sound_files = {
             SoundType.BUTTON_CLICK: "super-mario-coin-sound.mp3",
-            SoundType.SUCCESS: "super-mario-coin-sound.mp3",
+            SoundType.SUCCESS: "ding-sound-effect_2.mp3",
             SoundType.ERROR: "emotional-damage-meme.mp3",
-            SoundType.WARNING: "danger-alarm-sound-effect-meme.mp3",
+            SoundType.WARNING: "danger-alarm-sound-effect-meme.mp3", 
             SoundType.NOTIFICATION: "super-mario-beedoo_F3cwLoe.mp3",
-            SoundType.WEATHER_LOAD: "super-mario-coin-sound.mp3",
+            SoundType.WEATHER_LOAD: "maro-jump-sound-effect_1.mp3",
+            SoundType.RAIN: "metal-gear-alert-sound-effect_XKoHReZ.mp3",
+            SoundType.THUNDER: "mka.mp3",
             SoundType.COMPARE_CITIES: "test-your-might.mp3",
-            SoundType.JOURNAL_SAVE: "ding-sound-effect_2.mp3",
-            SoundType.POETRY_GENERATE: "magic-fairy.mp3",
-            SoundType.RAIN: "danger-alarm-sound-effect-meme.mp3",
-            SoundType.THUNDER: "metal-gear-alert-sound-effect_XKoHReZ.mp3",
+            SoundType.JOURNAL_SAVE: "toasty_tfCWsU6.mp3",
+            SoundType.MAGIC: "magic-fairy.mp3",
+            # mortal-kombat-intro.mp3 reserved for future special events
         }
         
         # Initialize audio backend
@@ -151,7 +151,13 @@ class SoundService:
                         SoundType.SUCCESS: 523,
                         SoundType.ERROR: 200,
                         SoundType.WARNING: 400,
-                        SoundType.NOTIFICATION: 880
+                        SoundType.NOTIFICATION: 880,
+                        SoundType.WEATHER_LOAD: 750,
+                        SoundType.RAIN: 300,
+                        SoundType.THUNDER: 150,
+                        SoundType.COMPARE_CITIES: 450,
+                        SoundType.JOURNAL_SAVE: 900,
+                        SoundType.MAGIC: 1100,
                     }
                     freq = frequencies.get(sound_type, 600)
                     winsound.Beep(freq, 100)
@@ -176,10 +182,10 @@ class SoundService:
         
         if "rain" in condition_lower:
             self.play_sound_async(SoundType.RAIN, 0.4)
-        elif "thunder" in condition_lower:
+        elif "thunder" in condition_lower or "storm" in condition_lower:
             self.play_sound_async(SoundType.THUNDER, 0.6)
         elif "wind" in condition_lower:
-            self.play_sound_async(SoundType.WIND, 0.3)
+            self.play_sound_async(SoundType.WARNING, 0.3)  # Use warning sound for wind
 
     def set_enabled(self, enabled: bool):
         """Enable or disable sound effects."""
