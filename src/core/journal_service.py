@@ -42,7 +42,12 @@ class WeatherJournalService:
                         "created_at", datetime.now().isoformat()
                     )
 
-                    # Safely handle created_at parsing
+                    # Skip entries with empty or invalid date strings
+                    if not date_str or date_str.strip() == "":
+                        self.logger.warning("Skipping entry with empty date string")
+                        continue
+
+                    # Safely handle created_at parsing - never allow empty strings
                     created_at = datetime.now()
                     if created_at_str and created_at_str.strip():
                         try:
@@ -50,6 +55,9 @@ class WeatherJournalService:
                         except (ValueError, TypeError) as e:
                             self.logger.warning(f"Could not parse created_at '{created_at_str}': {e}, using current time")
                             created_at = datetime.now()
+                    else:
+                        self.logger.warning("Empty created_at string, using current time")
+                        created_at = datetime.now()
 
                     entry = JournalEntry(
                         date=self._validate_date(date_str),
@@ -403,26 +411,30 @@ class WeatherJournalService:
             Dictionary representation of the entry
         """
         try:
-            # Safely handle date serialization
-            date_str = ""
+            # Safely handle date serialization - never allow empty strings
+            date_str = date.today().isoformat()  # Default fallback
             if entry.date:
                 try:
                     date_str = entry.date.isoformat()
                 except (AttributeError, ValueError) as e:
                     self.logger.warning(f"Error serializing date: {e}, using today's date")
                     date_str = date.today().isoformat()
-            else:
+            
+            # Ensure we never store an empty date string
+            if not date_str or date_str.strip() == "":
                 date_str = date.today().isoformat()
             
-            # Safely handle created_at serialization
-            created_at_str = ""
+            # Safely handle created_at serialization - never allow empty strings
+            created_at_str = datetime.now().isoformat()  # Default fallback
             if entry.created_at:
                 try:
                     created_at_str = entry.created_at.isoformat()
                 except (AttributeError, ValueError) as e:
                     self.logger.warning(f"Error serializing created_at: {e}, using current time")
                     created_at_str = datetime.now().isoformat()
-            else:
+            
+            # Ensure we never store an empty created_at string
+            if not created_at_str or created_at_str.strip() == "":
                 created_at_str = datetime.now().isoformat()
 
             return {
@@ -440,4 +452,15 @@ class WeatherJournalService:
             }
         except Exception as e:
             self.logger.error(f"Error serializing entry: {e}")
-            raise
+            # Return a safe default entry rather than raising
+            return {
+                "date": date.today().isoformat(),
+                "location": "",
+                "weather_summary": "",
+                "temperature": 0.0,
+                "condition": "",
+                "mood": "neutral",
+                "notes": "",
+                "activities": [],
+                "created_at": datetime.now().isoformat(),
+            }
