@@ -51,7 +51,7 @@ class WeatherJournalService:
                         mood=self._validate_mood(entry_data.get("mood", "neutral")),
                         notes=entry_data.get("notes", ""),
                         activities=entry_data.get("activities", []),
-                        created_at=datetime.fromisoformat(created_at_str) if created_at_str else datetime.now(),
+                        created_at=datetime.fromisoformat(created_at_str) if created_at_str and created_at_str.strip() else datetime.now(),
                     )
                 except (ValueError, TypeError, AttributeError) as e:
                     self.logger.error(f"Error parsing journal entry: {e}")
