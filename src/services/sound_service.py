@@ -46,7 +46,13 @@ class SoundType(Enum):
 
 
 class SoundService:
-    """Simplified service for managing sound effects."""
+    """
+    Simplified service for managing sound effects.
+    
+    Currently active sounds: BUTTON_CLICK, ERROR, COMPARE_CITIES
+    Reserved for future use: SUCCESS, WARNING, NOTIFICATION, WEATHER_LOAD, 
+                           RAIN, THUNDER, JOURNAL_SAVE, MAGIC
+    """
     
     def __init__(self, enabled: bool = True, volume: float = 0.7):
         """Initialize the sound service."""
@@ -55,17 +61,21 @@ class SoundService:
         self.volume = volume
         self.sounds_cache: Dict[SoundType, Any] = {}
         
-        # Sound file mappings - each sound type gets a unique file (11 of 12 files used)
+        # Active sound file mappings - only essential sounds for current use
         self.sound_files = {
             SoundType.BUTTON_CLICK: "super-mario-coin-sound.mp3",
-            SoundType.SUCCESS: "ding-sound-effect_2.mp3",
             SoundType.ERROR: "emotional-damage-meme.mp3",
+            SoundType.COMPARE_CITIES: "test-your-might.mp3",
+        }
+        
+        # Reserved sound files for future features
+        self.reserved_sound_files = {
+            SoundType.SUCCESS: "ding-sound-effect_2.mp3",
             SoundType.WARNING: "danger-alarm-sound-effect-meme.mp3", 
             SoundType.NOTIFICATION: "super-mario-beedoo_F3cwLoe.mp3",
             SoundType.WEATHER_LOAD: "maro-jump-sound-effect_1.mp3",
             SoundType.RAIN: "metal-gear-alert-sound-effect_XKoHReZ.mp3",
             SoundType.THUNDER: "mka.mp3",
-            SoundType.COMPARE_CITIES: "test-your-might.mp3",
             SoundType.JOURNAL_SAVE: "toasty_tfCWsU6.mp3",
             SoundType.MAGIC: "magic-fairy.mp3",
             # mortal-kombat-intro.mp3 reserved for future special events
@@ -127,11 +137,16 @@ class SoundService:
                 except Exception as e:
                     self.logger.debug(f"Failed to load {filename}: {e}")
         
-        self.logger.info(f"Loaded {loaded_count} sound effects")
+        self.logger.info(f"Loaded {loaded_count} active sound effects (3 active, 8 reserved for future use)")
 
     def play_sound(self, sound_type: SoundType, volume: Optional[float] = None):
-        """Play a sound effect."""
+        """Play a sound effect. Only active sounds will play; reserved sounds are silently ignored."""
         if not self.enabled or not self.audio_backend:
+            return
+        
+        # Only play active sounds, ignore reserved ones
+        if sound_type not in self.sound_files:
+            self.logger.debug(f"Sound {sound_type.value} is reserved for future use")
             return
         
         try:
@@ -143,21 +158,13 @@ class SoundService:
                     sound.set_volume(play_volume)
                     sound.play()
             elif self.audio_backend == "winsound":
-                # Simple fallback beeps
+                # Simple fallback beeps for active sounds only
                 if WINSOUND_AVAILABLE:
                     import winsound
                     frequencies = {
                         SoundType.BUTTON_CLICK: 800,
-                        SoundType.SUCCESS: 523,
                         SoundType.ERROR: 200,
-                        SoundType.WARNING: 400,
-                        SoundType.NOTIFICATION: 880,
-                        SoundType.WEATHER_LOAD: 750,
-                        SoundType.RAIN: 300,
-                        SoundType.THUNDER: 150,
                         SoundType.COMPARE_CITIES: 450,
-                        SoundType.JOURNAL_SAVE: 900,
-                        SoundType.MAGIC: 1100,
                     }
                     freq = frequencies.get(sound_type, 600)
                     winsound.Beep(freq, 100)
@@ -177,15 +184,17 @@ class SoundService:
         ).start()
 
     def play_weather_sound(self, weather_condition: str):
-        """Play a sound based on weather condition."""
-        condition_lower = weather_condition.lower()
-        
-        if "rain" in condition_lower:
-            self.play_sound_async(SoundType.RAIN, 0.4)
-        elif "thunder" in condition_lower or "storm" in condition_lower:
-            self.play_sound_async(SoundType.THUNDER, 0.6)
-        elif "wind" in condition_lower:
-            self.play_sound_async(SoundType.WARNING, 0.3)  # Use warning sound for wind
+        """Play a sound based on weather condition. Currently disabled - reserved for future use."""
+        # Weather sounds are reserved for future implementation
+        self.logger.debug(f"Weather sound for '{weather_condition}' is reserved for future use")
+        # Uncomment when weather sounds are re-enabled:
+        # condition_lower = weather_condition.lower()
+        # if "rain" in condition_lower:
+        #     self.play_sound_async(SoundType.RAIN, 0.4)
+        # elif "thunder" in condition_lower or "storm" in condition_lower:
+        #     self.play_sound_async(SoundType.THUNDER, 0.6)
+        # elif "wind" in condition_lower:
+        #     self.play_sound_async(SoundType.WARNING, 0.3)
 
     def set_enabled(self, enabled: bool):
         """Enable or disable sound effects."""
@@ -194,6 +203,28 @@ class SoundService:
     def set_volume(self, volume: float):
         """Set the volume level."""
         self.volume = max(0.0, min(1.0, volume))
+
+    def enable_reserved_sounds(self, sound_types: Optional[list] = None):
+        """Enable reserved sounds for future use. 
+        
+        Args:
+            sound_types: List of SoundType enums to enable. If None, enables all reserved sounds.
+        """
+        if sound_types is None:
+            # Enable all reserved sounds
+            self.sound_files.update(self.reserved_sound_files)
+            self.reserved_sound_files.clear()
+        else:
+            # Enable specific reserved sounds
+            for sound_type in sound_types:
+                if sound_type in self.reserved_sound_files:
+                    self.sound_files[sound_type] = self.reserved_sound_files.pop(sound_type)
+        
+        # Reload sounds if audio is initialized
+        if self.enabled and self.audio_backend:
+            self._load_sounds()
+        
+        self.logger.info(f"Enabled {len(sound_types) if sound_types else len(self.reserved_sound_files)} reserved sounds")
 
     def cleanup(self):
         """Clean up audio resources."""
