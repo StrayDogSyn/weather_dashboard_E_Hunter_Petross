@@ -1301,8 +1301,14 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=0, padx=(20, 10), pady=5, sticky="e")
 
-        self.city1_entry = BootstrapEntry(input_frame, width=20)
-        self.city1_entry.grid(row=0, column=1, padx=10, pady=8, ipady=6)
+        # Replace text entry with dropdown for City 1
+        self.city1_dropdown = ttk.Combobox(
+            input_frame, 
+            width=18,
+            state="readonly",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL)
+        )
+        self.city1_dropdown.grid(row=0, column=1, padx=10, pady=8, ipady=6)
 
         tk.Label(
             input_frame,
@@ -1312,13 +1318,31 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=2, padx=(30, 10), pady=5, sticky="e")
 
-        self.city2_entry = BootstrapEntry(input_frame, width=20)
-        self.city2_entry.grid(row=0, column=3, padx=10, pady=8, ipady=6)
+        # Replace text entry with dropdown for City 2
+        self.city2_dropdown = ttk.Combobox(
+            input_frame, 
+            width=18,
+            state="readonly",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL)
+        )
+        self.city2_dropdown.grid(row=0, column=3, padx=10, pady=8, ipady=6)
 
         self.compare_btn = ModernButton(
             input_frame, text="🌍 Compare", command=self.compare_cities
         )
         self.compare_btn.grid(row=0, column=4, padx=(20, 20), pady=5)
+
+        # Add refresh button for team data
+        self.refresh_team_btn = ModernButton(
+            input_frame, 
+            text="🔄 Refresh Cities", 
+            command=self.refresh_team_cities,
+            style="secondary"
+        )
+        self.refresh_team_btn.grid(row=0, column=5, padx=(10, 20), pady=5)
+
+        # Populate dropdowns with team cities
+        self.populate_city_dropdowns()
 
         # Comparison results
         self.comparison_results = GlassmorphicFrame(comparison_frame, elevated=True)
@@ -1867,15 +1891,95 @@ class WeatherDashboardGUI(IUserInterface):
 
     def compare_cities(self):
         """Compare two cities."""
-        city1 = self.city1_entry.get().strip()
-        city2 = self.city2_entry.get().strip()
+        city1 = self.city1_dropdown.get().strip()
+        city2 = self.city2_dropdown.get().strip()
 
         if not city1 or not city2:
-            self.show_error("Please enter both city names")
+            self.show_error("Please select both cities from the dropdown menus")
+            return
+
+        if city1 == city2:
+            self.show_error("Please select two different cities to compare")
             return
 
         if "compare_cities" in self.callbacks:
             self.callbacks["compare_cities"](city1, city2)
+
+    def populate_city_dropdowns(self):
+        """Populate city dropdowns with available team cities."""
+        try:
+            # Check if callbacks are available
+            if not hasattr(self, 'callbacks') or not self.callbacks:
+                # Use default cities if callbacks not set up yet
+                default_cities = ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+                self.city1_dropdown['values'] = default_cities
+                self.city2_dropdown['values'] = default_cities
+                self.city1_dropdown.set(default_cities[0])
+                self.city2_dropdown.set(default_cities[1])
+                return
+                
+            # Get available cities from team data via callback
+            if "get_team_cities" in self.callbacks:
+                cities = self.callbacks["get_team_cities"]()
+                if cities:
+                    # Update dropdown values
+                    self.city1_dropdown['values'] = cities
+                    self.city2_dropdown['values'] = cities
+                    
+                    # Set default selections if cities are available
+                    if len(cities) >= 2:
+                        self.city1_dropdown.set(cities[0])
+                        self.city2_dropdown.set(cities[1])
+                    elif len(cities) == 1:
+                        self.city1_dropdown.set(cities[0])
+                        
+                    if hasattr(self, 'update_status'):
+                        self.update_status(f"Loaded {len(cities)} cities from team data")
+                else:
+                    # Fallback cities if team data not available
+                    fallback_cities = ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+                    self.city1_dropdown['values'] = fallback_cities
+                    self.city2_dropdown['values'] = fallback_cities
+                    self.city1_dropdown.set(fallback_cities[0])
+                    self.city2_dropdown.set(fallback_cities[1])
+                    if hasattr(self, 'update_status'):
+                        self.update_status("Using fallback cities - team data not available")
+            else:
+                # Default cities if callback not available
+                default_cities = ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+                self.city1_dropdown['values'] = default_cities
+                self.city2_dropdown['values'] = default_cities
+                self.city1_dropdown.set(default_cities[0])
+                self.city2_dropdown.set(default_cities[1])
+                
+        except Exception as e:
+            if hasattr(self, 'logger'):
+                self.logger.error(f"Error populating city dropdowns: {e}")
+            # Use fallback cities on error
+            fallback_cities = ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami"]
+            self.city1_dropdown['values'] = fallback_cities
+            self.city2_dropdown['values'] = fallback_cities
+            if fallback_cities:
+                self.city1_dropdown.set(fallback_cities[0])
+                if len(fallback_cities) > 1:
+                    self.city2_dropdown.set(fallback_cities[1])
+
+    def refresh_team_cities(self):
+        """Refresh team cities from GitHub repository."""
+        try:
+            self.update_status("Refreshing team cities from GitHub...")
+            
+            if "refresh_team_data" in self.callbacks:
+                self.callbacks["refresh_team_data"]()
+            
+            # Repopulate dropdowns with fresh data
+            self.populate_city_dropdowns()
+            
+            self.show_message("Team cities refreshed successfully!")
+            
+        except Exception as e:
+            self.logger.error(f"Error refreshing team cities: {e}")
+            self.show_error(f"Error refreshing team cities: {str(e)}")
 
     def create_journal_entry(self):
         """Create new journal entry with sound effect."""
@@ -1928,6 +2032,11 @@ class WeatherDashboardGUI(IUserInterface):
     def set_callback(self, event_name: str, callback: Callable):
         """Set callback for GUI events."""
         self.callbacks[event_name] = callback
+
+    def refresh_city_dropdowns_after_callbacks(self):
+        """Refresh city dropdowns after callbacks are set up."""
+        if hasattr(self, 'city1_dropdown') and hasattr(self, 'city2_dropdown'):
+            self.populate_city_dropdowns()
 
     def run(self):
         """Start the GUI event loop."""

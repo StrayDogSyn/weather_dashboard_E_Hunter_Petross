@@ -136,6 +136,7 @@ class WeatherDashboardGUIApp:
         # Team data callbacks
         self.gui.set_callback("get_team_data_status", self._handle_get_team_data_status)
         self.gui.set_callback("refresh_team_data", self._handle_refresh_team_data)
+        self.gui.set_callback("get_team_cities", self._handle_get_team_cities)
 
         # Journal callbacks
         self.gui.set_callback("create_journal", self._handle_create_journal)
@@ -167,6 +168,9 @@ class WeatherDashboardGUIApp:
 
         # Application exit callback
         self.gui.set_callback("on_app_exit", self._handle_app_exit)
+
+        # Refresh city dropdowns now that callbacks are set up
+        self.gui.refresh_city_dropdowns_after_callbacks()
 
     def _handle_app_exit(self):
         """Handle application exit to ensure all data is saved."""
@@ -512,6 +516,35 @@ class WeatherDashboardGUIApp:
         except Exception as e:
             logging.error(f"Error handling team data refresh: {e}")
             return {"error": str(e)}
+
+    def _handle_get_team_cities(self):
+        """Handle request for available team cities."""
+        try:
+            if self.comparison_service and hasattr(self.comparison_service, 'team_data_service'):
+                team_service = self.comparison_service.team_data_service
+                cities = team_service.get_available_cities()
+                
+                if not cities:
+                    # Try to load team data if not already loaded
+                    if team_service.load_team_data():
+                        cities = team_service.get_available_cities()
+                    
+                    # If still no cities, create sample data
+                    if not cities:
+                        if team_service.create_sample_team_data():
+                            cities = team_service.get_available_cities()
+                
+                logging.info(f"Retrieved {len(cities)} cities from team data")
+                return cities
+            else:
+                # Fallback cities if team service not available
+                logging.warning("Team data service not available, using fallback cities")
+                return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+                
+        except Exception as e:
+            logging.error(f"Error getting team cities: {e}")
+            # Return fallback cities on error
+            return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
 
     def _handle_create_journal(self):
         """Handle create journal entry request."""
