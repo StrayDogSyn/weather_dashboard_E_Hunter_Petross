@@ -24,6 +24,7 @@ class EnhancedCityComparisonService:
         self.team_data_service = TeamDataService()
         self.logger = logging.getLogger(__name__)
         self.prefer_team_data = True  # Flag to prefer team data over API
+        self.team_data_only = True  # NEW: Only use team data, no API fallback
         self._team_data_loaded = False
 
     def _ensure_team_data_loaded(self) -> bool:
@@ -77,14 +78,19 @@ class EnhancedCityComparisonService:
         Returns:
             CurrentWeather object or None if failed
         """
-        # Try team data first if preferred and available
-        if self.prefer_team_data and self._ensure_team_data_loaded():
+        # Always try team data first
+        if self._ensure_team_data_loaded():
             weather_data = self.team_data_service.get_city_weather_from_team_data(city)
             if weather_data:
                 self.logger.debug(f"Using team data for {city}")
                 return weather_data
 
-        # Fall back to API data
+        # If team_data_only is True, don't fall back to API
+        if self.team_data_only:
+            self.logger.warning(f"City '{city}' not found in team data and API fallback is disabled")
+            return None
+
+        # Fall back to API data only if team_data_only is False
         try:
             weather_data = self.weather_service.get_current_weather(city)
             if weather_data:

@@ -1281,7 +1281,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.forecast_scroll.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
 
     def create_comparison_tab(self):
-        """Create city comparison tab."""
+        """Create city comparison tab with team data integration."""
         comparison_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
         self.notebook.add(comparison_frame, text="🌍 Compare Cities")
 
@@ -1289,7 +1289,32 @@ class WeatherDashboardGUI(IUserInterface):
         controls_frame = GlassmorphicFrame(comparison_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
-        # City inputs
+        # Team data info header
+        info_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        info_frame.pack(pady=(10, 0))
+        
+        info_label = tk.Label(
+            info_frame,
+            text="🏗️ Compare Cities using Team Collaborative Data",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=controls_frame.bg_color,
+        )
+        info_label.pack()
+        
+        # Refresh team data button
+        refresh_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        refresh_frame.pack(pady=(5, 15))
+        
+        self.refresh_team_data_btn = ModernButton(
+            refresh_frame, 
+            text="🔄 Refresh Team Data", 
+            command=self.refresh_team_data,
+            style="secondary"
+        )
+        self.refresh_team_data_btn.pack()
+
+        # City selection dropdowns
         input_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
         input_frame.pack(pady=20)
 
@@ -1301,8 +1326,16 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=0, padx=(20, 10), pady=5, sticky="e")
 
-        self.city1_entry = BootstrapEntry(input_frame, width=20)
-        self.city1_entry.grid(row=0, column=1, padx=10, pady=8, ipady=6)
+        # City 1 dropdown
+        self.city1_var = tk.StringVar()
+        self.city1_dropdown = ttk.Combobox(
+            input_frame, 
+            textvariable=self.city1_var,
+            state="readonly",
+            width=18,
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL)
+        )
+        self.city1_dropdown.grid(row=0, column=1, padx=10, pady=8, ipady=4)
 
         tk.Label(
             input_frame,
@@ -1312,13 +1345,36 @@ class WeatherDashboardGUI(IUserInterface):
             bg=controls_frame.bg_color,
         ).grid(row=0, column=2, padx=(30, 10), pady=5, sticky="e")
 
-        self.city2_entry = BootstrapEntry(input_frame, width=20)
-        self.city2_entry.grid(row=0, column=3, padx=10, pady=8, ipady=6)
+        # City 2 dropdown
+        self.city2_var = tk.StringVar()
+        self.city2_dropdown = ttk.Combobox(
+            input_frame, 
+            textvariable=self.city2_var,
+            state="readonly",
+            width=18,
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL)
+        )
+        self.city2_dropdown.grid(row=0, column=3, padx=10, pady=8, ipady=4)
+
+        # Buttons frame
+        buttons_frame = tk.Frame(input_frame, bg=controls_frame.bg_color)
+        buttons_frame.grid(row=0, column=4, padx=(20, 20), pady=5)
 
         self.compare_btn = ModernButton(
-            input_frame, text="🌍 Compare", command=self.compare_cities
+            buttons_frame, text="🌍 Compare", command=self.compare_cities
         )
-        self.compare_btn.grid(row=0, column=4, padx=(20, 20), pady=5)
+        self.compare_btn.pack(side=tk.TOP, pady=(0, 5))
+
+        self.random_compare_btn = ModernButton(
+            buttons_frame, 
+            text="🎲 Random", 
+            command=self.random_compare_cities,
+            style="secondary"
+        )
+        self.random_compare_btn.pack(side=tk.TOP)
+
+        # Initialize dropdowns with team data
+        self.populate_city_dropdowns()
 
         # Comparison results
         self.comparison_results = GlassmorphicFrame(comparison_frame, elevated=True)
@@ -1866,16 +1922,83 @@ class WeatherDashboardGUI(IUserInterface):
             self.callbacks["add_favorite"](self.current_weather.location.name)
 
     def compare_cities(self):
-        """Compare two cities."""
-        city1 = self.city1_entry.get().strip()
-        city2 = self.city2_entry.get().strip()
+        """Compare two cities using team data only."""
+        city1 = self.city1_var.get().strip()
+        city2 = self.city2_var.get().strip()
 
         if not city1 or not city2:
-            self.show_error("Please enter both city names")
+            self.show_error("Please select both cities from the dropdown menus")
+            return
+
+        if city1 == city2:
+            self.show_error("Please select two different cities for comparison")
             return
 
         if "compare_cities" in self.callbacks:
             self.callbacks["compare_cities"](city1, city2)
+
+    def populate_city_dropdowns(self):
+        """Populate city dropdowns with available team cities."""
+        try:
+            # Use callback to get team cities if available
+            if "get_team_cities" in self.callbacks:
+                available_cities = self.callbacks["get_team_cities"]()
+                
+                if available_cities:
+                    self.city1_dropdown['values'] = available_cities
+                    self.city2_dropdown['values'] = available_cities
+                    self.logger.info(f"Loaded {len(available_cities)} cities for comparison")
+                else:
+                    self.show_error("No team cities available")
+            else:
+                # Fallback with default cities if callback not available
+                default_cities = ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+                self.city1_dropdown['values'] = default_cities
+                self.city2_dropdown['values'] = default_cities
+                self.logger.warning("Using default cities - team data service not available")
+                
+        except Exception as e:
+            self.logger.error(f"Error populating city dropdowns: {e}")
+            self.show_error("Error loading team city data")
+
+    def refresh_team_data(self):
+        """Refresh team data from GitHub repository."""
+        try:
+            if "refresh_team_data" in self.callbacks:
+                success = self.callbacks["refresh_team_data"]()
+                if success:
+                    self.populate_city_dropdowns()
+                    # Use show_error to display success message (no show_status method)
+                    self.logger.info("Team data refreshed successfully")
+                else:
+                    self.show_error("Failed to refresh team data")
+            else:
+                self.show_error("Team data refresh not available")
+        except Exception as e:
+            self.logger.error(f"Error refreshing team data: {e}")
+            self.show_error("Error refreshing team data")
+
+    def random_compare_cities(self):
+        """Randomly select two cities for comparison."""
+        try:
+            available_cities = list(self.city1_dropdown['values'])
+            
+            if len(available_cities) < 2:
+                self.show_error("Need at least 2 cities for comparison")
+                return
+            
+            import random
+            selected_cities = random.sample(available_cities, 2)
+            
+            self.city1_var.set(selected_cities[0])
+            self.city2_var.set(selected_cities[1])
+            
+            # Automatically trigger comparison
+            self.compare_cities()
+            
+        except Exception as e:
+            self.logger.error(f"Error in random city selection: {e}")
+            self.show_error("Error selecting random cities")
 
     def create_journal_entry(self):
         """Create new journal entry with sound effect."""
@@ -2016,10 +2139,38 @@ class WeatherDashboardGUI(IUserInterface):
         )
         summary_label.pack()
 
-        # Add team data information if available
-        add_team_info = getattr(self, '_add_team_data_info', None)
-        if add_team_info:
-            add_team_info(self.comparison_results)
+        # Add team data information
+        self._add_team_data_info(self.comparison_results)
+
+    def _add_team_data_info(self, parent_frame):
+        """Add team data source information to comparison results."""
+        try:
+            # Team data info frame
+            info_frame = tk.Frame(parent_frame, bg=parent_frame.bg_color)
+            info_frame.pack(fill=tk.X, padx=20, pady=(10, 0))
+            
+            # Data source label
+            source_label = tk.Label(
+                info_frame,
+                text="📊 Data Source: Team Collaborative Weather Data",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                fg=GlassmorphicStyle.TEXT_SECONDARY,
+                bg=parent_frame.bg_color,
+            )
+            source_label.pack()
+            
+            # Repository info
+            repo_label = tk.Label(
+                info_frame,
+                text="🏗️ Source: StrayDogSyn/New_Team_Dashboard (GitHub)",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                fg=GlassmorphicStyle.TEXT_SECONDARY,
+                bg=parent_frame.bg_color,
+            )
+            repo_label.pack()
+            
+        except Exception as e:
+            self.logger.error(f"Error adding team data info: {e}")
 
     def display_no_weather_message_activities(self) -> None:
         """Display message when no weather data is available for activities."""
