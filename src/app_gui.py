@@ -6,6 +6,7 @@ of the Weather Dashboard with all capstone features.
 """
 
 import logging
+import os
 import threading
 
 from src.config.config import config_manager, setup_environment, validate_config
@@ -18,6 +19,7 @@ from src.services.cache_service import MemoryCacheService
 from src.services.data_storage import FileDataStorage
 from src.services.poetry_service import WeatherPoetryService
 from src.services.weather_api import OpenWeatherMapAPI
+from src.services.composite_weather_service import CompositeWeatherService
 from src.ui.gui_interface import WeatherDashboardGUI
 from src.utils.formatters import validate_city_name
 from src.utils.validators import sanitize_input
@@ -71,7 +73,16 @@ class WeatherDashboardGUIApp:
         """Initialize all services."""
         try:
             # Initialize services
-            weather_api = OpenWeatherMapAPI()
+            # Initialize weather API with fallback support
+            openweather_api_key = config_manager.config.api.api_key
+            weatherapi_api_key = os.getenv("WEATHERAPI_API_KEY")  # Optional fallback API key
+            
+            if weatherapi_api_key:
+                logging.info("Initializing weather service with fallback support")
+                weather_api = CompositeWeatherService(openweather_api_key, weatherapi_api_key)
+            else:
+                logging.info("Initializing weather service with primary API only")
+                weather_api = OpenWeatherMapAPI()
 
             # Use storage factory to create appropriate storage implementation
             from .services.storage_factory import DataStorageFactory
@@ -262,21 +273,45 @@ class WeatherDashboardGUIApp:
                 city_clean = sanitize_input(city)
                 self.gui.update_status(f"Fetching weather for {city_clean}...")
 
+                # Check cache first for immediate display
+                cache_key = self.weather_service.cache.get_cache_key("weather", city_clean, "metric")
+                cached_weather = self.weather_service.cache.get(cache_key)
+                
+                if cached_weather and self.gui:
+                    # Display cached data immediately
+                    self.gui.root.after(0, lambda: self.gui.display_weather(cached_weather))
+                    self.gui.root.after(0, lambda: self.gui.update_status(f"Showing cached data for {city_clean} - refreshing..."))
+                else:
+                    # Show sample data immediately while API loads
+                    from src.utils.sample_data import get_sample_weather_data
+                    sample_data = get_sample_weather_data(city_clean)
+                    if self.gui:
+                        self.gui.root.after(0, lambda: self.gui.display_weather(sample_data))
+                        self.gui.root.after(0, lambda: self.gui.update_status(f"Loading weather for {city_clean}..."))
+
+                # Get fresh current weather
                 weather = self.weather_service.get_current_weather(city_clean)
 
                 if weather:
-                    # Update GUI on main thread
+                    # Update GUI immediately with current weather
                     if self.gui:
                         self.gui.root.after(
                             0, lambda: self.gui.display_weather(weather)
                         )
 
-                        # Also get forecast
-                        forecast = self.weather_service.get_weather_forecast(city_clean)
-                        if forecast:
-                            self.gui.root.after(
-                                0, lambda: self.gui.display_forecast(forecast)
-                            )
+                    # Get forecast in parallel for faster loading
+                    def get_forecast_async():
+                        try:
+                            forecast = self.weather_service.get_weather_forecast(city_clean)
+                            if forecast and self.gui:
+                                self.gui.root.after(
+                                    0, lambda: self.gui.display_forecast(forecast)
+                                )
+                        except Exception as e:
+                            logging.error(f"Error getting forecast: {e}")
+                    
+                    # Start forecast fetch in separate thread
+                    threading.Thread(target=get_forecast_async, daemon=True).start()
                 else:
                     if self.gui:
                         self.gui.root.after(

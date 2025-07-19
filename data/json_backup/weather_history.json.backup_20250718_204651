@@ -20,14 +20,7 @@
       "temperature": 26.65,
       "condition": "clear",
       "timestamp": "2025-07-18T20:42:20"
-    },
-    {
-      "city": "New York",
-      "country": "US",
-      "temperature": 26.65,
-      "condition": "clear",
-      "timestamp": "2025-07-18T20:42:20"
     }
   ],
-  "last_updated": "2025-07-18T20:46:51.365078"
+  "last_updated": "2025-07-18T20:44:56.669552"
 }
