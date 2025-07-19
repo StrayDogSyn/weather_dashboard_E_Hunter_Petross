@@ -42,6 +42,15 @@ class WeatherJournalService:
                         "created_at", datetime.now().isoformat()
                     )
 
+                    # Safely handle created_at parsing
+                    created_at = datetime.now()
+                    if created_at_str and created_at_str.strip():
+                        try:
+                            created_at = datetime.fromisoformat(created_at_str)
+                        except (ValueError, TypeError) as e:
+                            self.logger.warning(f"Could not parse created_at '{created_at_str}': {e}, using current time")
+                            created_at = datetime.now()
+
                     entry = JournalEntry(
                         date=self._validate_date(date_str),
                         location=entry_data.get("location", ""),
@@ -51,7 +60,7 @@ class WeatherJournalService:
                         mood=self._validate_mood(entry_data.get("mood", "neutral")),
                         notes=entry_data.get("notes", ""),
                         activities=entry_data.get("activities", []),
-                        created_at=datetime.fromisoformat(created_at_str) if created_at_str and created_at_str.strip() else datetime.now(),
+                        created_at=created_at,
                     )
                 except (ValueError, TypeError, AttributeError) as e:
                     self.logger.error(f"Error parsing journal entry: {e}")
@@ -394,8 +403,30 @@ class WeatherJournalService:
             Dictionary representation of the entry
         """
         try:
+            # Safely handle date serialization
+            date_str = ""
+            if entry.date:
+                try:
+                    date_str = entry.date.isoformat()
+                except (AttributeError, ValueError) as e:
+                    self.logger.warning(f"Error serializing date: {e}, using today's date")
+                    date_str = date.today().isoformat()
+            else:
+                date_str = date.today().isoformat()
+            
+            # Safely handle created_at serialization
+            created_at_str = ""
+            if entry.created_at:
+                try:
+                    created_at_str = entry.created_at.isoformat()
+                except (AttributeError, ValueError) as e:
+                    self.logger.warning(f"Error serializing created_at: {e}, using current time")
+                    created_at_str = datetime.now().isoformat()
+            else:
+                created_at_str = datetime.now().isoformat()
+
             return {
-                "date": entry.date.isoformat() if entry.date else "",
+                "date": date_str,
                 "location": entry.location or "",
                 "weather_summary": entry.weather_summary or "",
                 "temperature": (
@@ -405,11 +436,7 @@ class WeatherJournalService:
                 "mood": entry.mood.value if entry.mood else "neutral",
                 "notes": entry.notes or "",
                 "activities": entry.activities or [],
-                "created_at": (
-                    entry.created_at.isoformat()
-                    if entry.created_at
-                    else datetime.now().isoformat()
-                ),
+                "created_at": created_at_str,
             }
         except Exception as e:
             self.logger.error(f"Error serializing entry: {e}")
