@@ -1289,57 +1289,92 @@ class WeatherDashboardGUI(IUserInterface):
         controls_frame = GlassmorphicFrame(comparison_frame, elevated=True)
         controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
 
-        # City inputs
-        input_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        input_frame.pack(pady=20)
+        # Create a more organized layout with better spacing
+        main_container = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        main_container.pack(pady=25, padx=20)
 
-        tk.Label(
-            input_frame,
-            text="City 1:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+        # Title for the section
+        title_label = tk.Label(
+            main_container,
+            text="Compare Weather Between Two Cities",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_LARGE, "bold"),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=controls_frame.bg_color,
-        ).grid(row=0, column=0, padx=(20, 10), pady=5, sticky="e")
+        )
+        title_label.pack(pady=(0, 20))
 
-        # Replace text entry with dropdown for City 1
+        # City selection container with improved layout
+        selection_frame = tk.Frame(main_container, bg=controls_frame.bg_color)
+        selection_frame.pack(pady=(0, 15))
+
+        # City 1 section
+        city1_frame = tk.Frame(selection_frame, bg=controls_frame.bg_color)
+        city1_frame.pack(side=tk.LEFT, padx=(0, 30))
+
+        city1_label = tk.Label(
+            city1_frame,
+            text="🏙️ First City:",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=controls_frame.bg_color,
+        )
+        city1_label.pack(anchor=tk.W, pady=(0, 8))
+
+        # Style the dropdown to match the glassmorphic theme
         self.city1_dropdown = ttk.Combobox(
-            input_frame, 
-            width=18,
+            city1_frame,
+            width=22,
             state="readonly",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL)
-        )
-        self.city1_dropdown.grid(row=0, column=1, padx=10, pady=8, ipady=6)
-
-        tk.Label(
-            input_frame,
-            text="City 2:",
             font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+            style="Glassmorphic.TCombobox"
+        )
+        self.city1_dropdown.pack(ipady=8)
+
+        # City 2 section
+        city2_frame = tk.Frame(selection_frame, bg=controls_frame.bg_color)
+        city2_frame.pack(side=tk.LEFT, padx=(30, 0))
+
+        city2_label = tk.Label(
+            city2_frame,
+            text="🌆 Second City:",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=controls_frame.bg_color,
-        ).grid(row=0, column=2, padx=(30, 10), pady=5, sticky="e")
-
-        # Replace text entry with dropdown for City 2
-        self.city2_dropdown = ttk.Combobox(
-            input_frame, 
-            width=18,
-            state="readonly",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL)
         )
-        self.city2_dropdown.grid(row=0, column=3, padx=10, pady=8, ipady=6)
+        city2_label.pack(anchor=tk.W, pady=(0, 8))
+
+        self.city2_dropdown = ttk.Combobox(
+            city2_frame,
+            width=22,
+            state="readonly",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+            style="Glassmorphic.TCombobox"
+        )
+        self.city2_dropdown.pack(ipady=8)
+
+        # Buttons container with better spacing
+        buttons_frame = tk.Frame(main_container, bg=controls_frame.bg_color)
+        buttons_frame.pack(pady=(15, 0))
 
         self.compare_btn = ModernButton(
-            input_frame, text="🌍 Compare", command=self.compare_cities
+            buttons_frame,
+            text="🌍 Compare Weather",
+            command=self.compare_cities,
+            width=16
         )
-        self.compare_btn.grid(row=0, column=4, padx=(20, 20), pady=5)
+        self.compare_btn.pack(side=tk.LEFT, padx=(0, 15))
 
-        # Add refresh button for team data
         self.refresh_team_btn = ModernButton(
-            input_frame, 
-            text="🔄 Refresh Cities", 
+            buttons_frame,
+            text="🔄 Refresh Cities",
             command=self.refresh_team_cities,
-            style="secondary"
+            style="secondary",
+            width=16
         )
-        self.refresh_team_btn.grid(row=0, column=5, padx=(10, 20), pady=5)
+        self.refresh_team_btn.pack(side=tk.LEFT, padx=(15, 0))
+
+        # Configure custom ttk style for the dropdowns
+        self._configure_dropdown_style()
 
         # Populate dropdowns with team cities
         self.populate_city_dropdowns()
@@ -1347,6 +1382,60 @@ class WeatherDashboardGUI(IUserInterface):
         # Comparison results
         self.comparison_results = GlassmorphicFrame(comparison_frame, elevated=True)
         self.comparison_results.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+
+    def _configure_dropdown_style(self):
+        """Configure custom styling for the dropdown menus to match glassmorphic theme."""
+        try:
+            style = ttk.Style()
+            
+            # Configure the custom combobox style
+            style.configure("Glassmorphic.TCombobox",
+                fieldbackground=GlassmorphicStyle.GLASS_BG_LIGHT,  # Background color
+                background=GlassmorphicStyle.GLASS_BG_LIGHT,       # Button background
+                foreground=GlassmorphicStyle.TEXT_PRIMARY,         # Text color
+                borderwidth=2,
+                relief="flat",
+                arrowcolor=GlassmorphicStyle.TEXT_ACCENT,          # Arrow color
+                insertcolor=GlassmorphicStyle.TEXT_PRIMARY,        # Cursor color
+                selectbackground=GlassmorphicStyle.ACCENT,         # Selection background
+                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,   # Selection text
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM)
+            )
+            
+            # Configure the dropdown listbox
+            style.configure("Glassmorphic.TCombobox.Listbox",
+                background=GlassmorphicStyle.GLASS_BG_LIGHT,
+                foreground=GlassmorphicStyle.TEXT_PRIMARY,
+                selectbackground=GlassmorphicStyle.ACCENT,
+                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
+                borderwidth=1,
+                relief="solid"
+            )
+            
+            # Map the styles for different states
+            style.map("Glassmorphic.TCombobox",
+                fieldbackground=[
+                    ('readonly', GlassmorphicStyle.GLASS_BG_LIGHT),
+                    ('focus', GlassmorphicStyle.GLASS_BG_LIGHT)
+                ],
+                background=[
+                    ('readonly', GlassmorphicStyle.GLASS_BG_LIGHT),
+                    ('focus', GlassmorphicStyle.GLASS_BG_LIGHT)
+                ],
+                bordercolor=[
+                    ('focus', GlassmorphicStyle.ACCENT),
+                    ('!focus', GlassmorphicStyle.GLASS_BORDER)
+                ],
+                arrowcolor=[
+                    ('hover', GlassmorphicStyle.ACCENT),
+                    ('!hover', GlassmorphicStyle.TEXT_ACCENT)
+                ]
+            )
+            
+        except Exception as e:
+            # If styling fails, continue without custom styling
+            if hasattr(self, 'logger'):
+                self.logger.warning(f"Could not configure dropdown styling: {e}")
 
     def create_journal_tab(self):
         """Create weather journal tab."""
