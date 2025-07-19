@@ -55,28 +55,7 @@
       "temperature": 26.15,
       "condition": "clouds",
       "timestamp": "2025-07-19T09:21:25"
-    },
-    {
-      "city": "New York",
-      "country": "US",
-      "temperature": 25.53,
-      "condition": "clouds",
-      "timestamp": "2025-07-19T09:20:19"
-    },
-    {
-      "city": "New York",
-      "country": "US",
-      "temperature": 25.63,
-      "condition": "clouds",
-      "timestamp": "2025-07-19T09:23:09"
-    },
-    {
-      "city": "Copenhagen",
-      "country": "DK",
-      "temperature": 27.13,
-      "condition": "clear",
-      "timestamp": "2025-07-19T09:21:01"
     }
   ],
-  "last_updated": "2025-07-19T09:25:25.209503"
+  "last_updated": "2025-07-19T09:21:25.452728"
 }
