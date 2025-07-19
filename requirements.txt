@@ -1,34 +1,26 @@
-# Weather Dashboard - Essential TKinter GUI Dependencies
-# ======================================================
+# Weather Dashboard - Essential Dependencies
+# ==========================================
 
-# Weather API Integration
-requests>=2.31.0
+# Core Dependencies
+requests>=2.31.0              # HTTP client for weather API
+python-dotenv>=1.0.0          # Environment variables for API keys
+pydantic>=2.0.0               # Data validation for weather models
 
-# Environment Variables for API Keys
-python-dotenv>=1.0.0
+# Database & Storage
+sqlalchemy>=2.0.0             # ORM for database operations
 
-# Data Validation for Weather Models
-pydantic>=2.0.0
+# Data Science & Visualization
+matplotlib>=3.7.0             # Charts and graphs
+numpy>=1.24.0                 # Numerical operations
+pandas>=2.0.0                 # Data manipulation and analysis
+seaborn>=0.12.0               # Statistical data visualization
 
-# Optional: Enhanced logging for debugging
-loguru>=0.7.0
+# Machine Learning (Optional)
+scikit-learn>=1.3.0           # ML algorithms and utilities
+joblib>=1.3.0                 # Model persistence
 
-# Database support
-# sqlite3 is built-in with Python
-sqlalchemy>=2.0.0  # ORM for database operations
-
-# Data visualization
-matplotlib>=3.7.0  # For charts and graphs
-numpy>=1.24.0      # For numerical operations
-
-# Modern UI styling
-ttkbootstrap>=1.10.1  # Bootstrap-inspired styling for Tkinter
-
-# Machine Learning Dependencies (Week 14)
-scikit-learn>=1.3.0  # ML algorithms and utilities
-pandas>=2.0.0        # Data manipulation and analysis
-joblib>=1.3.0        # Model persistence and parallel processing
-seaborn>=0.12.0      # Statistical data visualization
+# Enhanced UI (Optional)
+ttkbootstrap>=1.10.1          # Bootstrap-inspired styling for Tkinter
 
 # Note: TKinter is included with Python by default
-# All capstone features work with these minimal dependencies
+# SQLite is built into Python standard library
