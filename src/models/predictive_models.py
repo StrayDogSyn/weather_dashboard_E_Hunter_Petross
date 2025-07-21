@@ -13,6 +13,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+# For static type checking
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+    from sklearn.linear_model import LinearRegression
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+    from sklearn.model_selection import cross_val_score, train_test_split
+    from sklearn.preprocessing import LabelEncoder, StandardScaler
+
 import joblib
 import numpy as np
 import pandas as pd
@@ -24,9 +33,18 @@ try:
     from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
     from sklearn.model_selection import cross_val_score, train_test_split
     from sklearn.preprocessing import LabelEncoder, StandardScaler
-
     SKLEARN_AVAILABLE = True
 except ImportError:
+    GradientBoostingRegressor = None  # type: ignore
+    RandomForestRegressor = None  # type: ignore
+    LinearRegression = None  # type: ignore
+    mean_absolute_error = None  # type: ignore
+    mean_squared_error = None  # type: ignore
+    r2_score = None  # type: ignore
+    cross_val_score = None  # type: ignore
+    train_test_split = None  # type: ignore
+    LabelEncoder = None  # type: ignore
+    StandardScaler = None  # type: ignore
     SKLEARN_AVAILABLE = False
     logging.warning(
         "scikit-learn not available. Install with: pip install scikit-learn"
@@ -74,7 +92,22 @@ class ModelMetrics:
 
 
 class WeatherPredictor:
-    """Advanced weather prediction using machine learning models."""
+
+    def _check_sklearn(self):
+        if not SKLEARN_AVAILABLE:
+            raise ImportError("scikit-learn is required for this operation. Please install it with 'pip install scikit-learn'.")
+
+    def predict(self, features: List[Dict[str, Any]]) -> List["PredictionResult"]:
+        """
+        Predict weather outcomes given a list of feature dictionaries.
+
+        Args:
+            features: List of feature dictionaries for prediction.
+
+        Returns:
+            List of PredictionResult objects.
+        """
+        raise NotImplementedError("Subclasses must implement the predict method.")
 
     def __init__(self, model_type: ModelType = ModelType.ENSEMBLE):
         """Initialize the weather predictor.
@@ -94,12 +127,14 @@ class WeatherPredictor:
         # Data storage
         self.training_data = pd.DataFrame()
         self.historical_data = pd.DataFrame()
+        self._check_sklearn()
 
         # Model storage path
         self.model_path = Path("data/models")
         self.model_path.mkdir(exist_ok=True)
 
         logger = logging.getLogger(__name__)
+        self._check_sklearn()
 
     def prepare_features(self, weather_data: List[Dict[str, Any]]) -> pd.DataFrame:
         """Prepare features for model training from weather data.
@@ -158,7 +193,7 @@ class WeatherPredictor:
                     )
 
         # Weather pattern encoding
-        if "description" in df.columns:
+        if "description" in df.columns and SKLEARN_AVAILABLE and LabelEncoder is not None:
             le = LabelEncoder()
             df["weather_pattern_encoded"] = le.fit_transform(df["description"])
             self.encoders["weather_pattern"] = le
@@ -196,8 +231,8 @@ class WeatherPredictor:
         Returns:
             Dictionary of model metrics
         """
-        if not SKLEARN_AVAILABLE:
-            raise ImportError("scikit-learn is required for model training")
+        if not SKLEARN_AVAILABLE or train_test_split is None or StandardScaler is None or LinearRegression is None or RandomForestRegressor is None or GradientBoostingRegressor is None:
+            raise ImportError("scikit-learn is required for model training.")
 
         self.training_data = training_data.copy()
 
@@ -242,6 +277,8 @@ class WeatherPredictor:
                 y_pred = model.predict(X_test)
 
             # Calculate metrics
+            if not SKLEARN_AVAILABLE or mean_absolute_error is None or mean_squared_error is None or r2_score is None or cross_val_score is None:
+                raise ImportError("scikit-learn is required for model evaluation.")
             mae = mean_absolute_error(y_test, y_pred)
             mse = mean_squared_error(y_test, y_pred)
             rmse = np.sqrt(mse)
@@ -296,31 +333,44 @@ class WeatherPredictor:
             # Get predictions from all models
             model_predictions = {}
             for name, model in self.models.items():
-                if name == "linear_regression":
-                    features_scaled = self.scalers["features"].transform([features])
-                    pred = model.predict(features_scaled)[0]
-                else:
-                    pred = model.predict([features])[0]
-                model_predictions[name] = pred
+                if model is not None:
+                    if name == "linear_regression":
+                        scaler = self.scalers.get("features")
+                        if scaler is not None:
+                            features_scaled = scaler.transform([features])
+                            pred = model.predict(features_scaled)[0]
+                        else:
+                            pred = 0.0
+                    else:
+                        pred = model.predict([features])[0]
+                    # Cast numpy types to float
+                    try:
+                        pred_float = float(pred)
+                    except Exception:
+                        pred_float = 0.0
+                    model_predictions[name] = pred_float
+            if not model_predictions:
+                # If no models are available, skip this prediction
+                continue
 
             # Ensemble prediction (average of all models)
             if self.model_type == ModelType.ENSEMBLE:
-                predicted_temp = np.mean(list(model_predictions.values()))
+                predicted_temp = float(np.mean(list(model_predictions.values())))
             else:
-                predicted_temp = model_predictions[self.model_type.value]
+                predicted_temp = float(model_predictions.get(self.model_type.value, 0.0))
 
             # Calculate confidence interval (simplified)
-            model_std = np.std(list(model_predictions.values()))
+            model_std = float(np.std(list(model_predictions.values())))
             confidence_interval = (
-                predicted_temp - 1.96 * model_std,
-                predicted_temp + 1.96 * model_std,
+                float(predicted_temp - 1.96 * model_std),
+                float(predicted_temp + 1.96 * model_std),
             )
 
             # Determine weather pattern
             weather_pattern = self._predict_weather_pattern(features)
 
             # Get prediction accuracy based on model performance
-            accuracy = self._get_prediction_accuracy()
+            accuracy = float(self._get_prediction_accuracy())
 
             result = PredictionResult(
                 timestamp=prediction_time,
@@ -406,7 +456,8 @@ class WeatherPredictor:
 
         # Use R² score as accuracy measure
         r2_scores = [metrics.r2 for metrics in self.model_metrics.values()]
-        return max(0.0, min(1.0, np.mean(r2_scores)))
+        mean_r2 = float(np.mean(r2_scores))
+        return max(0.0, min(1.0, mean_r2))
 
     def _save_models(self):
         """Save trained models to disk."""
@@ -514,7 +565,7 @@ class WeatherPredictor:
         if importance:
             report.append("\nTop Important Features:")
             for model_name, features in importance.items():
-                if features:
+                if isinstance(features, dict) and features:
                     sorted_features = sorted(
                         features.items(), key=lambda x: x[1], reverse=True
                     )
@@ -546,7 +597,7 @@ class WeatherPatternClassifier:
 
     def train(self, weather_data: pd.DataFrame):
         """Train the weather pattern classifier."""
-        if not SKLEARN_AVAILABLE:
+        if not SKLEARN_AVAILABLE or LabelEncoder is None or StandardScaler is None or RandomForestRegressor is None:
             raise ImportError("scikit-learn is required for classification")
 
         # Feature preparation
@@ -570,7 +621,7 @@ class WeatherPatternClassifier:
 
     def predict_pattern(self, conditions: Dict[str, Any]) -> str:
         """Predict weather pattern from conditions."""
-        if not self.is_trained:
+        if not self.is_trained or self.scaler is None or self.model is None or self.label_encoder is None:
             return "unknown"
 
         # Create feature vector
@@ -583,12 +634,18 @@ class WeatherPatternClassifier:
         ]
 
         # Scale and predict
-        features_scaled = self.scaler.transform([features])
-        prediction = self.model.predict(features_scaled)[0]
+        try:
+            features_scaled = self.scaler.transform([features])
+            prediction = self.model.predict(features_scaled)[0]
+        except Exception:
+            return "unknown"
 
         # Decode prediction
-        pattern_index = int(round(prediction))
-        if 0 <= pattern_index < len(self.label_encoder.classes_):
-            return self.label_encoder.classes_[pattern_index]
-        else:
+        try:
+            pattern_index = int(round(prediction))
+            if 0 <= pattern_index < len(self.label_encoder.classes_):
+                return self.label_encoder.classes_[pattern_index]
+            else:
+                return "unknown"
+        except Exception:
             return "unknown"

@@ -63,13 +63,13 @@ class ModelIntegrationService:
         self.logger = logging.getLogger(__name__)
 
         # Model predictors
-        self.predictors = {}
-        self.model_weights = {}  # Weights for ensemble predictions
+        self.predictors: Dict[str, WeatherPredictor] = {}
+        self.model_weights: Dict[str, float] = {}  # Weights for ensemble predictions
 
         # Service status
         self.service_start_time = datetime.now()
         self.models_loaded = False
-        self.prediction_cache = {}
+        self.prediction_cache: Dict[str, Dict[str, Any]] = {}
         self.cache_ttl = 300  # 5 minutes
 
         # Load models on initialization
@@ -238,7 +238,7 @@ class ModelIntegrationService:
         self, city: str, days: int
     ) -> List[PredictionResult]:
         """Generate ML predictions for a city."""
-        predictions = []
+        predictions: List[PredictionResult] = []
 
         try:
             # Get current weather for feature preparation
