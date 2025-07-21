@@ -500,24 +500,32 @@ class TeamDataService:
                     str(city_data["city"]): {
                         "avg_temperature": float(city_data["temperature"]),
                         "avg_humidity": float(city_data["humidity"]),
-                        "dominant_condition": str(city_data.get("weather_main", "")).lower()
-                        if isinstance(city_data.get("weather_main", ""), str)
-                        else "",
+                        "dominant_condition": (
+                            str(city_data.get("weather_main", "")).lower()
+                            if isinstance(city_data.get("weather_main", ""), str)
+                            else ""
+                        ),
                         "records": 30,  # Simulated record count
                         "members": [str(city_data["member_name"])],
                     }
-                    for city_data in sample_data if isinstance(city_data, dict)
+                    for city_data in sample_data
+                    if isinstance(city_data, dict)
                 },
                 "team_summary": {
                     "total_cities": len(sample_data),
-                    "avg_temperature_global": sum(float(d["temperature"]) for d in sample_data) / len(sample_data),
+                    "avg_temperature_global": sum(
+                        float(d["temperature"]) for d in sample_data
+                    )
+                    / len(sample_data),
                     "temperature_range": {
                         "min": min(float(d["temperature"]) for d in sample_data),
                         "max": max(float(d["temperature"]) for d in sample_data),
                     },
                     "most_common_condition": "clear",
                     "data_timestamp": timestamp,
-                    "total_members": len(set(str(d["member_name"]) for d in sample_data)),
+                    "total_members": len(
+                        set(str(d["member_name"]) for d in sample_data)
+                    ),
                     "total_records": len(sample_data) * 30,  # Simulated
                 },
             }
