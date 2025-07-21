@@ -11,10 +11,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
-# For static type checking
-from typing import TYPE_CHECKING
+# For static type checking and type hints
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 if TYPE_CHECKING:
     from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
