@@ -75,11 +75,15 @@ class WeatherDashboardGUIApp:
             # Initialize services
             # Initialize weather API with fallback support
             openweather_api_key = config_manager.config.api.api_key
-            weatherapi_api_key = os.getenv("WEATHERAPI_API_KEY")  # Optional fallback API key
-            
+            weatherapi_api_key = os.getenv(
+                "WEATHERAPI_API_KEY"
+            )  # Optional fallback API key
+
             if weatherapi_api_key:
                 logging.info("Initializing weather service with fallback support")
-                weather_api = CompositeWeatherService(openweather_api_key, weatherapi_api_key)
+                weather_api = CompositeWeatherService(
+                    openweather_api_key, weatherapi_api_key
+                )
             else:
                 logging.info("Initializing weather service with primary API only")
                 weather_api = OpenWeatherMapAPI()
@@ -95,11 +99,13 @@ class WeatherDashboardGUIApp:
             self.weather_service = WeatherService(weather_api, storage, cache)
 
             # Initialize capstone services
-            self.comparison_service = EnhancedCityComparisonService(self.weather_service)
-            
+            self.comparison_service = EnhancedCityComparisonService(
+                self.weather_service
+            )
+
             # Create sample team data if needed
             # No need for sample data creation with enhanced service
-            
+
             self.journal_service = WeatherJournalService(storage)
             self.activity_service = ActivitySuggestionService()
             self.poetry_service = WeatherPoetryService()
@@ -108,7 +114,7 @@ class WeatherDashboardGUIApp:
             self.gui = WeatherDashboardGUI()
 
             # Setup event bindings after GUI is fully initialized
-            if hasattr(self.gui, 'setup_event_bindings'):
+            if hasattr(self.gui, "setup_event_bindings"):
                 self.gui.setup_event_bindings()
 
             logging.info("All GUI services initialized successfully")
@@ -132,7 +138,7 @@ class WeatherDashboardGUIApp:
 
         # Comparison callback
         self.gui.set_callback("compare_cities", self._handle_compare_cities)
-        
+
         # Team data callbacks
         self.gui.set_callback("get_team_data_status", self._handle_get_team_data_status)
         self.gui.set_callback("refresh_team_data", self._handle_refresh_team_data)
@@ -278,20 +284,37 @@ class WeatherDashboardGUIApp:
                 self.gui.update_status(f"Fetching weather for {city_clean}...")
 
                 # Check cache first for immediate display
-                cache_key = self.weather_service.cache.get_cache_key("weather", city_clean, "metric")
+                cache_key = self.weather_service.cache.get_cache_key(
+                    "weather", city_clean, "metric"
+                )
                 cached_weather = self.weather_service.cache.get(cache_key)
-                
+
                 if cached_weather and self.gui:
                     # Display cached data immediately
-                    self.gui.root.after(0, lambda: self.gui.display_weather(cached_weather))
-                    self.gui.root.after(0, lambda: self.gui.update_status(f"Showing cached data for {city_clean} - refreshing..."))
+                    self.gui.root.after(
+                        0, lambda: self.gui.display_weather(cached_weather)
+                    )
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.update_status(
+                            f"Showing cached data for {city_clean} - refreshing..."
+                        ),
+                    )
                 else:
                     # Show sample data immediately while API loads
                     from src.utils.sample_data import get_sample_weather_data
+
                     sample_data = get_sample_weather_data(city_clean)
                     if self.gui:
-                        self.gui.root.after(0, lambda: self.gui.display_weather(sample_data))
-                        self.gui.root.after(0, lambda: self.gui.update_status(f"Loading weather for {city_clean}..."))
+                        self.gui.root.after(
+                            0, lambda: self.gui.display_weather(sample_data)
+                        )
+                        self.gui.root.after(
+                            0,
+                            lambda: self.gui.update_status(
+                                f"Loading weather for {city_clean}..."
+                            ),
+                        )
 
                 # Get fresh current weather
                 weather = self.weather_service.get_current_weather(city_clean)
@@ -306,14 +329,16 @@ class WeatherDashboardGUIApp:
                     # Get forecast in parallel for faster loading
                     def get_forecast_async():
                         try:
-                            forecast = self.weather_service.get_weather_forecast(city_clean)
+                            forecast = self.weather_service.get_weather_forecast(
+                                city_clean
+                            )
                             if forecast and self.gui:
                                 self.gui.root.after(
                                     0, lambda: self.gui.display_forecast(forecast)
                                 )
                         except Exception as e:
                             logging.error(f"Error getting forecast: {e}")
-                    
+
                     # Start forecast fetch in separate thread
                     threading.Thread(target=get_forecast_async, daemon=True).start()
                 else:
@@ -429,8 +454,10 @@ class WeatherDashboardGUIApp:
                     self.gui.show_error("Invalid city name format")
                     return
 
-                self.gui.update_status(f"Comparing {city1} and {city2} using team data...")
-                
+                self.gui.update_status(
+                    f"Comparing {city1} and {city2} using team data..."
+                )
+
                 # Use team comparison service instead of regular comparison service
                 comparison = self.comparison_service.compare_cities(city1, city2)
 
@@ -438,9 +465,13 @@ class WeatherDashboardGUIApp:
                     # Also update the status to show data source
                     # Enhanced service provides automatic team data status
                     team_status = {"available": True, "cities_count": 5}
-                    data_source = "team data" if team_status.get("data_loaded") else "API fallback"
+                    data_source = (
+                        "team data"
+                        if team_status.get("data_loaded")
+                        else "API fallback"
+                    )
                     self.gui.update_status(f"Comparison complete using {data_source}")
-                    
+
                     self.gui.root.after(
                         0, lambda: self.gui.display_weather_comparison(comparison)
                     )
@@ -456,7 +487,9 @@ class WeatherDashboardGUIApp:
                 logging.error(f"Error comparing cities: {e}")
                 self.gui.root.after(
                     0,
-                    lambda exc=e: self.gui.show_warning(f"Comparison service temporarily unavailable: {exc}"),
+                    lambda exc=e: self.gui.show_warning(
+                        f"Comparison service temporarily unavailable: {exc}"
+                    ),
                 )
 
         threading.Thread(target=compare_async, daemon=True).start()
@@ -472,7 +505,7 @@ class WeatherDashboardGUIApp:
                     "cities_available": 0,
                     "city_list": [],
                     "data_loaded": False,
-                    "error": "Team comparison service not available"
+                    "error": "Team comparison service not available",
                 }
         except Exception as e:
             logging.error(f"Error getting team data status: {e}")
@@ -481,7 +514,7 @@ class WeatherDashboardGUIApp:
                 "cities_available": 0,
                 "city_list": [],
                 "data_loaded": False,
-                "error": str(e)
+                "error": str(e),
             }
 
     def _handle_refresh_team_data(self):
@@ -489,30 +522,36 @@ class WeatherDashboardGUIApp:
         try:
             if self.comparison_service:
                 self.gui.show_message("Refreshing team data from GitHub repository...")
-                
+
                 def refresh_async():
                     try:
                         # Enhanced service handles refresh automatically
                         success = True
                         if success:
-                            self.gui.show_message("Team data refreshed successfully from GitHub!")
+                            self.gui.show_message(
+                                "Team data refreshed successfully from GitHub!"
+                            )
                             # Update the team data status display
                             status = {"available": True, "cities_count": 5}
                             cities_count = status.get("cities_available", 0)
-                            self.gui.show_message(f"Loaded {cities_count} cities from team repository")
+                            self.gui.show_message(
+                                f"Loaded {cities_count} cities from team repository"
+                            )
                         else:
-                            self.gui.show_error("Failed to refresh team data from GitHub repository")
+                            self.gui.show_error(
+                                "Failed to refresh team data from GitHub repository"
+                            )
                     except Exception as e:
                         logging.error(f"Error refreshing team data: {e}")
                         self.gui.show_error(f"Error refreshing team data: {str(e)}")
 
                 # Run refresh in background thread
                 threading.Thread(target=refresh_async, daemon=True).start()
-                
+
                 return {"status": "refresh_started"}
             else:
                 return {"error": "Team comparison service not available"}
-                
+
         except Exception as e:
             logging.error(f"Error handling team data refresh: {e}")
             return {"error": str(e)}
@@ -520,31 +559,51 @@ class WeatherDashboardGUIApp:
     def _handle_get_team_cities(self):
         """Handle request for available team cities."""
         try:
-            if self.comparison_service and hasattr(self.comparison_service, 'team_data_service'):
+            if self.comparison_service and hasattr(
+                self.comparison_service, "team_data_service"
+            ):
                 team_service = self.comparison_service.team_data_service
                 cities = team_service.get_available_cities()
-                
+
                 if not cities:
                     # Try to load team data if not already loaded
                     if team_service.load_team_data():
                         cities = team_service.get_available_cities()
-                    
+
                     # If still no cities, create sample data
                     if not cities:
                         if team_service.create_sample_team_data():
                             cities = team_service.get_available_cities()
-                
+
                 logging.info(f"Retrieved {len(cities)} cities from team data")
                 return cities
             else:
                 # Fallback cities if team service not available
-                logging.warning("Team data service not available, using fallback cities")
-                return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
-                
+                logging.warning(
+                    "Team data service not available, using fallback cities"
+                )
+                return [
+                    "Austin",
+                    "Providence",
+                    "Rawlins",
+                    "Ontario",
+                    "New York",
+                    "Miami",
+                    "New Jersey",
+                ]
+
         except Exception as e:
             logging.error(f"Error getting team cities: {e}")
             # Return fallback cities on error
-            return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+            return [
+                "Austin",
+                "Providence",
+                "Rawlins",
+                "Ontario",
+                "New York",
+                "Miami",
+                "New Jersey",
+            ]
 
     def _handle_create_journal(self):
         """Handle create journal entry request."""

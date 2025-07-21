@@ -381,9 +381,9 @@ class ModelIntegrationService:
 
                         # Add ML-specific fields
                         day_forecast["ml_pattern"] = ml_pred.weather_pattern
-                        day_forecast[
-                            "confidence_interval"
-                        ] = ml_pred.confidence_interval
+                        day_forecast["confidence_interval"] = (
+                            ml_pred.confidence_interval
+                        )
                         day_forecast["features_used"] = ml_pred.features_used
 
         except Exception as e:
