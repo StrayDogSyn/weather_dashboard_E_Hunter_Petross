@@ -325,11 +325,11 @@ class ForecastVisualizationFrame(ttk.Frame):
         if not isinstance(forecast_days, list):
             forecast_days = []
         for day_data in forecast_days:
-                temp_data = day_data.get("temperature", {})
-                if isinstance(temp_data, dict):
-                    api_temps.append(temp_data.get("max", 0))
-                else:
-                    api_temps.append(float(temp_data) if temp_data else 0)
+            temp_data = day_data.get("temperature", {})
+            if isinstance(temp_data, dict):
+                api_temps.append(temp_data.get("max", 0))
+            else:
+                api_temps.append(float(temp_data) if temp_data else 0)
 
         # ML predictions
         ml_predictions = getattr(self.current_forecast, "ml_predictions", []) or []
@@ -368,9 +368,9 @@ class ForecastVisualizationFrame(ttk.Frame):
         if not isinstance(hybrid_days, list):
             hybrid_days = []
         for day_data in hybrid_days:
-                hybrid_temp = day_data.get("temperature", {}).get("ml_enhanced")
-                if hybrid_temp:
-                    hybrid_temps.append(hybrid_temp)
+            hybrid_temp = day_data.get("temperature", {}).get("ml_enhanced")
+            if hybrid_temp:
+                hybrid_temps.append(hybrid_temp)
 
         if hybrid_temps and len(hybrid_temps) == len(days):
             ax.plot(
@@ -588,7 +588,9 @@ class ForecastVisualizationFrame(ttk.Frame):
                     "ml_predictions": [],
                 }
 
-                ml_predictions = getattr(self.current_forecast, "ml_predictions", []) or []
+                ml_predictions = (
+                    getattr(self.current_forecast, "ml_predictions", []) or []
+                )
                 for pred in ml_predictions:
                     pred_data = {
                         "timestamp": pred.timestamp.isoformat(),
