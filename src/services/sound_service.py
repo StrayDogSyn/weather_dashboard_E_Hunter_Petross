@@ -2,15 +2,16 @@
 Sound Effects Service for Weather Dashboard.
 
 This service provides audio feedback for user interactions and weather events.
+
 Simplified and optimized for better maintainability.
 """
 
+import importlib.util
 import logging
 import os
 import threading
 from enum import Enum
 from typing import Any, Dict, Optional
-import importlib.util
 
 PYGAME_AVAILABLE = importlib.util.find_spec("pygame") is not None
 WINSOUND_AVAILABLE = importlib.util.find_spec("winsound") is not None
