@@ -415,8 +415,6 @@ class ModernButton(tk.Button):
         self.configure(highlightbackground=self.hover_bg, highlightcolor=self.hover_bg)
         # Subtle text brightening for modern feedback
         self.configure(fg="#ffffff")
-        # Play subtle hover sound - use BUTTON_CLICK at low volume
-        play_sound(SoundType.BUTTON_CLICK, 0.1)
 
     def _on_leave(self, event):
         self.is_hovered = False

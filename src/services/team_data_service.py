@@ -70,7 +70,7 @@ class TeamDataService:
                 self.team_data_cache = pd.read_csv(csv_local_path)
 
                 # Convert timestamp column to datetime with flexible parsing
-                if "timestamp" in self.team_data_cache.columns:
+                if "timestamp" not in self.team_data_cache.columns:
                     try:
                         # Try multiple timestamp formats
                         self.team_data_cache["timestamp"] = pd.to_datetime(
@@ -177,48 +177,61 @@ class TeamDataService:
             else:
                 latest_data = city_data.iloc[-1]
 
-            # Extract coordinates if available
+            # Helper to safely convert values, handling NaN and conversion errors
+            def safe_float(val, default=0.0):
+                try:
+                    if pd.isna(val):
+                        return default
+                    return float(val)
+                except Exception:
+                    return default
+
+            def safe_int(val, default=0):
+                try:
+                    if pd.isna(val):
+                        return default
+                    return int(float(val))
+                except Exception:
+                    return default
+
             latitude = latest_data.get("latitude", 0.0)
             longitude = latest_data.get("longitude", 0.0)
             country = latest_data.get("country", "Unknown")
 
-            # Create Location object
             location = Location(
                 name=latest_data["city"],
                 country=country,
-                latitude=float(latitude) if pd.notna(latitude) else 0.0,
-                longitude=float(longitude) if pd.notna(longitude) else 0.0,
+                latitude=safe_float(latitude, 0.0),
+                longitude=safe_float(longitude, 0.0),
             )
 
-            # Create Temperature object
-            temp_value = float(latest_data["temperature"])
+            temp_value = safe_float(latest_data.get("temperature", 0.0), 0.0)
             temperature = Temperature(
                 value=temp_value,
                 unit=TemperatureUnit.CELSIUS,
-                feels_like=temp_value + 1.0,  # Approximate feels like
+                feels_like=temp_value + 1.0,
             )
 
-            # Create other weather components
             pressure = AtmosphericPressure(
-                value=float(latest_data.get("pressure", 1013.25))
+                value=safe_float(latest_data.get("pressure", 1013.25), 1013.25)
             )
 
             wind = Wind(
-                speed=float(latest_data.get("wind_speed", 0.0)),
-                direction=int(float(latest_data.get("wind_direction", 0.0))),
+                speed=safe_float(latest_data.get("wind_speed", 0.0), 0.0),
+                direction=safe_int(latest_data.get("wind_direction", 0.0), 0),
             )
 
-            # Map condition string to WeatherCondition enum
-            condition_str = latest_data.get("condition", "clear").lower()
+            condition_str = str(latest_data.get("condition", "clear")).lower()
             condition = self._map_condition_string(condition_str)
 
-            # Create CurrentWeather object
+            humidity = safe_int(latest_data.get("humidity", 50), 50)
+
             weather = CurrentWeather(
                 location=location,
                 temperature=temperature,
                 condition=condition,
                 description=latest_data.get("description", condition_str.title()),
-                humidity=int(latest_data.get("humidity", 50)),
+                humidity=humidity,
                 pressure=pressure,
                 wind=wind,
                 timestamp=datetime.now(),
@@ -484,26 +497,27 @@ class TeamDataService:
             # Sample JSON analysis data
             analysis_data = {
                 "cities_analysis": {
-                    city_data["city"]: {
-                        "avg_temperature": city_data["temperature"],
-                        "avg_humidity": city_data["humidity"],
-                        "dominant_condition": city_data["weather_main"].lower(),
+                    str(city_data["city"]): {
+                        "avg_temperature": float(city_data["temperature"]),
+                        "avg_humidity": float(city_data["humidity"]),
+                        "dominant_condition": str(city_data.get("weather_main", "")).lower()
+                        if isinstance(city_data.get("weather_main", ""), str)
+                        else "",
                         "records": 30,  # Simulated record count
-                        "members": [city_data["member_name"]],
+                        "members": [str(city_data["member_name"])],
                     }
-                    for city_data in sample_data
+                    for city_data in sample_data if isinstance(city_data, dict)
                 },
                 "team_summary": {
                     "total_cities": len(sample_data),
-                    "avg_temperature_global": sum(d["temperature"] for d in sample_data)
-                    / len(sample_data),
+                    "avg_temperature_global": sum(float(d["temperature"]) for d in sample_data) / len(sample_data),
                     "temperature_range": {
-                        "min": min(d["temperature"] for d in sample_data),
-                        "max": max(d["temperature"] for d in sample_data),
+                        "min": min(float(d["temperature"]) for d in sample_data),
+                        "max": max(float(d["temperature"]) for d in sample_data),
                     },
                     "most_common_condition": "clear",
                     "data_timestamp": timestamp,
-                    "total_members": len(set(d["member_name"] for d in sample_data)),
+                    "total_members": len(set(str(d["member_name"]) for d in sample_data)),
                     "total_records": len(sample_data) * 30,  # Simulated
                 },
             }
