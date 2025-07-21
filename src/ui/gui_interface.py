@@ -28,13 +28,13 @@ from src.models.capstone_models import (
     WeatherComparison,
     WeatherPoem,
 )
+from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
 from src.services.sound_service import (
     SoundType,
     get_sound_service,
     play_sound,
     play_weather_sound,
 )
-from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
 
 # Note: WeatherDashboard import will be added after class definition to avoid circular import
 

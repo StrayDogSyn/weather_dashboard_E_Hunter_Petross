@@ -8,20 +8,23 @@ from the GitHub repository for the Compare Cities feature instead of making API 
 import json
 import logging
 import os
-import pandas as pd
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import datetime
-from typing import Dict, List, Optional, Any
 from glob import glob
+from typing import Any, Dict, List, Optional
+
+import pandas as pd
 
 from ..models.weather_models import (
+    AtmosphericPressure,
     CurrentWeather,
     Location,
     Temperature,
     TemperatureUnit,
+    WeatherCondition,
+    Wind,
 )
-from ..models.weather_models import AtmosphericPressure, Wind, WeatherCondition
 
 
 class TeamDataService:

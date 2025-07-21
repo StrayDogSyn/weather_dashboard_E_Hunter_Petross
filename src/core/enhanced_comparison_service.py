@@ -7,12 +7,12 @@ between cities using both API data and team data sources with intelligent fallba
 
 import logging
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from ..models.capstone_models import WeatherComparison
 from ..models.weather_models import CurrentWeather
-from .weather_service import WeatherService
 from ..services.team_data_service import TeamDataService
+from .weather_service import WeatherService
 
 
 class EnhancedCityComparisonService:

@@ -16,10 +16,10 @@ from src.core.journal_service import WeatherJournalService
 from src.core.weather_service import WeatherService
 from src.models.capstone_models import MoodType
 from src.services.cache_service import MemoryCacheService
+from src.services.composite_weather_service import CompositeWeatherService
 from src.services.data_storage import FileDataStorage
 from src.services.poetry_service import WeatherPoetryService
 from src.services.weather_api import OpenWeatherMapAPI
-from src.services.composite_weather_service import CompositeWeatherService
 from src.ui.gui_interface import WeatherDashboardGUI
 from src.utils.formatters import validate_city_name
 from src.utils.validators import sanitize_input

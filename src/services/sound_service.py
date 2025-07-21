@@ -9,7 +9,7 @@ import logging
 import os
 import threading
 from enum import Enum
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
 try:
     import pygame

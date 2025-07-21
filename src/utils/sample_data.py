@@ -1,14 +1,15 @@
 """Sample data for fallback when API is slow or unavailable."""
 
 from datetime import datetime
+
 from src.models.weather_models import (
+    AtmosphericPressure,
     CurrentWeather,
     Location,
-    WeatherCondition,
     Temperature,
     TemperatureUnit,
+    WeatherCondition,
     Wind,
-    AtmosphericPressure,
 )
 
 
