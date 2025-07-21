@@ -10,20 +10,10 @@ import os
 import threading
 from enum import Enum
 from typing import Any, Dict, Optional
+import importlib.util
 
-try:
-    import pygame
-
-    PYGAME_AVAILABLE = True
-except ImportError:
-    PYGAME_AVAILABLE = False
-
-try:
-    import winsound
-
-    WINSOUND_AVAILABLE = True
-except ImportError:
-    WINSOUND_AVAILABLE = False
+PYGAME_AVAILABLE = importlib.util.find_spec("pygame") is not None
+WINSOUND_AVAILABLE = importlib.util.find_spec("winsound") is not None
 
 
 class SoundType(Enum):
@@ -94,7 +84,6 @@ class SoundService:
         if PYGAME_AVAILABLE:
             try:
                 import pygame
-
                 pygame.mixer.init()
                 pygame.mixer.quit()
                 return "pygame"
@@ -111,7 +100,6 @@ class SoundService:
         try:
             if self.audio_backend == "pygame":
                 import pygame
-
                 pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
                 self.logger.info("Audio initialized with pygame")
         except Exception as e:
@@ -137,7 +125,6 @@ class SoundService:
                 try:
                     if self.audio_backend == "pygame":
                         import pygame
-
                         sound = pygame.mixer.Sound(file_path)
                         self.sounds_cache[sound_type] = sound
                         loaded_count += 1
@@ -170,7 +157,6 @@ class SoundService:
                 # Simple fallback beeps for active sounds only
                 if WINSOUND_AVAILABLE:
                     import winsound
-
                     frequencies = {
                         SoundType.BUTTON_CLICK: 800,
                         SoundType.ERROR: 200,
@@ -245,7 +231,6 @@ class SoundService:
         try:
             if self.audio_backend == "pygame" and PYGAME_AVAILABLE:
                 import pygame
-
                 pygame.mixer.quit()
             self.sounds_cache.clear()
         except Exception as e:
