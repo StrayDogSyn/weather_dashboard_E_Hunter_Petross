@@ -230,7 +230,7 @@ class ModelIntegrationService:
                         hybrid_forecast=self._forecast_to_dict(api_forecast),
                         timestamp=datetime.now(),
                     )
-            except:
+            except Exception:
                 pass
             raise
 
@@ -324,8 +324,8 @@ class ModelIntegrationService:
         # Combine confidence intervals
         lower_bounds = [p.confidence_interval[0] for p in predictions]
         upper_bounds = [p.confidence_interval[1] for p in predictions]
-        avg_lower = sum(l * w for l, w in zip(lower_bounds, normalized_weights))
-        avg_upper = sum(u * w for u, w in zip(upper_bounds, normalized_weights))
+        avg_lower = sum(lb * w for lb, w in zip(lower_bounds, normalized_weights))
+        avg_upper = sum(ub * w for ub, w in zip(upper_bounds, normalized_weights))
 
         # Most common weather pattern
         patterns = [p.weather_pattern for p in predictions]
@@ -595,21 +595,21 @@ class ModelIntegrationService:
             # Test weather API
             test_weather = self.weather_api.get_current_weather("London")
             validation_results["weather_api_connected"] = test_weather is not None
-        except:
+        except Exception:
             pass
 
         try:
             # Test data storage
             test_data = self.data_storage.load_data("weather_history.json")
             validation_results["data_storage_accessible"] = True
-        except:
+        except Exception:
             pass
 
         try:
             # Test training service
             status = self.training_service.get_model_status()
             validation_results["training_service_ready"] = isinstance(status, dict)
-        except:
+        except Exception:
             pass
 
         try:
@@ -617,7 +617,7 @@ class ModelIntegrationService:
             if self.models_loaded:
                 test_forecast = await self.get_enhanced_forecast("London", days=1)
                 validation_results["predictions_working"] = test_forecast is not None
-        except:
+        except Exception:
             pass
 
         return validation_results
