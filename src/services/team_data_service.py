@@ -27,14 +27,16 @@ from ..models.weather_models import (
 )
 
 
+
 class TeamDataService:
+    """Service for loading and processing team weather data from GitHub repository."""
+
     @staticmethod
     def _safe_float(val: Any) -> float:
         try:
             return float(val)
         except (TypeError, ValueError):
             return 0.0
-    """Service for loading and processing team weather data from GitHub repository."""
 
     def __init__(self):
         """Initialize the team data service."""
