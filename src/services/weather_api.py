@@ -62,7 +62,7 @@ class OpenWeatherMapAPI(IWeatherAPI):
         self, endpoint: str, params: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
         """
-        Make an API request with error handling.
+        Make an API request with error handling and retry logic.
 
         Args:
             endpoint: API endpoint
@@ -75,34 +75,48 @@ class OpenWeatherMapAPI(IWeatherAPI):
         params["appid"] = self.api_key
 
         url = f"{self.base_url}/{endpoint}"
+        max_retries = 2  # Quick retries for network issues
 
-        try:
-            response = self.session.get(url, params=params, timeout=self.config.timeout)
-            response.raise_for_status()
-            return response.json()
+        for attempt in range(max_retries + 1):
+            try:
+                response = self.session.get(
+                    url, params=params, timeout=self.config.timeout
+                )
+                response.raise_for_status()
+                return response.json()
 
-        except requests.exceptions.Timeout:
-            logging.error("Request timeout")
-            return None
-        except requests.exceptions.ConnectionError:
-            logging.error("Connection error")
-            return None
-        except requests.exceptions.HTTPError as e:
-            if hasattr(e, "response") and e.response is not None:
-                if e.response.status_code == 404:
-                    logging.error("City not found")
-                elif e.response.status_code == 401:
-                    logging.error("Invalid API key")
-                elif e.response.status_code == 429:
-                    logging.error("API rate limit exceeded")
+            except requests.exceptions.Timeout:
+                if attempt < max_retries:
+                    logging.warning(
+                        f"Request timeout (attempt {attempt + 1}/{max_retries + 1}), retrying..."
+                    )
+                    continue
+                logging.error("Request timeout after retries")
+                return None
+            except requests.exceptions.ConnectionError:
+                if attempt < max_retries:
+                    logging.warning(
+                        f"Connection error (attempt {attempt + 1}/{max_retries + 1}), retrying..."
+                    )
+                    continue
+                logging.error("Connection error after retries")
+                return None
+            except requests.exceptions.HTTPError as e:
+                if hasattr(e, "response") and e.response is not None:
+                    if e.response.status_code == 404:
+                        logging.error("City not found")
+                    elif e.response.status_code == 401:
+                        logging.error("Invalid API key")
+                    elif e.response.status_code == 429:
+                        logging.error("API rate limit exceeded")
+                    else:
+                        logging.error(f"HTTP error: {e}")
                 else:
                     logging.error(f"HTTP error: {e}")
-            else:
-                logging.error(f"HTTP error: {e}")
-            return None
-        except Exception as e:
-            logging.error(f"Unexpected error: {e}")
-            return None
+                return None
+            except Exception as e:
+                logging.error(f"Unexpected error: {e}")
+                return None
 
     def _parse_weather_condition(
         self, weather_data: Dict[str, Any]

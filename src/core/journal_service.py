@@ -42,16 +42,37 @@ class WeatherJournalService:
                         "created_at", datetime.now().isoformat()
                     )
 
+                    # Skip entries with empty or invalid date strings
+                    if not date_str or date_str.strip() == "":
+                        self.logger.warning("Skipping entry with empty date string")
+                        continue
+
+                    # Safely handle created_at parsing - never allow empty strings
+                    created_at = datetime.now()
+                    if created_at_str and created_at_str.strip():
+                        try:
+                            created_at = datetime.fromisoformat(created_at_str)
+                        except (ValueError, TypeError) as e:
+                            self.logger.warning(
+                                f"Could not parse created_at '{created_at_str}': {e}, using current time"
+                            )
+                            created_at = datetime.now()
+                    else:
+                        self.logger.warning(
+                            "Empty created_at string, using current time"
+                        )
+                        created_at = datetime.now()
+
                     entry = JournalEntry(
                         date=self._validate_date(date_str),
                         location=entry_data.get("location", ""),
                         weather_summary=entry_data.get("weather_summary", ""),
                         temperature=float(entry_data.get("temperature", 0.0)),
                         condition=entry_data.get("condition", ""),
-                        mood=MoodType(entry_data.get("mood", "neutral")),
+                        mood=self._validate_mood(entry_data.get("mood", "neutral")),
                         notes=entry_data.get("notes", ""),
                         activities=entry_data.get("activities", []),
-                        created_at=datetime.fromisoformat(created_at_str),
+                        created_at=created_at,
                     )
                 except (ValueError, TypeError, AttributeError) as e:
                     self.logger.error(f"Error parsing journal entry: {e}")
@@ -316,12 +337,78 @@ class WeatherJournalService:
         elif isinstance(date_obj, datetime):
             return date_obj.date()
         elif isinstance(date_obj, str):
+            # Handle empty strings gracefully
+            if not date_obj or date_obj.strip() == "":
+                return date.today()  # Return today's date for empty strings
             try:
                 return datetime.fromisoformat(date_obj).date()
             except ValueError:
-                raise ValueError(f"Invalid date format: {date_obj}")
+                # Try alternative date formats
+                try:
+                    return datetime.strptime(date_obj, "%Y-%m-%d").date()
+                except ValueError:
+                    try:
+                        return datetime.strptime(date_obj, "%m/%d/%Y").date()
+                    except ValueError:
+                        self.logger.warning(
+                            f"Could not parse date '{date_obj}', using today's date"
+                        )
+                        return date.today()
         else:
-            raise ValueError(f"Invalid date type: {type(date_obj)}")
+            self.logger.warning(
+                f"Invalid date type: {type(date_obj)}, using today's date"
+            )
+            return date.today()
+
+    def _validate_mood(self, mood_value: Any) -> MoodType:
+        """
+        Validate and convert mood value.
+
+        Args:
+            mood_value: Mood value to validate
+
+        Returns:
+            MoodType enum value
+        """
+        if isinstance(mood_value, MoodType):
+            return mood_value
+        elif isinstance(mood_value, str):
+            # Handle common mood variations
+            mood_lower = mood_value.lower().strip()
+            mood_mapping = {
+                "happy": MoodType.HAPPY,
+                "confident": MoodType.MOTIVATED,
+                "excited": MoodType.EXCITED,
+                "calm": MoodType.PEACEFUL,
+                "relaxed": MoodType.RELAXED,
+                "sad": MoodType.SAD,
+                "worried": MoodType.ANXIOUS,
+                "stressed": MoodType.ANXIOUS,
+                "angry": MoodType.ANXIOUS,  # Map to anxious as closest match
+                "frustrated": MoodType.ANXIOUS,  # Map to anxious as closest match
+                "neutral": MoodType.CONTENT,  # Map neutral to content
+            }
+
+            # Try direct mapping first
+            if mood_lower in mood_mapping:
+                return mood_mapping[mood_lower]
+
+            # Try to match with existing MoodType values
+            try:
+                return MoodType(mood_lower)
+            except ValueError:
+                # Try to find a close match
+                for mood_type in MoodType:
+                    if mood_type.value.lower() == mood_lower:
+                        return mood_type
+
+                self.logger.warning(
+                    f"Could not parse mood '{mood_value}', using content"
+                )
+                return MoodType.CONTENT
+        else:
+            self.logger.warning(f"Invalid mood type: {type(mood_value)}, using content")
+            return MoodType.CONTENT
 
     def _serialize_entry(self, entry: JournalEntry) -> Dict[str, Any]:
         """
@@ -334,8 +421,38 @@ class WeatherJournalService:
             Dictionary representation of the entry
         """
         try:
+            # Safely handle date serialization - never allow empty strings
+            date_str = date.today().isoformat()  # Default fallback
+            if entry.date:
+                try:
+                    date_str = entry.date.isoformat()
+                except (AttributeError, ValueError) as e:
+                    self.logger.warning(
+                        f"Error serializing date: {e}, using today's date"
+                    )
+                    date_str = date.today().isoformat()
+
+            # Ensure we never store an empty date string
+            if not date_str or date_str.strip() == "":
+                date_str = date.today().isoformat()
+
+            # Safely handle created_at serialization - never allow empty strings
+            created_at_str = datetime.now().isoformat()  # Default fallback
+            if entry.created_at:
+                try:
+                    created_at_str = entry.created_at.isoformat()
+                except (AttributeError, ValueError) as e:
+                    self.logger.warning(
+                        f"Error serializing created_at: {e}, using current time"
+                    )
+                    created_at_str = datetime.now().isoformat()
+
+            # Ensure we never store an empty created_at string
+            if not created_at_str or created_at_str.strip() == "":
+                created_at_str = datetime.now().isoformat()
+
             return {
-                "date": entry.date.isoformat() if entry.date else "",
+                "date": date_str,
                 "location": entry.location or "",
                 "weather_summary": entry.weather_summary or "",
                 "temperature": (
@@ -345,12 +462,19 @@ class WeatherJournalService:
                 "mood": entry.mood.value if entry.mood else "neutral",
                 "notes": entry.notes or "",
                 "activities": entry.activities or [],
-                "created_at": (
-                    entry.created_at.isoformat()
-                    if entry.created_at
-                    else datetime.now().isoformat()
-                ),
+                "created_at": created_at_str,
             }
         except Exception as e:
             self.logger.error(f"Error serializing entry: {e}")
-            raise
+            # Return a safe default entry rather than raising
+            return {
+                "date": date.today().isoformat(),
+                "location": "",
+                "weather_summary": "",
+                "temperature": 0.0,
+                "condition": "",
+                "mood": "neutral",
+                "notes": "",
+                "activities": [],
+                "created_at": datetime.now().isoformat(),
+            }

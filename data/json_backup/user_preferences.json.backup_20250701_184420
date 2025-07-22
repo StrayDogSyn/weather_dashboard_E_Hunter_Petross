@@ -1,6 +1,0 @@
-{
-  "activity_types": ["outdoor", "indoor", "sports", "relaxation"],
-  "preferred_units": "imperial",
-  "cache_enabled": true,
-  "notifications_enabled": true
-}

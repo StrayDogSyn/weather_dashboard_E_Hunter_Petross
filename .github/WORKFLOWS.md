@@ -7,11 +7,13 @@ This document describes the CI/CD workflows implemented for the Weather Dashboar
 ### 1. Main CI/CD Pipeline (`ci-cd.yml`)
 
 **Triggers:**
+
 - Push to `main` or `develop` branches
 - Pull requests to `main` branch  
 - Manual dispatch with environment selection
 
 **Jobs:**
+
 - **Lint**: Code formatting, import sorting, linting, type checking
 - **Test**: Cross-platform testing (Ubuntu, Windows, macOS) with Python 3.9-3.12
 - **Security**: Bandit security scanning and Safety dependency checks
@@ -22,6 +24,7 @@ This document describes the CI/CD workflows implemented for the Weather Dashboar
 - **Notify**: Results notification
 
 **Usage:**
+
 ```bash
 # Trigger manually with environment selection
 gh workflow run ci-cd.yml --ref main
@@ -33,17 +36,21 @@ gh workflow run ci-cd.yml --ref main -f test_environment=production
 ### 2. Quick Test (`quick-test.yml`)
 
 **Triggers:**
+
 - Manual dispatch only
 
 **Jobs:**
+
 - **Quick Test**: Fast validation with configurable test types
 
 **Test Types:**
+
 - `basic`: Import and basic functionality tests
 - `full`: Complete pytest suite
 - `integration`: GUI and integration testing
 
 **Usage:**
+
 ```bash
 # Basic test
 gh workflow run quick-test.yml --ref main -f test_type=basic
@@ -58,78 +65,104 @@ gh workflow run quick-test.yml --ref main -f test_type=integration
 ### 3. PR Validation (`pr-validation.yml`)
 
 **Triggers:**
-- Pull request opened, synchronized, or reopened
+
+- Pull requests to `main` or `develop` branches
+- PR events: opened, synchronize, reopened
 
 **Jobs:**
-- **Validate PR**: Code formatting, linting, testing, startup validation
-- **Comment**: Automated PR comment with results
+
+- **Validate PR**: Comprehensive validation including:
+  - Code formatting check (Black)
+  - Linting (Flake8)
+  - Unit tests (Pytest)
+  - Application startup test
+  - Automated PR comment with results
+
+**Permissions:**
+
+The workflow requires the following GitHub permissions:
+
+- `contents: read` - Read repository contents
+- `issues: write` - Create/update PR comments
+- `pull-requests: write` - Interact with pull requests
 
 **Features:**
-- Automatic code quality checks
-- Test execution validation
-- Application startup verification
-- PR status comments with results
 
-## 🛠️ Workflow Testing
+- ✅ Automatic code quality validation
+- ✅ Comprehensive test execution
+- ✅ Application startup verification
+- ✅ Smart PR commenting (updates existing bot comments)
+- ✅ Error handling and graceful degradation
 
-### Using the Python Test Script
+**Comment Format:**
 
-The `workflow_test.py` script provides an easy interface for triggering workflows:
+```markdown
+## 🤖 PR Validation Results
 
-```bash
-# List available workflows
-python workflow_test.py list
+**Status**: ✅ Passed / ❌ Failed
 
-# Run specific workflow
-python workflow_test.py quick-test
+### Checks Performed:
+- ✅ Code formatting (Black)
+- ✅ Linting (Flake8)
+- ✅ Unit tests (Pytest)
+- ✅ Application startup test
 
-# Run on specific branch
-python workflow_test.py ci-cd develop
-
-# Test all workflows
-python workflow_test.py test-all
-
-# Watch workflow progress
-python workflow_test.py watch
+🎉 All checks passed! This PR is ready for review.
 ```
 
-### Direct GitHub CLI Commands
+### 4. Python App CI (`python-app.yml`)
 
-```bash
-# List workflows
-gh workflow list
+**Note:** This is a legacy workflow that may be deprecated in favor of the main CI/CD pipeline.
 
-# Run CI/CD pipeline
-gh workflow run ci-cd.yml --ref main
+## ⚙️ Configuration & Troubleshooting
 
-# Run quick test with basic type
-gh workflow run quick-test.yml --ref main -f test_type=basic
+### GitHub Permissions
 
-# Watch running workflows
-gh run list
+If you encounter permission errors like:
 
-# Watch specific workflow run
-gh run watch [RUN_ID]
-
-# View workflow logs
-gh run view [RUN_ID] --log
+```text
+RequestError [HttpError]: Resource not accessible by integration
 ```
+
+This typically means the workflow lacks proper permissions. Ensure workflows include:
+
+```yaml
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+```
+
+### Repository Settings
+
+For workflows to function properly, verify these repository settings:
+
+1. **Actions Permissions**: Go to Settings → Actions → General
+   - Allow GitHub Actions to create and approve pull requests
+   - Allow GitHub Actions to submit approving reviews
+
+2. **Token Permissions**: Ensure `GITHUB_TOKEN` has sufficient permissions
+   - Read access to metadata
+   - Write access to issues and pull requests
 
 ## 📋 Prerequisites
 
 ### GitHub CLI Installation
 
 **Windows:**
+
 ```powershell
 winget install GitHub.cli
 ```
 
 **macOS:**
+
 ```bash
 brew install gh
 ```
 
 **Linux:**
+
 ```bash
 curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
@@ -195,43 +228,51 @@ gh run rerun [RUN_ID] --failed
 
 ### Common Issues
 
-**1. Import Errors**
+#### 1. Import Errors
+
 - Ensure all dependencies are in `requirements.txt`
 - Check Python path configuration
 
-**2. GUI Testing Failures**
+#### 2. GUI Testing Failures
+
 - Virtual display (xvfb) is configured for Linux
 - Windows and macOS have native GUI support
 
-**3. API Key Issues**
+#### 3. API Key Issues
+
 - Verify repository secrets are set correctly
 - Check environment variable names
 
-**4. Build Failures**
+#### 4. Build Failures
+
 - PyInstaller may need specific configurations
 - Check platform-specific build requirements
 
 ## 🎯 Best Practices
 
 ### Workflow Design
+
 - Keep jobs focused and independent
 - Use matrix strategies for cross-platform testing
 - Implement proper caching for dependencies
 - Use artifacts for build outputs
 
 ### Security
+
 - Never commit API keys or secrets
 - Use repository secrets for sensitive data
 - Implement security scanning (Bandit, Safety)
 - Validate inputs in workflow_dispatch events
 
 ### Performance
+
 - Cache pip dependencies
 - Use specific Python versions
 - Parallel job execution where possible
 - Conditional job execution based on changes
 
 ### Maintenance
+
 - Keep workflow dependencies updated
 - Monitor workflow execution times
 - Review and update security policies

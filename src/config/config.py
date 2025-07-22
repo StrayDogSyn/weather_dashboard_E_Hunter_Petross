@@ -27,7 +27,7 @@ class APIConfiguration:
     forecast_url: str = "https://api.openweathermap.org/data/2.5/forecast"
     geocoding_url: str = "https://api.openweathermap.org/geo/1.0"
     timeout: int = field(
-        default_factory=lambda: int(os.getenv("WEATHER_API_TIMEOUT", "10"))
+        default_factory=lambda: int(os.getenv("WEATHER_API_TIMEOUT", "8"))
     )
     max_retries: int = field(
         default_factory=lambda: int(os.getenv("WEATHER_MAX_RETRIES", "3"))
@@ -356,7 +356,7 @@ class ConfigurationManager:
 
         # Show errors
         if errors:
-            print(f"❌ Configuration validation errors:")
+            print("❌ Configuration validation errors:")
             for error in errors:
                 print(f"   - {error}")
 

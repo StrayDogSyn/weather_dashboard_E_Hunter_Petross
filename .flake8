@@ -1,9 +1,0 @@
-[flake8]
-max-line-length = 88
-extend-ignore = E203,W503,F401,F541,E501,E402,F841
-exclude = .venv,__pycache__,.git,*.pyc
-per-file-ignores =
-    __init__.py:F401
-    tests/*:E402,F401,F841
-    src/services/poetry_service.py:E501
-    src/ui/gui_interface.py:F401,E501

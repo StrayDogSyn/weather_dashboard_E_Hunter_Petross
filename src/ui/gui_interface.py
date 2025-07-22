@@ -3,7 +3,7 @@ Modern TKinter GUI with Glassmorphic Design for Weather Dashboard.
 
 This module provides a modern, glassmorphic user interface using TKinter
 with custom styling and modern visual elements including weather icons,
-animations, and enhanced visual effects.
+animations, enhanced visual effects, and fun sound feedback.
 """
 
 import json
@@ -17,14 +17,7 @@ from tkinter import messagebox, simpledialog, ttk
 from typing import Any, Callable, Dict, List, Optional
 
 import ttkbootstrap as ttk_bs
-from ttkbootstrap.constants import (
-    DANGER,
-    DARK,
-    INFO,
-    LIGHT,
-    PRIMARY,
-    SECONDARY,
-)
+from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
 
 from src.config.config import config_manager
 from src.interfaces.weather_interfaces import IUserInterface
@@ -36,6 +29,12 @@ from src.models.capstone_models import (
     WeatherPoem,
 )
 from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
+from src.services.sound_service import (
+    SoundType,
+    get_sound_service,
+    play_sound,
+    play_weather_sound,
+)
 
 # Note: WeatherDashboard import will be added after class definition to avoid circular import
 
@@ -352,12 +351,14 @@ class ModernButton(tk.Button):
         self.bind("<ButtonRelease-1>", self._on_release)
 
     def _on_click(self, event):
-        """Handle button click for modern pressed effect with animation."""
+        """Handle button click for modern pressed effect with animation and sound."""
         # Modern buttons use color and subtle scaling rather than relief changes
         click_color = self._get_click_color()
         self.configure(bg=click_color)
         # Add subtle shadow effect
         self.configure(highlightbackground=GlassmorphicStyle.GLASS_BORDER)
+        # Play click sound
+        play_sound(SoundType.BUTTON_CLICK)
 
     def _on_release(self, event):
         """Handle button release to restore appearance with modern style."""
@@ -810,6 +811,19 @@ class WeatherDashboardGUI(IUserInterface):
         # Cleanup stray widgets on startup
         self.cleanup_stray_widgets()
 
+    def setup_event_bindings(self):
+        """Setup event bindings after initialization is complete."""
+        try:
+            # Add tab switching sound effect
+            if hasattr(self, "notebook"):
+                self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+        except Exception as e:
+            logging.debug(f"Could not setup event bindings: {e}")
+
+    def _on_tab_changed(self, event):
+        """Handle tab switching with sound effect."""
+        play_sound(SoundType.BUTTON_CLICK, 0.3)
+
     def setup_window(self) -> None:
         """Setup main window properties."""
         self.root.title("JTC Capstone - Team 5")
@@ -1027,6 +1041,8 @@ class WeatherDashboardGUI(IUserInterface):
         # Create Bootstrap-styled notebook (tabbed interface)
         self.notebook = ttk_bs.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 10))
+
+        # Note: Tab switching sound effect will be bound after initialization
 
         # Weather tab
         self.create_weather_tab()
@@ -1272,44 +1288,192 @@ class WeatherDashboardGUI(IUserInterface):
         comparison_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
         self.notebook.add(comparison_frame, text="🌍 Compare Cities")
 
-        # Controls
+        # Controls - compact design for better window usage
         controls_frame = GlassmorphicFrame(comparison_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
+        controls_frame.pack(fill=tk.X, padx=15, pady=(10, 8))
 
-        # City inputs
-        input_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        input_frame.pack(pady=20)
+        # Create a compact container
+        main_container = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        main_container.pack(pady=15, padx=30)
 
-        tk.Label(
-            input_frame,
-            text="City 1:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+        # Title for the section - more compact
+        title_label = tk.Label(
+            main_container,
+            text="Compare Weather Between Two Cities",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                "bold",
+            ),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=controls_frame.bg_color,
-        ).grid(row=0, column=0, padx=(20, 10), pady=5, sticky="e")
+        )
+        title_label.pack(pady=(0, 15))
 
-        self.city1_entry = BootstrapEntry(input_frame, width=20)
-        self.city1_entry.grid(row=0, column=1, padx=10, pady=8, ipady=6)
+        # City selection container - more compact
+        selection_container = tk.Frame(main_container, bg=controls_frame.bg_color)
+        selection_container.pack(pady=(0, 12))
 
-        tk.Label(
-            input_frame,
-            text="City 2:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
+        # Use grid for better control over layout
+        selection_container.grid_columnconfigure(0, weight=1)
+        selection_container.grid_columnconfigure(
+            1, weight=0, minsize=60
+        )  # Reduced space between dropdowns
+        selection_container.grid_columnconfigure(2, weight=1)
+
+        # City 1 section - more compact
+        city1_frame = tk.Frame(selection_container, bg=controls_frame.bg_color)
+        city1_frame.grid(row=0, column=0, padx=(0, 15), sticky="e")
+
+        city1_label = tk.Label(
+            city1_frame,
+            text="🏙️ First City:",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_SMALL,
+                "bold",
+            ),
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=controls_frame.bg_color,
-        ).grid(row=0, column=2, padx=(30, 10), pady=5, sticky="e")
+        )
+        city1_label.pack(pady=(0, 5))
 
-        self.city2_entry = BootstrapEntry(input_frame, width=20)
-        self.city2_entry.grid(row=0, column=3, padx=10, pady=8, ipady=6)
+        # Slightly smaller dropdown
+        self.city1_dropdown = ttk.Combobox(
+            city1_frame,
+            width=22,
+            state="readonly",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            style="Glassmorphic.TCombobox",
+        )
+        self.city1_dropdown.pack(ipady=6)
+
+        # VS separator in the middle - smaller
+        vs_label = tk.Label(
+            selection_container,
+            text="VS",
+            font=(GlassmorphicStyle.FONT_FAMILY, 14, "bold"),
+            fg=GlassmorphicStyle.ACCENT,
+            bg=controls_frame.bg_color,
+        )
+        vs_label.grid(row=0, column=1, padx=15)
+
+        # City 2 section - more compact
+        city2_frame = tk.Frame(selection_container, bg=controls_frame.bg_color)
+        city2_frame.grid(row=0, column=2, padx=(15, 0), sticky="w")
+
+        city2_label = tk.Label(
+            city2_frame,
+            text="🌆 Second City:",
+            font=(
+                GlassmorphicStyle.FONT_FAMILY,
+                GlassmorphicStyle.FONT_SIZE_SMALL,
+                "bold",
+            ),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=controls_frame.bg_color,
+        )
+        city2_label.pack(pady=(0, 5))
+
+        self.city2_dropdown = ttk.Combobox(
+            city2_frame,
+            width=22,
+            state="readonly",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            style="Glassmorphic.TCombobox",
+        )
+        self.city2_dropdown.pack(ipady=6)
+
+        # Buttons container - more compact
+        buttons_frame = tk.Frame(main_container, bg=controls_frame.bg_color)
+        buttons_frame.pack(pady=(12, 0))
 
         self.compare_btn = ModernButton(
-            input_frame, text="🌍 Compare", command=self.compare_cities
+            buttons_frame,
+            text="🌍 Compare Weather",
+            command=self.compare_cities,
+            width=16,
         )
-        self.compare_btn.grid(row=0, column=4, padx=(20, 20), pady=5)
+        self.compare_btn.pack(side=tk.LEFT, padx=(0, 15))
 
-        # Comparison results
+        self.refresh_team_btn = ModernButton(
+            buttons_frame,
+            text="🔄 Refresh Cities",
+            command=self.refresh_team_cities,
+            style="secondary",
+            width=16,
+        )
+        self.refresh_team_btn.pack(side=tk.LEFT, padx=(15, 0))
+
+        # Configure custom ttk style for the dropdowns
+        self._configure_dropdown_style()
+
+        # Populate dropdowns with team cities
+        self.populate_city_dropdowns()
+
+        # Comparison results - give more space
         self.comparison_results = GlassmorphicFrame(comparison_frame, elevated=True)
-        self.comparison_results.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+        self.comparison_results.pack(fill=tk.BOTH, expand=True, padx=10, pady=(8, 10))
+
+    def _configure_dropdown_style(self):
+        """Configure custom styling for the dropdown menus to match glassmorphic theme."""
+        try:
+            style = ttk.Style()
+
+            # Configure the custom combobox style
+            style.configure(
+                "Glassmorphic.TCombobox",
+                fieldbackground=GlassmorphicStyle.GLASS_BG_LIGHT,  # Background color
+                background=GlassmorphicStyle.GLASS_BG_LIGHT,  # Button background
+                foreground=GlassmorphicStyle.TEXT_PRIMARY,  # Text color
+                borderwidth=2,
+                relief="flat",
+                arrowcolor=GlassmorphicStyle.TEXT_ACCENT,  # Arrow color
+                insertcolor=GlassmorphicStyle.TEXT_PRIMARY,  # Cursor color
+                selectbackground=GlassmorphicStyle.ACCENT,  # Selection background
+                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,  # Selection text
+                font=(
+                    GlassmorphicStyle.FONT_FAMILY,
+                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                ),
+            )
+
+            # Configure the dropdown listbox
+            style.configure(
+                "Glassmorphic.TCombobox.Listbox",
+                background=GlassmorphicStyle.GLASS_BG_LIGHT,
+                foreground=GlassmorphicStyle.TEXT_PRIMARY,
+                selectbackground=GlassmorphicStyle.ACCENT,
+                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
+                borderwidth=1,
+                relief="solid",
+            )
+
+            # Map the styles for different states
+            style.map(
+                "Glassmorphic.TCombobox",
+                fieldbackground=[
+                    ("readonly", GlassmorphicStyle.GLASS_BG_LIGHT),
+                    ("focus", GlassmorphicStyle.GLASS_BG_LIGHT),
+                ],
+                background=[
+                    ("readonly", GlassmorphicStyle.GLASS_BG_LIGHT),
+                    ("focus", GlassmorphicStyle.GLASS_BG_LIGHT),
+                ],
+                bordercolor=[
+                    ("focus", GlassmorphicStyle.ACCENT),
+                    ("!focus", GlassmorphicStyle.GLASS_BORDER),
+                ],
+                arrowcolor=[
+                    ("hover", GlassmorphicStyle.ACCENT),
+                    ("!hover", GlassmorphicStyle.TEXT_ACCENT),
+                ],
+            )
+
+        except Exception as e:
+            # If styling fails, continue without custom styling
+            if hasattr(self, "logger"):
+                self.logger.warning(f"Could not configure dropdown styling: {e}")
 
     def create_journal_tab(self):
         """Create weather journal tab."""
@@ -1507,10 +1671,16 @@ class WeatherDashboardGUI(IUserInterface):
 
     # Interface implementation methods
     def display_weather(self, weather_data: CurrentWeather) -> None:
-        """Display current weather data."""
+        """Display current weather data with sound effects."""
         self.current_weather = weather_data
         self.main_weather_card.update_weather(weather_data)
         self.update_status(f"Weather updated for {weather_data.location.display_name}")
+
+        # Play weather-appropriate sound
+        play_weather_sound(weather_data.description)
+
+        # Play weather load success sound
+        play_sound(SoundType.WEATHER_LOAD, 0.4)
 
         # Update dashboard with new weather data
         if hasattr(self, "dashboard"):
@@ -1732,26 +1902,51 @@ class WeatherDashboardGUI(IUserInterface):
         """Get input from user via dialog."""
         return simpledialog.askstring("Input", prompt) or ""
 
-    def show_error(self, message: str) -> None:
-        """Show error message."""
-        messagebox.showerror("Error", message)
+    def show_error(self, message: str, show_dialog: bool = True) -> None:
+        """Show error message with sound effect."""
+        play_sound(SoundType.ERROR)
+
+        # Only show dialog for critical errors, not network timeouts
+        if show_dialog and not any(
+            keyword in message.lower()
+            for keyword in ["timeout", "connection", "network"]
+        ):
+            messagebox.showerror("Error", message)
+
         self.update_status(f"Error: {message}", is_error=True)
 
+    def show_warning(self, message: str, show_dialog: bool = False) -> None:
+        """Show warning message with subtle sound effect."""
+        play_sound(SoundType.WARNING, 0.3)
+
+        if show_dialog:
+            messagebox.showwarning("Warning", message)
+
+        self.update_status(f"Warning: {message}", is_warning=True)
+
     def show_message(self, message: str) -> None:
-        """Show information message."""
+        """Show information message with sound effect."""
+        play_sound(SoundType.SUCCESS, 0.5)
         messagebox.showinfo("Information", message)
         self.update_status(message)
 
-    def update_status(self, message: str, is_error: bool = False):
+    def update_status(
+        self, message: str, is_error: bool = False, is_warning: bool = False
+    ):
         """Update status bar."""
-        color = (
-            GlassmorphicStyle.ERROR if is_error else GlassmorphicStyle.TEXT_SECONDARY
-        )
+        if is_error:
+            color = GlassmorphicStyle.ERROR
+        elif is_warning:
+            color = GlassmorphicStyle.WARNING
+        else:
+            color = GlassmorphicStyle.TEXT_SECONDARY
+
         self.status_label.configure(text=message, fg=color)
 
-        # Auto-clear status after 5 seconds
+        # Auto-clear status after 8 seconds for errors/warnings, 5 seconds for normal messages
+        clear_time = 8000 if (is_error or is_warning) else 5000
         self.root.after(
-            5000,
+            clear_time,
             lambda: self.status_label.configure(
                 text="Ready", fg=GlassmorphicStyle.TEXT_SECONDARY
             ),
@@ -1800,11 +1995,16 @@ class WeatherDashboardGUI(IUserInterface):
             self.show_error("Please enter a city name")
             return
 
+        # Play search sound effect
+        play_sound(SoundType.BUTTON_CLICK, 0.4)
         if "get_weather" in self.callbacks:
             self.callbacks["get_weather"](city)
 
     def refresh_current_weather(self):
         """Refresh current weather."""
+        # Play refresh sound
+        play_sound(SoundType.BUTTON_CLICK, 0.3)
+
         if self.current_weather and "get_weather" in self.callbacks:
             self.callbacks["get_weather"](self.current_weather.location.name)
 
@@ -1817,32 +2017,152 @@ class WeatherDashboardGUI(IUserInterface):
     def add_to_favorites(self):
         """Add current city to favorites."""
         if self.current_weather and "add_favorite" in self.callbacks:
+            # Play favorite add sound
+            play_sound(SoundType.SUCCESS, 0.4)
             self.callbacks["add_favorite"](self.current_weather.location.name)
 
     def compare_cities(self):
         """Compare two cities."""
-        city1 = self.city1_entry.get().strip()
-        city2 = self.city2_entry.get().strip()
+        city1 = self.city1_dropdown.get().strip()
+        city2 = self.city2_dropdown.get().strip()
 
         if not city1 or not city2:
-            self.show_error("Please enter both city names")
+            self.show_error("Please select both cities from the dropdown menus")
+            return
+
+        if city1 == city2:
+            self.show_error("Please select two different cities to compare")
             return
 
         if "compare_cities" in self.callbacks:
             self.callbacks["compare_cities"](city1, city2)
 
+    def populate_city_dropdowns(self):
+        """Populate city dropdowns with available team cities."""
+        try:
+            # Check if callbacks are available
+            if not hasattr(self, "callbacks") or not self.callbacks:
+                # Use default cities if callbacks not set up yet
+                default_cities = [
+                    "Austin",
+                    "Providence",
+                    "Rawlins",
+                    "Ontario",
+                    "New York",
+                    "Miami",
+                    "New Jersey",
+                ]
+                self.city1_dropdown["values"] = default_cities
+                self.city2_dropdown["values"] = default_cities
+                self.city1_dropdown.set(default_cities[0])
+                self.city2_dropdown.set(default_cities[1])
+                return
+
+            # Get available cities from team data via callback
+            if "get_team_cities" in self.callbacks:
+                cities = self.callbacks["get_team_cities"]()
+                if cities:
+                    # Update dropdown values
+                    self.city1_dropdown["values"] = cities
+                    self.city2_dropdown["values"] = cities
+
+                    # Set default selections if cities are available
+                    if len(cities) >= 2:
+                        self.city1_dropdown.set(cities[0])
+                        self.city2_dropdown.set(cities[1])
+                    elif len(cities) == 1:
+                        self.city1_dropdown.set(cities[0])
+
+                    if hasattr(self, "update_status"):
+                        self.update_status(
+                            f"Loaded {len(cities)} cities from team data"
+                        )
+                else:
+                    # Fallback cities if team data not available
+                    fallback_cities = [
+                        "Austin",
+                        "Providence",
+                        "Rawlins",
+                        "Ontario",
+                        "New York",
+                        "Miami",
+                        "New Jersey",
+                    ]
+                    self.city1_dropdown["values"] = fallback_cities
+                    self.city2_dropdown["values"] = fallback_cities
+                    self.city1_dropdown.set(fallback_cities[0])
+                    self.city2_dropdown.set(fallback_cities[1])
+                    if hasattr(self, "update_status"):
+                        self.update_status(
+                            "Using fallback cities - team data not available"
+                        )
+            else:
+                # Default cities if callback not available
+                default_cities = [
+                    "Austin",
+                    "Providence",
+                    "Rawlins",
+                    "Ontario",
+                    "New York",
+                    "Miami",
+                    "New Jersey",
+                ]
+                self.city1_dropdown["values"] = default_cities
+                self.city2_dropdown["values"] = default_cities
+                self.city1_dropdown.set(default_cities[0])
+                self.city2_dropdown.set(default_cities[1])
+
+        except Exception as e:
+            if hasattr(self, "logger"):
+                self.logger.error(f"Error populating city dropdowns: {e}")
+            # Use fallback cities on error
+            fallback_cities = [
+                "Austin",
+                "Providence",
+                "Rawlins",
+                "Ontario",
+                "New York",
+                "Miami",
+            ]
+            self.city1_dropdown["values"] = fallback_cities
+            self.city2_dropdown["values"] = fallback_cities
+            if fallback_cities:
+                self.city1_dropdown.set(fallback_cities[0])
+                if len(fallback_cities) > 1:
+                    self.city2_dropdown.set(fallback_cities[1])
+
+    def refresh_team_cities(self):
+        """Refresh team cities from GitHub repository."""
+        try:
+            self.update_status("Refreshing team cities from GitHub...")
+
+            if "refresh_team_data" in self.callbacks:
+                self.callbacks["refresh_team_data"]()
+
+            # Repopulate dropdowns with fresh data
+            self.populate_city_dropdowns()
+
+            self.show_message("Team cities refreshed successfully!")
+
+        except Exception as e:
+            self.logger.error(f"Error refreshing team cities: {e}")
+            self.show_error(f"Error refreshing team cities: {str(e)}")
+
     def create_journal_entry(self):
-        """Create new journal entry."""
+        """Create new journal entry with sound effect."""
+        play_sound(SoundType.JOURNAL_SAVE, 0.4)
         if "create_journal" in self.callbacks:
             self.callbacks["create_journal"]()
 
     def view_journal_entries(self):
-        """View journal entries."""
+        """View journal entries with sound effect."""
+        play_sound(SoundType.NOTIFICATION, 0.3)
         if "view_journal" in self.callbacks:
             self.callbacks["view_journal"]()
 
     def get_activity_suggestions(self):
-        """Get activity suggestions."""
+        """Get activity suggestions with sound effect."""
+        play_sound(SoundType.MAGIC, 0.4)
         if "get_activities" in self.callbacks:
             self.callbacks["get_activities"]()
 
@@ -1880,6 +2200,11 @@ class WeatherDashboardGUI(IUserInterface):
         """Set callback for GUI events."""
         self.callbacks[event_name] = callback
 
+    def refresh_city_dropdowns_after_callbacks(self):
+        """Refresh city dropdowns after callbacks are set up."""
+        if hasattr(self, "city1_dropdown") and hasattr(self, "city2_dropdown"):
+            self.populate_city_dropdowns()
+
     def run(self):
         """Start the GUI event loop."""
         self.root.mainloop()
@@ -1891,9 +2216,12 @@ class WeatherDashboardGUI(IUserInterface):
 
     # Display methods for capstone features
     def display_weather_comparison(self, comparison: WeatherComparison) -> None:
-        """Display weather comparison."""
+        """Display weather comparison with sound effects."""
         # Store the comparison data for temperature unit refresh
         self.current_comparison_data = comparison
+
+        # Play comparison success sound
+        play_sound(SoundType.COMPARE_CITIES, 0.5)
 
         # Clear existing results
         for widget in self.comparison_results.winfo_children():
@@ -1964,6 +2292,11 @@ class WeatherDashboardGUI(IUserInterface):
         )
         summary_label.pack()
 
+        # Add team data information if available
+        add_team_info = getattr(self, "_add_team_data_info", None)
+        if add_team_info:
+            add_team_info(self.comparison_results)
+
     def display_no_weather_message_activities(self) -> None:
         """Display message when no weather data is available for activities."""
         # Clear existing content
@@ -2019,6 +2352,9 @@ class WeatherDashboardGUI(IUserInterface):
 
     def display_activity_error(self, error_message: str) -> None:
         """Display error message in activities tab instead of popup."""
+        # Play error sound for activity display
+        play_sound(SoundType.ERROR, 0.5)
+
         # Clear existing content
         for widget in self.activities_content.scrollable_frame.winfo_children():
             widget.destroy()
@@ -2072,6 +2408,9 @@ class WeatherDashboardGUI(IUserInterface):
 
     def display_activity_suggestions(self, suggestions: ActivitySuggestion) -> None:
         """Display activity suggestions with improved formatting."""
+        # Play activity display sound
+        play_sound(SoundType.MAGIC, 0.6)
+
         # Clear existing content
         for widget in self.activities_content.scrollable_frame.winfo_children():
             widget.destroy()
@@ -2380,7 +2719,10 @@ class WeatherDashboardGUI(IUserInterface):
         self.activities_content.scrollable_frame.update_idletasks()
 
     def display_weather_poem(self, poem) -> None:
-        """Display weather poem in the poetry tab with enhanced visual styling."""
+        """Display weather poem in the poetry tab with enhanced visual styling and sound."""
+        # Play magical poetry generation sound
+        play_sound(SoundType.MAGIC, 0.6)
+
         # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():
             widget.destroy()
@@ -2529,10 +2871,16 @@ class WeatherDashboardGUI(IUserInterface):
             )
             meta_label.pack(fill=tk.X)
 
+        # Play soft magic completion sound
+        play_sound(SoundType.MAGIC, 0.3)
+
         self.update_status("Poetry displayed with enhanced styling!")
 
     def display_weather_poem_collection(self, poems) -> None:
         """Display a collection of weather poems with enhanced visual styling."""
+        # Play collection display sound
+        play_sound(SoundType.MAGIC, 0.5)
+
         # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():
             widget.destroy()
@@ -2709,12 +3057,18 @@ class WeatherDashboardGUI(IUserInterface):
                 fill=tk.X, pady=(10, 0)
             )
 
+        # Play collection completion sound
+        play_sound(SoundType.MAGIC, 0.4)
+
         self.update_status(
             f"Poetry collection displayed with enhanced styling! ({len(poems)} poems)"
         )
 
     def toggle_temperature_unit(self):
         """Toggle between Celsius and Fahrenheit."""
+        # Play a quick toggle sound
+        play_sound(SoundType.BUTTON_CLICK, 0.3)
+
         self.temperature_unit = "F" if self.temperature_unit == "C" else "C"
         self.update_temp_toggle_text()
         self.refresh_temperature_displays()
@@ -2767,6 +3121,9 @@ class WeatherDashboardGUI(IUserInterface):
 
     def get_random_city_weather(self) -> None:
         """Get weather for a random city for demonstration purposes."""
+        # Play random Mario sound effect for fun!
+        play_sound(SoundType.MAGIC, 0.4)
+
         # List of interesting cities around the world
         cities = [
             "Tokyo",
@@ -2802,6 +3159,9 @@ class WeatherDashboardGUI(IUserInterface):
 
     def get_current_location_weather(self):
         """Get weather for current detected location."""
+        # Play location detection sound - Mario beedoo!
+        play_sound(SoundType.NOTIFICATION, 0.4)
+
         try:
             # Show loading message
             self.status_label.configure(
@@ -2963,3 +3323,118 @@ class ModernLayoutMixin:
         card = ttk_bs.LabelFrame(parent, text=f"{icon} {title}", padding=20)
         card.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         return card
+
+    def _add_team_data_info(self, parent_frame):
+        """Add team data information to the comparison display."""
+        try:
+            # Check if we have access to team comparison service through callbacks
+            callbacks = getattr(self, "callbacks", {})
+            if "get_team_data_status" in callbacks:
+                team_status = callbacks["get_team_data_status"]()
+
+                # Create team data info frame
+                team_info_frame = GlassmorphicFrame(
+                    parent_frame,
+                    bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
+                    elevated=True,
+                )
+                team_info_frame.pack(fill=tk.X, padx=20, pady=(10, 20))
+
+                # Team data header
+                header_label = tk.Label(
+                    team_info_frame,
+                    text="📊 Team Data Information",
+                    font=(
+                        GlassmorphicStyle.FONT_FAMILY,
+                        GlassmorphicStyle.FONT_SIZE_MEDIUM,
+                        "bold",
+                    ),
+                    fg=GlassmorphicStyle.ACCENT,
+                    bg=team_info_frame.bg_color,
+                )
+                header_label.pack(pady=(10, 5))
+
+                # Status information
+                if team_status.get("data_loaded", False):
+                    cities_count = team_status.get("cities_available", 0)
+                    status_text = (
+                        f"✅ Team data loaded with {cities_count} cities available"
+                    )
+                    status_color = GlassmorphicStyle.SUCCESS
+
+                    # Show available cities
+                    city_list = team_status.get("city_list", [])
+                    if city_list:
+                        cities_text = f"Available cities: {', '.join(city_list[:5])}"
+                        if len(city_list) > 5:
+                            cities_text += f" (+{len(city_list) - 5} more)"
+
+                        cities_label = tk.Label(
+                            team_info_frame,
+                            text=cities_text,
+                            font=(
+                                GlassmorphicStyle.FONT_FAMILY,
+                                GlassmorphicStyle.FONT_SIZE_SMALL,
+                            ),
+                            fg=GlassmorphicStyle.TEXT_SECONDARY,
+                            bg=team_info_frame.bg_color,
+                            wraplength=600,
+                        )
+                        cities_label.pack(pady=(0, 5))
+
+                    # Show data source information
+                    data_source = team_status.get("data_source", {})
+                    if data_source.get("repository"):
+                        repo_text = f"Data source: {data_source.get('repository', 'GitHub Repository')}"
+                        repo_label = tk.Label(
+                            team_info_frame,
+                            text=repo_text,
+                            font=(
+                                GlassmorphicStyle.FONT_FAMILY,
+                                GlassmorphicStyle.FONT_SIZE_SMALL,
+                            ),
+                            fg=GlassmorphicStyle.TEXT_SECONDARY,
+                            bg=team_info_frame.bg_color,
+                        )
+                        repo_label.pack(pady=(0, 5))
+
+                    # Add refresh button
+                    refresh_button = BootstrapButton(
+                        team_info_frame,
+                        text="🔄 Refresh Team Data",
+                        command=self._refresh_team_data,
+                        bootstyle="outline-info",
+                    )
+                    refresh_button.pack(pady=(5, 10))
+                else:
+                    status_text = "⚠️ Using API fallback - no team data available"
+                    status_color = GlassmorphicStyle.WARNING
+
+                status_label = tk.Label(
+                    team_info_frame,
+                    text=status_text,
+                    font=(
+                        GlassmorphicStyle.FONT_FAMILY,
+                        GlassmorphicStyle.FONT_SIZE_SMALL,
+                    ),
+                    fg=status_color,
+                    bg=team_info_frame.bg_color,
+                )
+                status_label.pack(pady=(0, 10))
+
+        except Exception as e:
+            # Silently handle errors - team data info is optional
+            logging.debug(f"Could not display team data info: {e}")
+            pass
+
+    def _refresh_team_data(self):
+        """Refresh team data from GitHub repository."""
+        try:
+            callbacks = getattr(self, "callbacks", {})
+            if "refresh_team_data" in callbacks:
+                callbacks["refresh_team_data"]()
+            else:
+                messagebox.showerror("Error", "Refresh functionality not available")
+        except Exception as e:
+            logging.error(f"Error refreshing team data: {e}")
+            messagebox.showerror("Error", f"Error refreshing team data: {str(e)}")
