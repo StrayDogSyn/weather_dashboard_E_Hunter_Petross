@@ -27,7 +27,6 @@ from ..models.weather_models import (
 )
 
 
-
 class TeamDataService:
     """Service for loading and processing team weather data from GitHub repository."""
 

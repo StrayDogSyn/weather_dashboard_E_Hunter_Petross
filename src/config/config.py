@@ -356,7 +356,7 @@ class ConfigurationManager:
 
         # Show errors
         if errors:
-            print(f"❌ Configuration validation errors:")
+            print("❌ Configuration validation errors:")
             for error in errors:
                 print(f"   - {error}")
 
