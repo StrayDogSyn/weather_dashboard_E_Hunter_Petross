@@ -465,12 +465,22 @@ class WeatherPredictor:
         while len(features) < len(self.feature_columns):
             features.append(0.0)
 
-        # Ensure all elements are float
-        float_features = []
+        # Ensure all elements are float and compatible with float()
+        from typing import SupportsFloat
+
+        float_features: List[float] = []
         for f in features[: len(self.feature_columns)]:
-            try:
-                float_features.append(float(f))
-            except Exception:
+            if isinstance(f, (int, float, str)):
+                try:
+                    float_features.append(float(f))
+                except Exception:
+                    float_features.append(0.0)
+            elif isinstance(f, SupportsFloat):
+                try:
+                    float_features.append(float(f))
+                except Exception:
+                    float_features.append(0.0)
+            else:
                 float_features.append(0.0)
         return float_features
 
