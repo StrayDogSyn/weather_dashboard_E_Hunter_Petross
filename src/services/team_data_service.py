@@ -29,6 +29,7 @@ from ..models.weather_models import (
 
 class TeamDataService:
     @staticmethod
+
     def _safe_float(val: Any) -> float:
         try:
             return float(val)
@@ -524,8 +525,12 @@ class TeamDataService:
                     )
                     / len(sample_data),
                     "temperature_range": {
-                        "min": min(self._safe_float(d["temperature"]) for d in sample_data),
-                        "max": max(self._safe_float(d["temperature"]) for d in sample_data),
+                        "min": min(
+                            self._safe_float(d["temperature"]) for d in sample_data
+                        ),
+                        "max": max(
+                            self._safe_float(d["temperature"]) for d in sample_data
+                        ),
                     },
                     "most_common_condition": "clear",
                     "data_timestamp": timestamp,
