@@ -29,7 +29,6 @@ from ..models.weather_models import (
 
 class TeamDataService:
     @staticmethod
-
     def _safe_float(val: Any) -> float:
         try:
             return float(val)
