@@ -28,6 +28,12 @@ from ..models.weather_models import (
 
 
 class TeamDataService:
+    @staticmethod
+    def _safe_float(val: Any) -> float:
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return 0.0
     """Service for loading and processing team weather data from GitHub repository."""
 
     def __init__(self):
@@ -498,8 +504,8 @@ class TeamDataService:
             analysis_data = {
                 "cities_analysis": {
                     str(city_data["city"]): {
-                        "avg_temperature": float(city_data["temperature"]),
-                        "avg_humidity": float(city_data["humidity"]),
+                        "avg_temperature": self._safe_float(city_data["temperature"]),
+                        "avg_humidity": self._safe_float(city_data["humidity"]),
                         "dominant_condition": (
                             str(city_data.get("weather_main", "")).lower()
                             if isinstance(city_data.get("weather_main", ""), str)
@@ -514,12 +520,12 @@ class TeamDataService:
                 "team_summary": {
                     "total_cities": len(sample_data),
                     "avg_temperature_global": sum(
-                        float(d["temperature"]) for d in sample_data
+                        self._safe_float(d["temperature"]) for d in sample_data
                     )
                     / len(sample_data),
                     "temperature_range": {
-                        "min": min(float(d["temperature"]) for d in sample_data),
-                        "max": max(float(d["temperature"]) for d in sample_data),
+                        "min": min(self._safe_float(d["temperature"]) for d in sample_data),
+                        "max": max(self._safe_float(d["temperature"]) for d in sample_data),
                     },
                     "most_common_condition": "clear",
                     "data_timestamp": timestamp,

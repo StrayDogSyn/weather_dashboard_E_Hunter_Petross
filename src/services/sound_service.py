@@ -168,7 +168,7 @@ class SoundService:
                         SoundType.COMPARE_CITIES: 450,
                     }
                     freq = frequencies.get(sound_type, 600)
-                    winsound.Beep(freq, 100)
+                    winsound.Beep(freq, 100)  # type: ignore[attr-defined]  # mypy: ignore, winsound is only available on Windows
 
         except Exception as e:
             self.logger.debug(f"Failed to play sound {sound_type.value}: {e}")
