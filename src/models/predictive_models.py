@@ -117,6 +117,14 @@ class WeatherPredictor:
         """
         raise NotImplementedError("Subclasses must implement the predict method.")
 
+    models: Dict[str, Any]
+    scalers: Dict[str, Any]
+    encoders: Dict[str, Any]
+    feature_columns: List[str]
+    target_columns: List[str]
+    is_trained: bool
+    model_metrics: Dict[str, ModelMetrics]
+
     def __init__(self, model_type: ModelType = ModelType.ENSEMBLE):
         """Initialize the weather predictor.
 
@@ -457,7 +465,14 @@ class WeatherPredictor:
         while len(features) < len(self.feature_columns):
             features.append(0.0)
 
-        return features[: len(self.feature_columns)]
+        # Ensure all elements are float
+        float_features = []
+        for f in features[: len(self.feature_columns)]:
+            try:
+                float_features.append(float(f))
+            except Exception:
+                float_features.append(0.0)
+        return float_features
 
     def _predict_weather_pattern(self, features: List[float]) -> str:
         """Predict weather pattern from features."""
@@ -557,7 +572,7 @@ class WeatherPredictor:
             logging.error(f"Error loading models: {e}")
             return False
 
-    def get_feature_importance(self) -> Dict[str, float]:
+    def get_feature_importance(self) -> Dict[str, Dict[str, float]]:
         """Get feature importance from tree-based models."""
         importance = {}
 
