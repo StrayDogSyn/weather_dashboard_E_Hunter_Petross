@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)"
+    ],
+    "deny": []
+  }
+}
