@@ -36,7 +36,7 @@ from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForec
 
 class WeatherIcons:
     """Weather condition icons using Unicode characters."""
-
+    
     CLEAR = "☀️"
     PARTLY_CLOUDY = "⛅"
     CLOUDY = "☁️"
