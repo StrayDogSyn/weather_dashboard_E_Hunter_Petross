@@ -105,7 +105,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
 
     def setup_window(self) -> None:
         """Setup main window properties."""
-        self.root.title("JTC Capstone - Team 5")
+        self.root.title("JTC Capstone - CodeFront")
         self.root.geometry("1300x900")  # Increased height for better content fit
         self.root.minsize(1100, 700)  # Increased minimum size
         self.root.configure(bg=GlassmorphicStyle.BACKGROUND)
@@ -211,7 +211,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         # Main title - reduced size for compactness
         title_main = tk.Label(
             title_container,
-            text="JTC CAPSTONE • Team 5 Weather Dashboard",
+            text="JTC CAPSTONE • CodeFront Weather Dashboard",
             font=(GlassmorphicStyle.FONT_FAMILY, 18, "bold"),  # Single line title
             fg=GlassmorphicStyle.TEXT_PRIMARY,
             bg=GlassmorphicStyle.GLASS_BG_LIGHT,
