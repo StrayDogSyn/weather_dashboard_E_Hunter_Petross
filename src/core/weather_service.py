@@ -240,7 +240,7 @@ class WeatherService:
                 logging.info(f"Removed {removed_city.display_name} from favorites")
                 return True
 
-        logging.warning(f"City not found in favorites: {city}")
+        logging.warning(f"City {city} not in favorites")
         return False
 
     def get_favorite_cities(self) -> List[FavoriteCity]:

@@ -203,17 +203,17 @@ class ActivitySuggestionService:
                 and temp_c < activity.min_temperature
             ):
                 explanations.append(
-                    f"Too cold (needs ≥{activity.min_temperature}°C, current: {temp_c: .1f}°C)"
+                    f"Too cold (needs ≥{activity.min_temperature}°C, current: {temp_c:.1f}°C)"
                 )
             elif (
                 activity.max_temperature is not None
                 and temp_c > activity.max_temperature
             ):
                 explanations.append(
-                    f"Too hot (needs ≤{activity.max_temperature}°C, current: {temp_c: .1f}°C)"
+                    f"Too hot (needs ≤{activity.max_temperature}°C, current: {temp_c:.1f}°C)"
                 )
             else:
-                explanations.append(f"Temperature is suitable ({temp_c: .1f}°C)")
+                explanations.append(f"Temperature is suitable ({temp_c:.1f}°C)")
 
             # Wind checks
             if (
@@ -252,7 +252,7 @@ class ActivitySuggestionService:
         )
 
         if is_suitable:
-            return f"{suitability} (Score: {score: .1f}/10). " + " ".join(explanations)
+            return f"{suitability} (Score: {score:.1f}/10). " + " ".join(explanations)
         else:
             return "Not suitable. " + " ".join(explanations)
 
@@ -350,7 +350,7 @@ class ActivitySuggestionService:
             top_score = suggestions.suggested_activities[0][1]
             lines.append(f"🏆 Top Suggestion: {top_activity.name}")
             lines.append(f"   {top_activity.description}")
-            lines.append(f"   Suitability: {top_score: .1f}/10")
+            lines.append(f"   Suitability: {top_score:.1f}/10")
             lines.append("")
 
         # Outdoor activities
@@ -358,7 +358,7 @@ class ActivitySuggestionService:
         if outdoor:
             lines.append("🌞 Outdoor Activities:")
             for activity, score in outdoor[:5]:
-                lines.append(f"   • {activity.name} (Score: {score: .1f})")
+                lines.append(f"   • {activity.name} (Score: {score:.1f})")
 
         # Indoor activities
         indoor = suggestions.indoor_activities
@@ -366,6 +366,6 @@ class ActivitySuggestionService:
             lines.append("")
             lines.append("🏠 Indoor Activities:")
             for activity, score in indoor[:5]:
-                lines.append(f"   • {activity.name} (Score: {score: .1f})")
+                lines.append(f"   • {activity.name} (Score: {score:.1f})")
 
         return "\n".join(lines)

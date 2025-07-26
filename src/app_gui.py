@@ -201,7 +201,8 @@ class WeatherDashboardGUIApp:
                 
             except Exception as e:
                 logging.error(f"Error searching locations: {e}")
-                self.gui.root.after(0, lambda: self.gui.show_error(f"Search failed: {e}"))
+                error_msg = f"Search failed: {e}"
+                self.gui.root.after(0, lambda: self.gui.show_error(error_msg))
 
         threading.Thread(target=search_async, daemon=True).start()
 

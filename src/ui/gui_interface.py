@@ -3331,6 +3331,37 @@ class WeatherDashboardGUI(IUserInterface):
             self.logger.error(f"Error opening dashboard: {e}")
             self.show_error(f"Failed to open dashboard: {str(e)}")
 
+    def process_voice_command_gui(self):
+        """Process voice command from GUI input."""
+        try:
+            command = self.voice_command_entry.get().strip()
+            if not command:
+                messagebox.showwarning("Warning", "Please enter a voice command.")
+                return
+
+            if hasattr(self, 'callbacks') and 'process_voice_command' in self.callbacks:
+                response = self.callbacks['process_voice_command'](command)
+                self.display_voice_response(command, response)
+                self.voice_command_entry.delete(0, tk.END)
+            else:
+                messagebox.showerror("Error", "Voice command processing not available.")
+        except Exception as e:
+            logging.error(f"Error processing voice command: {e}")
+            messagebox.showerror("Error", f"Error processing voice command: {str(e)}")
+
+    def reload_voice_config_gui(self):
+        """Reload voice configuration from GUI."""
+        try:
+            if hasattr(self, 'callbacks') and 'reload_voice_config' in self.callbacks:
+                self.callbacks['reload_voice_config']()
+                self.update_voice_status()
+                messagebox.showinfo("Success", "Voice configuration reloaded successfully.")
+            else:
+                messagebox.showerror("Error", "Voice configuration reload not available.")
+        except Exception as e:
+            logging.error(f"Error reloading voice config: {e}")
+            messagebox.showerror("Error", f"Error reloading voice config: {str(e)}")
+
 
 class ResponsiveLayout:
     """Helper class for responsive layout management."""
@@ -3559,98 +3590,3 @@ class ModernLayoutMixin:
                 fg=GlassmorphicStyle.ERROR
             )
             logging.error(f"Error updating voice status: {e}")
-
-    def process_voice_command_gui(self):
-        """Process voice command from GUI input."""
-        try:
-            command = self.voice_command_entry.get().strip()
-            if not command:
-                messagebox.showwarning("Warning", "Please enter a voice command.")
-                return
-
-            if hasattr(self, 'callbacks') and 'process_voice_command' in self.callbacks:
-                response = self.callbacks['process_voice_command'](command)
-                self.display_voice_response(command, response)
-                self.voice_command_entry.delete(0, tk.END)
-            else:
-                messagebox.showerror("Error", "Voice command processing not available.")
-        except Exception as e:
-            logging.error(f"Error processing voice command: {e}")
-            messagebox.showerror("Error", f"Error processing voice command: {str(e)}")
-
-    def reload_voice_config_gui(self):
-        """Reload voice configuration from GUI."""
-        try:
-            if hasattr(self, 'callbacks') and 'reload_voice_configuration' in self.callbacks:
-                self.callbacks['reload_voice_configuration']()
-                self.update_voice_status()
-                messagebox.showinfo("Success", "Voice configuration reloaded successfully.")
-            else:
-                messagebox.showerror("Error", "Voice configuration reload not available.")
-        except Exception as e:
-            logging.error(f"Error reloading voice config: {e}")
-            messagebox.showerror("Error", f"Error reloading voice config: {str(e)}")
-
-    def show_voice_help_gui(self):
-        """Show voice assistant help information."""
-        try:
-            if hasattr(self, 'callbacks') and 'get_voice_help' in self.callbacks:
-                help_info = self.callbacks['get_voice_help']()
-                self.display_voice_response("help", help_info)
-            else:
-                help_text = """Available Voice Commands:
-• get_weather [city] - Get current weather
-• get_forecast [city] - Get weather forecast
-• get_temperature [city] - Get temperature
-• get_humidity [city] - Get humidity
-• get_wind [city] - Get wind information
-• help - Show this help
-• status - Show voice assistant status"""
-                self.display_voice_response("help", help_text)
-        except Exception as e:
-            logging.error(f"Error showing voice help: {e}")
-            messagebox.showerror("Error", f"Error showing voice help: {str(e)}")
-
-    def display_voice_response(self, command, response):
-        """Display voice command and response in the voice content area."""
-        try:
-            # Clear existing content
-            for widget in self.voice_content.scrollable_frame.winfo_children():
-                widget.destroy()
-
-            # Create response card
-            response_card = GlassmorphicFrame(
-                self.voice_content.scrollable_frame,
-                elevated=True,
-                gradient=True
-            )
-            response_card.pack(fill=tk.X, padx=10, pady=10)
-
-            # Command header
-            command_header = tk.Label(
-                response_card,
-                text=f"🎤 Command: {command}",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=response_card.bg_color,
-            )
-            command_header.pack(anchor=tk.W, padx=15, pady=(15, 5))
-
-            # Response content
-            response_text = tk.Text(
-                response_card,
-                height=10,
-                wrap=tk.WORD,
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-                fg=GlassmorphicStyle.TEXT_SECONDARY,
-                bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-                relief=tk.FLAT,
-                padx=10,
-                pady=10
-            )
-            response_text.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 15))
-            response_text.insert(tk.END, response)
-            response_text.configure(state=tk.DISABLED)
-
-        except Exception as e:
-            logging.error(f"Error displaying voice response: {e}")
