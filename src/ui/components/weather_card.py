@@ -31,7 +31,7 @@ class WeatherCard(GlassmorphicFrame):
         self.style = GlassmorphicStyle()
         self.icons = WeatherIcons()
         self.animation = AnimationHelper()
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
 
         # Weather data storage
         self.current_weather: Optional[WeatherData] = None

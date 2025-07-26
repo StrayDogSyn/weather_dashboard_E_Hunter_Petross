@@ -26,8 +26,7 @@ class WeatherDashboard:
         # Initialize visualization service
         self.viz_service = WeatherVisualizationService()
 
-        # Initialize responsive layout and button factory
-        self.responsive_layout = ResponsiveLayoutManager()
+        # Initialize button factory
         self.button_factory = ButtonFactory()
 
         # Dashboard window
@@ -132,9 +131,9 @@ class WeatherDashboard:
             bg_color=GlassmorphicStyle.BACKGROUND,
         )
         # Get responsive spacing
-        spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
         main_frame.pack(
-            fill=tk.BOTH, expand=True, padx=spacing.MEDIUM, pady=spacing.MEDIUM
+            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         # Title bar

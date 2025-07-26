@@ -43,7 +43,7 @@ class ApplicationHeader(GlassmorphicFrame):
         self.style = GlassmorphicStyle()
         self.animation = AnimationHelper()
         self.icons = WeatherIcons()
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
 
         # Callbacks
         self.on_settings = on_settings
@@ -273,8 +273,8 @@ class ApplicationHeader(GlassmorphicFrame):
         self.weather_icon_label.grid(
             row=0,
             column=0,
-            padx=(self.spacing.MEDIUM, self.spacing.SMALL),
-            pady=self.spacing.SMALL,
+            padx=(ResponsiveSpacing.MEDIUM, ResponsiveSpacing.SMALL),
+            pady=ResponsiveSpacing.SMALL,
         )
 
         # Temperature display
@@ -289,8 +289,8 @@ class ApplicationHeader(GlassmorphicFrame):
             row=0,
             column=1,
             sticky="w",
-            padx=self.spacing.SMALL,
-            pady=self.spacing.SMALL,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
         )
 
         # Status text
@@ -305,8 +305,8 @@ class ApplicationHeader(GlassmorphicFrame):
             row=0,
             column=2,
             sticky="e",
-            padx=(self.spacing.SMALL, self.spacing.MEDIUM),
-            pady=self.spacing.SMALL,
+            padx=(ResponsiveSpacing.SMALL, ResponsiveSpacing.MEDIUM),
+            pady=ResponsiveSpacing.SMALL,
         )
 
     def _start_clock(self) -> None:

@@ -49,9 +49,7 @@ class MainDashboard(GlassmorphicFrame):
         self.logger = logging.getLogger(__name__)
 
         # Initialize responsive layout components
-        self.responsive_layout = ResponsiveLayoutManager()
         self.button_factory = ButtonFactory()
-        self.spacing = ResponsiveSpacing()
 
         # Services
         self.weather_service = weather_service
@@ -96,8 +94,8 @@ class MainDashboard(GlassmorphicFrame):
             row=0,
             column=0,
             sticky="nsew",
-            padx=self.spacing.container_padding,
-            pady=self.spacing.container_padding,
+            padx=ResponsiveSpacing.CONTAINER_PADDING,
+            pady=ResponsiveSpacing.CONTAINER_PADDING,
         )
         main_container.grid_columnconfigure(1, weight=1)
         main_container.grid_rowconfigure(0, weight=1)
@@ -114,9 +112,9 @@ class MainDashboard(GlassmorphicFrame):
         Args:
             parent: Parent widget
         """
-        left_panel = GlassmorphicFrame(parent, padding=self.spacing.element_spacing)
+        left_panel = GlassmorphicFrame(parent, padding=ResponsiveSpacing.ELEMENT_SPACING)
         left_panel.grid(
-            row=0, column=0, sticky="nsew", padx=(0, self.spacing.element_spacing)
+            row=0, column=0, sticky="nsew", padx=(0, ResponsiveSpacing.ELEMENT_SPACING)
         )
         left_panel.grid_columnconfigure(0, weight=1)
         left_panel.grid_rowconfigure(1, weight=1)
@@ -132,7 +130,7 @@ class MainDashboard(GlassmorphicFrame):
             on_favorite_add=self._handle_favorite_add,
         )
         self.search_panel.grid(
-            row=0, column=0, sticky="ew", pady=(0, self.spacing.element_spacing)
+            row=0, column=0, sticky="ew", pady=(0, ResponsiveSpacing.ELEMENT_SPACING)
         )
 
         # Weather card
@@ -145,7 +143,7 @@ class MainDashboard(GlassmorphicFrame):
         Args:
             parent: Parent widget
         """
-        right_panel = GlassmorphicFrame(parent, padding=self.spacing.element_spacing)
+        right_panel = GlassmorphicFrame(parent, padding=ResponsiveSpacing.ELEMENT_SPACING)
         right_panel.grid(row=0, column=1, sticky="nsew")
         right_panel.grid_columnconfigure(0, weight=1)
         right_panel.grid_rowconfigure(0, weight=1)
@@ -682,8 +680,7 @@ class MainDashboard(GlassmorphicFrame):
         if hasattr(self, "responsive_layout"):
             self.responsive_layout.update_layout()
 
-            # Update spacing values
-            self.spacing = ResponsiveSpacing()
+            # Spacing values are accessed directly from ResponsiveSpacing class
 
             # Trigger layout updates for child components
             if self.search_panel and hasattr(

@@ -52,9 +52,8 @@ class TemperatureControls(GlassmorphicFrame):
         self.animation = AnimationHelper()
 
         # Initialize responsive layout components
-        self.responsive_layout = ResponsiveLayoutManager()
         self.button_factory = ButtonFactory()
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
 
         # State
         self.current_unit = initial_unit
@@ -93,8 +92,8 @@ class TemperatureControls(GlassmorphicFrame):
             row=0,
             column=0,
             sticky="ew",
-            padx=self.spacing.container_padding,
-            pady=self.spacing.element_spacing,
+            padx=ResponsiveSpacing.CONTAINER_PADDING,
+            pady=ResponsiveSpacing.ELEMENT_SPACING,
         )
         main_frame.grid_columnconfigure(1, weight=1)
 
@@ -118,8 +117,8 @@ class TemperatureControls(GlassmorphicFrame):
             row=0,
             column=0,
             sticky="ew",
-            padx=(0, self.spacing.element_spacing),
-            pady=self.spacing.element_spacing,
+            padx=(0, ResponsiveSpacing.ELEMENT_SPACING),
+            pady=ResponsiveSpacing.ELEMENT_SPACING,
         )
 
         # Unit selector label
@@ -145,7 +144,7 @@ class TemperatureControls(GlassmorphicFrame):
             button.grid(
                 row=1,
                 column=i,
-                padx=self.spacing.button_spacing,
+                padx=ResponsiveSpacing.BUTTON_SPACING,
                 pady=(0, 10),
                 sticky="ew",
             )
@@ -165,8 +164,8 @@ class TemperatureControls(GlassmorphicFrame):
             row=0,
             column=1,
             sticky="ew",
-            padx=(0, self.spacing.element_spacing),
-            pady=self.spacing.element_spacing,
+            padx=(0, ResponsiveSpacing.ELEMENT_SPACING),
+            pady=ResponsiveSpacing.ELEMENT_SPACING,
         )
         display_frame.grid_columnconfigure(0, weight=1)
 
@@ -240,7 +239,7 @@ class TemperatureControls(GlassmorphicFrame):
         """
         controls_frame = GlassmorphicFrame(parent)
         controls_frame.grid(
-            row=0, column=2, sticky="ew", pady=self.spacing.element_spacing
+            row=0, column=2, sticky="ew", pady=ResponsiveSpacing.ELEMENT_SPACING
         )
 
         # Precision control
@@ -574,8 +573,7 @@ class TemperatureControls(GlassmorphicFrame):
         if hasattr(self, "responsive_layout"):
             self.responsive_layout.update_layout()
 
-            # Update spacing values
-            self.spacing = ResponsiveSpacing()
+            # Spacing values are accessed directly from ResponsiveSpacing class
 
             # Update button styles based on screen size
             for button in self.unit_buttons.values():

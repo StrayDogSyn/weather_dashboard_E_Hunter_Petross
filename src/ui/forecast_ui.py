@@ -40,7 +40,7 @@ class ForecastVisualizationFrame(ttk.Frame):
         super().__init__(parent)
         self.integration_service = integration_service
         self.logger = logging.getLogger(__name__)
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
 
         # Current forecast data
         self.current_forecast = None
@@ -150,7 +150,7 @@ class ForecastVisualizationFrame(ttk.Frame):
         # Scrollable text area for detailed information
         self.details_scroll_frame = ttk.Frame(self.details_frame)
         self.details_scroll_frame.pack(
-            fill=tk.BOTH, expand=True, padx=self.spacing.SMALL, pady=self.spacing.SMALL
+            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
         )
 
         # Text widget with scrollbar
@@ -175,7 +175,7 @@ class ForecastVisualizationFrame(ttk.Frame):
         # Export buttons
         self.export_frame = ttk.Frame(self.details_frame)
         self.export_frame.pack(
-            fill=tk.X, padx=self.spacing.SMALL, pady=self.spacing.SMALL
+            fill=tk.X, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
         )
 
         self.export_json_btn = ttk.Button(
@@ -199,28 +199,28 @@ class ForecastVisualizationFrame(ttk.Frame):
         """Setup the layout of all widgets."""
         # Title
         self.title_frame.pack(
-            fill=tk.X, padx=self.spacing.MEDIUM, pady=self.spacing.SMALL
+            fill=tk.X, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
         )
         self.title_label.pack()
 
         # Options
         self.options_frame.pack(
-            fill=tk.X, padx=self.spacing.MEDIUM, pady=self.spacing.SMALL
+            fill=tk.X, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
         )
 
         # City input
         self.city_label.grid(
             row=0,
             column=0,
-            padx=self.spacing.SMALL,
-            pady=self.spacing.SMALL,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
             sticky=tk.W,
         )
         self.city_entry.grid(
             row=0,
             column=1,
-            padx=self.spacing.SMALL,
-            pady=self.spacing.SMALL,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
             sticky=tk.W,
         )
 
@@ -228,15 +228,15 @@ class ForecastVisualizationFrame(ttk.Frame):
         self.days_label.grid(
             row=0,
             column=2,
-            padx=self.spacing.SMALL,
-            pady=self.spacing.SMALL,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
             sticky=tk.W,
         )
         self.days_spin.grid(
             row=0,
             column=3,
-            padx=self.spacing.SMALL,
-            pady=self.spacing.SMALL,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
             sticky=tk.W,
         )
 
@@ -244,27 +244,27 @@ class ForecastVisualizationFrame(ttk.Frame):
         self.ml_check.grid(
             row=0,
             column=4,
-            padx=self.spacing.MEDIUM,
-            pady=self.spacing.SMALL,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
             sticky=tk.W,
         )
 
         # Buttons
         self.generate_btn.grid(
-            row=0, column=5, padx=self.spacing.SMALL, pady=self.spacing.SMALL
+            row=0, column=5, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
         )
         self.refresh_btn.grid(
-            row=0, column=6, padx=self.spacing.SMALL, pady=self.spacing.SMALL
+            row=0, column=6, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
         )
 
         # Forecast display
         self.forecast_notebook.pack(
-            fill=tk.BOTH, expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.SMALL
+            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
         )
 
         # Status bar
         self.status_frame.pack(
-            fill=tk.X, padx=self.spacing.MEDIUM, pady=self.spacing.SMALL
+            fill=tk.X, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
         )
         self.status_label.pack(side=tk.LEFT)
         self.progress.pack(side=tk.RIGHT, padx=(10, 0))

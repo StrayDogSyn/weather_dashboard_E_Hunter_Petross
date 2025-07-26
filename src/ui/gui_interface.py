@@ -84,14 +84,14 @@ class WeatherDashboardGUI(IUserInterface):
         self.glassmorphic_style = GlassmorphicStyle()
         self.animation_helper = AnimationHelper()
         self.weather_icons = WeatherIcons()
-
-        # Initialize responsive layout manager
-        self.responsive_layout = ResponsiveLayoutManager()
         self.button_factory = ButtonFactory()
 
         # Initialize main window
         self.root = ttk_bs.Window(themename="darkly")
         self.setup_window()
+
+        # Initialize responsive layout manager after root window is created
+        self.responsive_layout = ResponsiveLayoutManager(self.root)
 
         # Initialize weather dashboard (will be set later to avoid circular import)
         self.weather_dashboard = None
@@ -149,9 +149,6 @@ class WeatherDashboardGUI(IUserInterface):
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.bind("<Configure>", self.on_window_resize)
 
-        # Initialize responsive layout with window
-        self.responsive_layout.set_window(self.root)
-
     def center_window(self) -> None:
         """Center the window on the screen."""
         self.root.update_idletasks()
@@ -198,7 +195,7 @@ class WeatherDashboardGUI(IUserInterface):
     def create_layout(self) -> None:
         """Create the main application layout with responsive design."""
         # Get responsive spacing
-        spacing = self.responsive_layout.get_spacing()
+        spacing = self.responsive_layout.get_spacing_for_layout()
 
         # Create header
         self.header = ApplicationHeader(
@@ -211,8 +208,8 @@ class WeatherDashboardGUI(IUserInterface):
             row=0,
             column=0,
             sticky="ew",
-            padx=spacing.container_padding,
-            pady=(spacing.container_padding, 0),
+            padx=spacing["container_padding"],
+            pady=(spacing["container_padding"], 0),
         )
 
         # Create main content area with responsive layout
@@ -221,8 +218,8 @@ class WeatherDashboardGUI(IUserInterface):
             row=1,
             column=0,
             sticky="nsew",
-            padx=spacing.container_padding,
-            pady=spacing.container_padding,
+            padx=spacing["container_padding"],
+            pady=spacing["container_padding"],
         )
         main_content.grid_rowconfigure(0, weight=1)
         main_content.grid_columnconfigure(1, weight=1)
@@ -240,8 +237,8 @@ class WeatherDashboardGUI(IUserInterface):
             row=0,
             column=0,
             sticky="ns",
-            padx=(spacing.element_padding, spacing.element_spacing),
-            pady=spacing.element_padding,
+            padx=(spacing["element_spacing"], spacing["element_spacing"]),
+            pady=spacing["element_spacing"],
         )
 
         # Create main dashboard with responsive layout
@@ -255,8 +252,8 @@ class WeatherDashboardGUI(IUserInterface):
             row=0,
             column=1,
             sticky="nsew",
-            padx=(spacing.element_spacing, spacing.element_padding),
-            pady=spacing.element_padding,
+            padx=(spacing["element_spacing"], spacing["element_spacing"]),
+            pady=spacing["element_spacing"],
         )
 
         # Apply responsive layout management

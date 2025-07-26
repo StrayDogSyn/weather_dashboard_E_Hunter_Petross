@@ -11,7 +11,7 @@ class SettingsDialog(tk.Toplevel):
         super().__init__(master)
         self.title("Settings")
         self.pref_mgr = PreferenceManager.get_instance()
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
         self._build_ui()
 
     def _build_ui(self):

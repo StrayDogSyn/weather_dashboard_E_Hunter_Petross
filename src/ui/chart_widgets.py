@@ -35,7 +35,7 @@ class WeatherChartWidget(GlassmorphicFrame):
         super().__init__(parent, bg_color="#1a1a2e", elevated=True, **kwargs)
         self.chart_type = chart_type
         self.logger = logging.getLogger(__name__)
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
 
         if MATPLOTLIB_AVAILABLE:
             plt.style.use("dark_background")
@@ -65,7 +65,7 @@ class WeatherChartWidget(GlassmorphicFrame):
         canvas_widget = self.canvas.get_tk_widget()
         canvas_widget.configure(bg="#1a1a2e")
         canvas_widget.pack(
-            fill=tk.BOTH, expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.SMALL
+            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
         )
 
     def setup_no_chart_message(self):
@@ -136,7 +136,7 @@ class ForecastChartWidget(GlassmorphicFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, bg_color="#1a1a2e", elevated=True, **kwargs)
         self.logger = logging.getLogger(__name__)
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
 
         if MATPLOTLIB_AVAILABLE:
             plt.style.use("dark_background")
@@ -166,7 +166,7 @@ class ForecastChartWidget(GlassmorphicFrame):
         canvas_widget = self.canvas.get_tk_widget()
         canvas_widget.configure(bg="#1a1a2e")
         canvas_widget.pack(
-            fill=tk.BOTH, expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.SMALL
+            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
         )
 
     def setup_no_chart_message(self):
@@ -255,7 +255,7 @@ class ComparisonChartWidget(GlassmorphicFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, bg_color="#1a1a2e", elevated=True, **kwargs)
         self.logger = logging.getLogger(__name__)
-        self.spacing = ResponsiveSpacing()
+        # Use ResponsiveSpacing class attributes directly
 
         if MATPLOTLIB_AVAILABLE:
             plt.style.use("dark_background")
@@ -285,7 +285,7 @@ class ComparisonChartWidget(GlassmorphicFrame):
         canvas_widget = self.canvas.get_tk_widget()
         canvas_widget.configure(bg="#1a1a2e")
         canvas_widget.pack(
-            fill=tk.BOTH, expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.SMALL
+            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
         )
 
     def setup_no_chart_message(self):

@@ -192,9 +192,11 @@ class WeatherDashboardGUIApp:
         """Create the main application window."""
         try:
             # Import here to avoid circular imports
-            from ..ui.main_window import MainWindow
+            from ..ui.gui_interface import WeatherDashboardGUI
 
-            self._main_window = MainWindow(self._root, self._container)
+            self._main_window = WeatherDashboardGUI()
+            self._main_window.root = self._root
+            self._main_window.container = self._container
 
             self._logger.debug("Main window created")
 
