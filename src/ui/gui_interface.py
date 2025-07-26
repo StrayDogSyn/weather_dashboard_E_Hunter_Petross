@@ -115,13 +115,15 @@ class WeatherDashboardGUI(IUserInterface):
     def setup_window(self) -> None:
         """Configure the main window."""
         self.root.title("Weather Dashboard - Your Personal Weather Companion")
-        self.root.geometry("1400x900")
+        
+        # Set window to fullscreen
+        self.root.state('zoomed')  # Windows fullscreen
         self.root.minsize(1200, 800)
         
         # Configure window properties
         self.root.configure(bg=self.glassmorphic_style.BACKGROUND)
         
-        # Center window on screen
+        # Center window on screen (fallback if fullscreen fails)
         self.center_window()
         
         # Configure grid weights

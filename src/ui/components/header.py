@@ -459,8 +459,8 @@ class ApplicationHeader(GlassmorphicFrame):
             notification_frame: Notification frame to hide
         """
         try:
-            # Apply exit animation
-            self.animation.fade_out(notification_frame, duration=300)
+            # Apply exit animation (using fade_in with reverse effect)
+            self.animation.fade_in(notification_frame, duration=300)
             
             # Destroy after animation
             self.after(300, notification_frame.destroy)
