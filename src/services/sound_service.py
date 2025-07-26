@@ -2,33 +2,26 @@
 Sound Effects Service for Weather Dashboard.
 
 This service provides audio feedback for user interactions and weather events.
+
 Simplified and optimized for better maintainability.
 """
 
+import importlib.util
 import logging
 import os
 import threading
 from enum import Enum
-from typing import Dict, Optional, Any
+from typing import Any, Dict, Optional
 
-try:
-    import pygame
-    PYGAME_AVAILABLE = True
-except ImportError:
-    PYGAME_AVAILABLE = False
-
-try:
-    import winsound
-    WINSOUND_AVAILABLE = True
-except ImportError:
-    WINSOUND_AVAILABLE = False
+PYGAME_AVAILABLE = importlib.util.find_spec("pygame") is not None
+WINSOUND_AVAILABLE = importlib.util.find_spec("winsound") is not None
 
 
 class SoundType(Enum):
     """Enumeration of different sound effect types."""
 
     # UI Interaction Sounds
-    BUTTON_CLICK = "button_click"      # Covers clicks, hovers, tab switches
+    BUTTON_CLICK = "button_click"  # Covers clicks, hovers, tab switches
     SUCCESS = "success"
     ERROR = "error"
     WARNING = "warning"
@@ -42,7 +35,7 @@ class SoundType(Enum):
     # Feature Specific Sounds
     COMPARE_CITIES = "compare_cities"
     JOURNAL_SAVE = "journal_save"
-    MAGIC = "magic"                    # Covers poetry, activity suggestions, special effects
+    MAGIC = "magic"  # Covers poetry, activity suggestions, special effects
 
 
 class SoundService:
@@ -92,6 +85,7 @@ class SoundService:
         if PYGAME_AVAILABLE:
             try:
                 import pygame
+
                 pygame.mixer.init()
                 pygame.mixer.quit()
                 return "pygame"
@@ -108,6 +102,7 @@ class SoundService:
         try:
             if self.audio_backend == "pygame":
                 import pygame
+
                 pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
                 self.logger.info("Audio initialized with pygame")
         except Exception as e:
@@ -119,7 +114,9 @@ class SoundService:
         if not self.enabled:
             return
 
-        sounds_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'sounds')
+        sounds_dir = os.path.join(
+            os.path.dirname(__file__), "..", "..", "data", "sounds"
+        )
         if not os.path.exists(sounds_dir):
             self.logger.warning(f"Sounds directory not found: {sounds_dir}")
             return
@@ -131,13 +128,16 @@ class SoundService:
                 try:
                     if self.audio_backend == "pygame":
                         import pygame
+
                         sound = pygame.mixer.Sound(file_path)
                         self.sounds_cache[sound_type] = sound
                         loaded_count += 1
                 except Exception as e:
                     self.logger.debug(f"Failed to load {filename}: {e}")
 
-        self.logger.info(f"Loaded {loaded_count} active sound effects (3 active, 8 reserved for future use)")
+        self.logger.info(
+            f"Loaded {loaded_count} active sound effects (3 active, 8 reserved for future use)"
+        )
 
     def play_sound(self, sound_type: SoundType, volume: Optional[float] = None):
         """Play a sound effect. Only active sounds will play; reserved sounds are silently ignored."""
@@ -154,20 +154,21 @@ class SoundService:
 
             if self.audio_backend == "pygame" and sound_type in self.sounds_cache:
                 sound = self.sounds_cache[sound_type]
-                if hasattr(sound, 'set_volume') and hasattr(sound, 'play'):
+                if hasattr(sound, "set_volume") and hasattr(sound, "play"):
                     sound.set_volume(play_volume)
                     sound.play()
             elif self.audio_backend == "winsound":
                 # Simple fallback beeps for active sounds only
                 if WINSOUND_AVAILABLE:
                     import winsound
+
                     frequencies = {
                         SoundType.BUTTON_CLICK: 800,
                         SoundType.ERROR: 200,
                         SoundType.COMPARE_CITIES: 450,
                     }
                     freq = frequencies.get(sound_type, 600)
-                    winsound.Beep(freq, 100)
+                    winsound.Beep(freq, 100)  # type: ignore[attr-defined]  # mypy: ignore, winsound is only available on Windows
 
         except Exception as e:
             self.logger.debug(f"Failed to play sound {sound_type.value}: {e}")
@@ -178,15 +179,15 @@ class SoundService:
             return
 
         threading.Thread(
-            target=self.play_sound,
-            args=(sound_type, volume),
-            daemon=True
+            target=self.play_sound, args=(sound_type, volume), daemon=True
         ).start()
 
     def play_weather_sound(self, weather_condition: str):
         """Play a sound based on weather condition. Currently disabled - reserved for future use."""
         # Weather sounds are reserved for future implementation
-        self.logger.debug(f"Weather sound for '{weather_condition}' is reserved for future use")
+        self.logger.debug(
+            f"Weather sound for '{weather_condition}' is reserved for future use"
+        )
         # Uncomment when weather sounds are re-enabled:
         # condition_lower = weather_condition.lower()
         # if "rain" in condition_lower:
@@ -218,19 +219,24 @@ class SoundService:
             # Enable specific reserved sounds
             for sound_type in sound_types:
                 if sound_type in self.reserved_sound_files:
-                    self.sound_files[sound_type] = self.reserved_sound_files.pop(sound_type)
+                    self.sound_files[sound_type] = self.reserved_sound_files.pop(
+                        sound_type
+                    )
 
         # Reload sounds if audio is initialized
         if self.enabled and self.audio_backend:
             self._load_sounds()
 
-        self.logger.info(f"Enabled {len(sound_types) if sound_types else len(self.reserved_sound_files)} reserved sounds")
+        self.logger.info(
+            f"Enabled {len(sound_types) if sound_types else len(self.reserved_sound_files)} reserved sounds"
+        )
 
     def cleanup(self):
         """Clean up audio resources."""
         try:
             if self.audio_backend == "pygame" and PYGAME_AVAILABLE:
                 import pygame
+
                 pygame.mixer.quit()
             self.sounds_cache.clear()
         except Exception as e:

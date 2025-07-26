@@ -39,68 +39,69 @@ class WeatherAPIService(IWeatherAPI):
         self.api_key = api_key or self._get_api_key()
         self.base_url = "https://api.weatherapi.com/v1"
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Weather-Dashboard/1.0'
-        })
+        self.session.headers.update({"User-Agent": "Weather-Dashboard/1.0"})
 
         # Condition mapping from WeatherAPI to our enum
         self._condition_map = {
-            1000: WeatherCondition.CLEAR,      # Sunny/Clear
-            1003: WeatherCondition.CLOUDS,     # Partly cloudy
-            1006: WeatherCondition.CLOUDS,     # Cloudy
-            1009: WeatherCondition.CLOUDS,     # Overcast
-            1030: WeatherCondition.MIST,       # Mist
-            1063: WeatherCondition.RAIN,       # Patchy rain possible
-            1066: WeatherCondition.SNOW,       # Patchy snow possible
-            1069: WeatherCondition.RAIN,       # Patchy sleet possible
-            1072: WeatherCondition.DRIZZLE,    # Patchy freezing drizzle
-            1087: WeatherCondition.THUNDERSTORM, # Thundery outbreaks possible
-            1114: WeatherCondition.SNOW,       # Blowing snow
-            1117: WeatherCondition.SNOW,       # Blizzard
-            1135: WeatherCondition.FOG,        # Fog
-            1147: WeatherCondition.FOG,        # Freezing fog
-            1150: WeatherCondition.DRIZZLE,    # Patchy light drizzle
-            1153: WeatherCondition.DRIZZLE,    # Light drizzle
-            1168: WeatherCondition.DRIZZLE,    # Freezing drizzle
-            1171: WeatherCondition.DRIZZLE,    # Heavy freezing drizzle
-            1180: WeatherCondition.RAIN,       # Patchy light rain
-            1183: WeatherCondition.RAIN,       # Light rain
-            1186: WeatherCondition.RAIN,       # Moderate rain at times
-            1189: WeatherCondition.RAIN,       # Moderate rain
-            1192: WeatherCondition.RAIN,       # Heavy rain at times
-            1195: WeatherCondition.RAIN,       # Heavy rain
-            1198: WeatherCondition.RAIN,       # Light freezing rain
-            1201: WeatherCondition.RAIN,       # Moderate or heavy freezing rain
-            1204: WeatherCondition.RAIN,       # Light sleet
-            1207: WeatherCondition.RAIN,       # Moderate or heavy sleet
-            1210: WeatherCondition.SNOW,       # Patchy light snow
-            1213: WeatherCondition.SNOW,       # Light snow
-            1216: WeatherCondition.SNOW,       # Patchy moderate snow
-            1219: WeatherCondition.SNOW,       # Moderate snow
-            1222: WeatherCondition.SNOW,       # Patchy heavy snow
-            1225: WeatherCondition.SNOW,       # Heavy snow
-            1237: WeatherCondition.SNOW,       # Ice pellets
-            1240: WeatherCondition.RAIN,       # Light rain shower
-            1243: WeatherCondition.RAIN,       # Moderate or heavy rain shower
-            1246: WeatherCondition.RAIN,       # Torrential rain shower
-            1249: WeatherCondition.RAIN,       # Light sleet showers
-            1252: WeatherCondition.RAIN,       # Moderate or heavy sleet showers
-            1255: WeatherCondition.SNOW,       # Light snow showers
-            1258: WeatherCondition.SNOW,       # Moderate or heavy snow showers
-            1261: WeatherCondition.SNOW,       # Light showers of ice pellets
-            1264: WeatherCondition.SNOW,       # Moderate or heavy showers of ice pellets
-            1273: WeatherCondition.THUNDERSTORM, # Patchy light rain with thunder
-            1276: WeatherCondition.THUNDERSTORM, # Moderate or heavy rain with thunder
-            1279: WeatherCondition.THUNDERSTORM, # Patchy light snow with thunder
-            1282: WeatherCondition.THUNDERSTORM, # Moderate or heavy snow with thunder
+            1000: WeatherCondition.CLEAR,  # Sunny/Clear
+            1003: WeatherCondition.CLOUDS,  # Partly cloudy
+            1006: WeatherCondition.CLOUDS,  # Cloudy
+            1009: WeatherCondition.CLOUDS,  # Overcast
+            1030: WeatherCondition.MIST,  # Mist
+            1063: WeatherCondition.RAIN,  # Patchy rain possible
+            1066: WeatherCondition.SNOW,  # Patchy snow possible
+            1069: WeatherCondition.RAIN,  # Patchy sleet possible
+            1072: WeatherCondition.DRIZZLE,  # Patchy freezing drizzle
+            1087: WeatherCondition.THUNDERSTORM,  # Thundery outbreaks possible
+            1114: WeatherCondition.SNOW,  # Blowing snow
+            1117: WeatherCondition.SNOW,  # Blizzard
+            1135: WeatherCondition.FOG,  # Fog
+            1147: WeatherCondition.FOG,  # Freezing fog
+            1150: WeatherCondition.DRIZZLE,  # Patchy light drizzle
+            1153: WeatherCondition.DRIZZLE,  # Light drizzle
+            1168: WeatherCondition.DRIZZLE,  # Freezing drizzle
+            1171: WeatherCondition.DRIZZLE,  # Heavy freezing drizzle
+            1180: WeatherCondition.RAIN,  # Patchy light rain
+            1183: WeatherCondition.RAIN,  # Light rain
+            1186: WeatherCondition.RAIN,  # Moderate rain at times
+            1189: WeatherCondition.RAIN,  # Moderate rain
+            1192: WeatherCondition.RAIN,  # Heavy rain at times
+            1195: WeatherCondition.RAIN,  # Heavy rain
+            1198: WeatherCondition.RAIN,  # Light freezing rain
+            1201: WeatherCondition.RAIN,  # Moderate or heavy freezing rain
+            1204: WeatherCondition.RAIN,  # Light sleet
+            1207: WeatherCondition.RAIN,  # Moderate or heavy sleet
+            1210: WeatherCondition.SNOW,  # Patchy light snow
+            1213: WeatherCondition.SNOW,  # Light snow
+            1216: WeatherCondition.SNOW,  # Patchy moderate snow
+            1219: WeatherCondition.SNOW,  # Moderate snow
+            1222: WeatherCondition.SNOW,  # Patchy heavy snow
+            1225: WeatherCondition.SNOW,  # Heavy snow
+            1237: WeatherCondition.SNOW,  # Ice pellets
+            1240: WeatherCondition.RAIN,  # Light rain shower
+            1243: WeatherCondition.RAIN,  # Moderate or heavy rain shower
+            1246: WeatherCondition.RAIN,  # Torrential rain shower
+            1249: WeatherCondition.RAIN,  # Light sleet showers
+            1252: WeatherCondition.RAIN,  # Moderate or heavy sleet showers
+            1255: WeatherCondition.SNOW,  # Light snow showers
+            1258: WeatherCondition.SNOW,  # Moderate or heavy snow showers
+            1261: WeatherCondition.SNOW,  # Light showers of ice pellets
+            1264: WeatherCondition.SNOW,  # Moderate or heavy showers of ice pellets
+            1273: WeatherCondition.THUNDERSTORM,  # Patchy light rain with thunder
+            1276: WeatherCondition.THUNDERSTORM,  # Moderate or heavy rain with thunder
+            1279: WeatherCondition.THUNDERSTORM,  # Patchy light snow with thunder
+            1282: WeatherCondition.THUNDERSTORM,  # Moderate or heavy snow with thunder
         }
 
     def _get_api_key(self) -> str:
         """Get API key from environment or config."""
         import os
+
         return os.getenv("WEATHERAPI_API_KEY", "")
 
-    def _make_request(self, endpoint: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def _make_request(
+        self, endpoint: str, params: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """
         Make an API request with error handling.
 
@@ -157,7 +158,7 @@ class WeatherAPIService(IWeatherAPI):
             name=location_data.get("name", ""),
             country=location_data.get("country", ""),
             latitude=location_data.get("lat", 0.0),
-            longitude=location_data.get("lon", 0.0)
+            longitude=location_data.get("lon", 0.0),
         )
 
     def _parse_current_weather(self, data: Dict[str, Any]) -> Optional[CurrentWeather]:
@@ -173,9 +174,7 @@ class WeatherAPIService(IWeatherAPI):
             feels_like_c = current.get("feelslike_c", temp_c)
 
             temperature = Temperature(
-                value=temp_c,
-                unit=TemperatureUnit.CELSIUS,
-                feels_like=feels_like_c
+                value=temp_c, unit=TemperatureUnit.CELSIUS, feels_like=feels_like_c
             )
 
             # Weather condition
@@ -186,24 +185,25 @@ class WeatherAPIService(IWeatherAPI):
             wind = Wind(
                 speed=current.get("wind_kph", 0.0) / 3.6,  # Convert kph to m/s
                 direction=current.get("wind_degree", 0),
-                gust=current.get("gust_kph", 0.0) / 3.6 if current.get("gust_kph") else None
+                gust=(
+                    current.get("gust_kph", 0.0) / 3.6
+                    if current.get("gust_kph")
+                    else None
+                ),
             )
 
             # Atmospheric pressure
             pressure = AtmosphericPressure(
                 value=current.get("pressure_mb", 1013.25),
                 sea_level=current.get("pressure_mb", 1013.25),
-                ground_level=current.get("pressure_mb", 1013.25)
+                ground_level=current.get("pressure_mb", 1013.25),
             )
 
             # Precipitation (if available)
             precipitation = None
             precip_mm = current.get("precip_mm", 0.0)
             if precip_mm > 0:
-                precipitation = Precipitation(
-                    rain_1h=precip_mm,
-                    rain_3h=precip_mm
-                )
+                precipitation = Precipitation(rain_1h=precip_mm, rain_3h=precip_mm)
 
             return CurrentWeather(
                 location=location,
@@ -216,14 +216,16 @@ class WeatherAPIService(IWeatherAPI):
                 precipitation=precipitation,
                 visibility=current.get("vis_km", 10.0),
                 uv_index=current.get("uv", 0.0),
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
         except Exception as e:
             logging.error(f"Error parsing WeatherAPI current weather: {e}")
             return None
 
-    def get_current_weather(self, city: str, units: str = "metric") -> Optional[CurrentWeather]:
+    def get_current_weather(
+        self, city: str, units: str = "metric"
+    ) -> Optional[CurrentWeather]:
         """
         Get current weather for a city from WeatherAPI.com.
 
@@ -234,10 +236,7 @@ class WeatherAPIService(IWeatherAPI):
         Returns:
             CurrentWeather or None if error
         """
-        params = {
-            "q": city,
-            "aqi": "no"  # We don't need air quality data
-        }
+        params = {"q": city, "aqi": "no"}  # We don't need air quality data
 
         data = self._make_request("current.json", params)
         if not data:
@@ -245,7 +244,9 @@ class WeatherAPIService(IWeatherAPI):
 
         return self._parse_current_weather(data)
 
-    def get_forecast(self, city: str, days: int = 5, units: str = "metric") -> Optional[WeatherForecast]:
+    def get_forecast(
+        self, city: str, days: int = 5, units: str = "metric"
+    ) -> Optional[WeatherForecast]:
         """
         Get weather forecast for a city from WeatherAPI.com.
 
@@ -260,12 +261,7 @@ class WeatherAPIService(IWeatherAPI):
         # WeatherAPI free tier allows up to 3 days, paid allows up to 10
         days = min(days, 3)  # Limit to 3 days for free tier compatibility
 
-        params = {
-            "q": city,
-            "days": days,
-            "aqi": "no",
-            "alerts": "no"
-        }
+        params = {"q": city, "days": days, "aqi": "no", "alerts": "no"}
 
         data = self._make_request("forecast.json", params)
         if not data:
@@ -289,18 +285,14 @@ class WeatherAPIService(IWeatherAPI):
                 # Temperature data
                 min_temp = day.get("mintemp_c", 0.0)
                 max_temp = day.get("maxtemp_c", 0.0)
-                _ = day.get("avgtemp_c", (min_temp + max_temp) / 2)
+                avg_temp = day.get("avgtemp_c", (min_temp + max_temp) / 2)
 
                 high_temp = Temperature(
-                    value=max_temp,
-                    unit=TemperatureUnit.CELSIUS,
-                    feels_like=max_temp
+                    value=max_temp, unit=TemperatureUnit.CELSIUS, feels_like=max_temp
                 )
 
                 low_temp = Temperature(
-                    value=min_temp,
-                    unit=TemperatureUnit.CELSIUS,
-                    feels_like=min_temp
+                    value=min_temp, unit=TemperatureUnit.CELSIUS, feels_like=min_temp
                 )
 
                 # Weather condition
@@ -312,17 +304,14 @@ class WeatherAPIService(IWeatherAPI):
                 wind = Wind(
                     speed=day.get("maxwind_kph", 0.0) / 3.6,  # Convert kph to m/s
                     direction=0,  # WeatherAPI doesn't provide forecast wind direction
-                    gust=None
+                    gust=None,
                 )
 
                 # Precipitation
                 precipitation = None
                 precip_mm = day.get("totalprecip_mm", 0.0)
                 if precip_mm > 0:
-                    precipitation = Precipitation(
-                        rain_1h=precip_mm,
-                        rain_3h=precip_mm
-                    )
+                    precipitation = Precipitation(rain_1h=precip_mm, rain_3h=precip_mm)
 
                 # Create forecast day
                 forecast_day = WeatherForecastDay(
@@ -334,7 +323,7 @@ class WeatherAPIService(IWeatherAPI):
                     humidity=int(day.get("avghumidity", 0)),
                     wind=wind,
                     precipitation_chance=int(day.get("daily_chance_of_rain", 0)),
-                    precipitation=precipitation
+                    precipitation=precipitation,
                 )
 
                 daily_forecasts.append(forecast_day)
@@ -343,7 +332,7 @@ class WeatherAPIService(IWeatherAPI):
             return WeatherForecast(
                 location=location,
                 forecast_days=daily_forecasts,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
 
         except Exception as e:
@@ -361,9 +350,7 @@ class WeatherAPIService(IWeatherAPI):
         Returns:
             List of Location objects
         """
-        params = {
-            "q": query
-        }
+        params = {"q": query}
 
         data = self._make_request("search.json", params)
         if not data or not isinstance(data, list):
@@ -379,7 +366,7 @@ class WeatherAPIService(IWeatherAPI):
                         name=item.get("name", ""),
                         country=item.get("country", ""),
                         latitude=item.get("lat", 0.0),
-                        longitude=item.get("lon", 0.0)
+                        longitude=item.get("lon", 0.0),
                     )
                     locations.append(location)
             except Exception as e:
@@ -403,7 +390,7 @@ class WeatherAPIService(IWeatherAPI):
             CurrentWeather or None if error
         """
         # WeatherAPI.com accepts coordinates as "lat,lon" format
-        coords = f"{latitude}, {longitude}"
+        coords = f"{latitude},{longitude}"
         return self.get_current_weather(coords, units)
 
     def get_forecast_by_coordinates(
@@ -422,5 +409,5 @@ class WeatherAPIService(IWeatherAPI):
             WeatherForecast or None if error
         """
         # WeatherAPI.com accepts coordinates as "lat,lon" format
-        coords = f"{latitude}, {longitude}"
+        coords = f"{latitude},{longitude}"
         return self.get_forecast(coords, days, units)

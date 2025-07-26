@@ -53,10 +53,14 @@ class WeatherJournalService:
                         try:
                             created_at = datetime.fromisoformat(created_at_str)
                         except (ValueError, TypeError) as e:
-                            self.logger.warning(f"Could not parse created_at '{created_at_str}': {e}, using current time")
+                            self.logger.warning(
+                                f"Could not parse created_at '{created_at_str}': {e}, using current time"
+                            )
                             created_at = datetime.now()
                     else:
-                        self.logger.warning("Empty created_at string, using current time")
+                        self.logger.warning(
+                            "Empty created_at string, using current time"
+                        )
                         created_at = datetime.now()
 
                     entry = JournalEntry(
@@ -346,10 +350,14 @@ class WeatherJournalService:
                     try:
                         return datetime.strptime(date_obj, "%m/%d/%Y").date()
                     except ValueError:
-                        self.logger.warning(f"Could not parse date '{date_obj}', using today's date")
+                        self.logger.warning(
+                            f"Could not parse date '{date_obj}', using today's date"
+                        )
                         return date.today()
         else:
-            self.logger.warning(f"Invalid date type: {type(date_obj)}, using today's date")
+            self.logger.warning(
+                f"Invalid date type: {type(date_obj)}, using today's date"
+            )
             return date.today()
 
     def _validate_mood(self, mood_value: Any) -> MoodType:
@@ -368,17 +376,17 @@ class WeatherJournalService:
             # Handle common mood variations
             mood_lower = mood_value.lower().strip()
             mood_mapping = {
-                'happy': MoodType.HAPPY,
-                'confident': MoodType.MOTIVATED,
-                'excited': MoodType.EXCITED,
-                'calm': MoodType.PEACEFUL,
-                'relaxed': MoodType.RELAXED,
-                'sad': MoodType.SAD,
-                'worried': MoodType.ANXIOUS,
-                'stressed': MoodType.ANXIOUS,
-                'angry': MoodType.ANXIOUS,  # Map to anxious as closest match
-                'frustrated': MoodType.ANXIOUS,  # Map to anxious as closest match
-                'neutral': MoodType.CONTENT,  # Map neutral to content
+                "happy": MoodType.HAPPY,
+                "confident": MoodType.MOTIVATED,
+                "excited": MoodType.EXCITED,
+                "calm": MoodType.PEACEFUL,
+                "relaxed": MoodType.RELAXED,
+                "sad": MoodType.SAD,
+                "worried": MoodType.ANXIOUS,
+                "stressed": MoodType.ANXIOUS,
+                "angry": MoodType.ANXIOUS,  # Map to anxious as closest match
+                "frustrated": MoodType.ANXIOUS,  # Map to anxious as closest match
+                "neutral": MoodType.CONTENT,  # Map neutral to content
             }
 
             # Try direct mapping first
@@ -394,7 +402,9 @@ class WeatherJournalService:
                     if mood_type.value.lower() == mood_lower:
                         return mood_type
 
-                self.logger.warning(f"Could not parse mood '{mood_value}', using content")
+                self.logger.warning(
+                    f"Could not parse mood '{mood_value}', using content"
+                )
                 return MoodType.CONTENT
         else:
             self.logger.warning(f"Invalid mood type: {type(mood_value)}, using content")
@@ -417,7 +427,9 @@ class WeatherJournalService:
                 try:
                     date_str = entry.date.isoformat()
                 except (AttributeError, ValueError) as e:
-                    self.logger.warning(f"Error serializing date: {e}, using today's date")
+                    self.logger.warning(
+                        f"Error serializing date: {e}, using today's date"
+                    )
                     date_str = date.today().isoformat()
 
             # Ensure we never store an empty date string
@@ -430,7 +442,9 @@ class WeatherJournalService:
                 try:
                     created_at_str = entry.created_at.isoformat()
                 except (AttributeError, ValueError) as e:
-                    self.logger.warning(f"Error serializing created_at: {e}, using current time")
+                    self.logger.warning(
+                        f"Error serializing created_at: {e}, using current time"
+                    )
                     created_at_str = datetime.now().isoformat()
 
             # Ensure we never store an empty created_at string

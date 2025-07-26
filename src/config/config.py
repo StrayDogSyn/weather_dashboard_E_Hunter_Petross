@@ -61,9 +61,7 @@ class UIConfiguration:
 
     theme: str = field(default_factory=lambda: os.getenv("WEATHER_THEME", "darkly"))
     window_title: str = field(
-        default_factory=lambda: os.getenv(
-            "WEATHER_WINDOW_TITLE", "🌤️ Weather Dashboard"
-        )
+        default_factory=lambda: os.getenv("WEATHER_WINDOW_TITLE", "🌤️ Weather Dashboard")
     )
     min_size: tuple = field(
         default_factory=lambda: _parse_size(os.getenv("WEATHER_MIN_SIZE", "800,600"))
@@ -358,7 +356,7 @@ class ConfigurationManager:
 
         # Show errors
         if errors:
-            print("❌ Configuration validation errors: ")
+            print("❌ Configuration validation errors:")
             for error in errors:
                 print(f" - {error}")
 

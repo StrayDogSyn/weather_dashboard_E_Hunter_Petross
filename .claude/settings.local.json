@@ -6,7 +6,10 @@
       "Bash(ls:*)",
       "Bash(sed:*)",
       "Bash(find:*)",
-      "Bash(flake8:*)"
+      "Bash(flake8:*)",
+      "Bash(git pull:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
     ],
     "deny": []
   }

@@ -6,12 +6,15 @@ of the Weather Dashboard, properly separated from business logic.
 """
 
 import logging
+import os
 import threading
 from typing import Optional
 
+from src.config.config import config_manager, setup_environment, validate_config
 from src.controllers.gui_controller import WeatherDashboardController
 from src.ui.gui_interface import WeatherDashboardGUI
 from src.models.capstone_models import MoodType, ActivitySuggestion
+from src.utils.validation import validate_city_name, sanitize_input
 
 
 class WeatherDashboardGUIApp:
@@ -21,6 +24,15 @@ class WeatherDashboardGUIApp:
         """Initialize the GUI application."""
         self.controller: Optional[WeatherDashboardController] = None
         self.gui: Optional[WeatherDashboardGUI] = None
+
+        # Setup environment first
+        setup_environment()
+
+        # Setup logging
+        self._setup_logging()
+
+        # Validate configuration
+        self.config_valid = validate_config()
 
         # Initialize controller (handles all business logic)
         self.controller = WeatherDashboardController()
@@ -38,6 +50,19 @@ class WeatherDashboardGUIApp:
 
         logging.info("GUI Weather Dashboard application initialized")
 
+    def _setup_logging(self):
+        """Setup logging configuration."""
+        log_level = getattr(logging, config_manager.config.logging.log_level)
+
+        logging.basicConfig(
+            level=log_level,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            handlers=[
+                logging.FileHandler("weather_dashboard.log"),
+                logging.StreamHandler(),
+            ],
+        )
+
     def _setup_gui_callbacks(self):
         """Setup GUI event callbacks to use the controller."""
         if not self.gui or not self.controller:
@@ -51,6 +76,8 @@ class WeatherDashboardGUIApp:
 
         # Comparison callbacks
         self.gui.set_callback("compare_cities", self._handle_compare_cities)
+
+        # Team data callbacks
         self.gui.set_callback("get_team_data_status", self._handle_get_team_data_status)
         self.gui.set_callback("refresh_team_data", self._handle_refresh_team_data)
         self.gui.set_callback("get_team_cities", self._handle_get_team_cities)
@@ -195,24 +222,7 @@ class WeatherDashboardGUIApp:
         """Handle team data refresh request."""
         if not self.controller:
             return {"error": "Controller not available"}
-
-        def refresh_async():
-            try:
-                if self.gui:
-                    self.gui.show_message("Refreshing team data from GitHub repository...")
-                # Enhanced service handles refresh automatically
-                success = True
-                if success and self.gui:
-                    self.gui.show_message("Team data refreshed successfully from GitHub!")
-                elif self.gui:
-                    self.gui.show_error("Failed to refresh team data")
-            except Exception as e:
-                logging.error(f"Error refreshing team data: {e}")
-                if self.gui:
-                    self.gui.show_error(f"Error refreshing team data: {str(e)}")
-
-        threading.Thread(target=refresh_async, daemon=True).start()
-        return {"status": "refresh_started"}
+        return self.controller.refresh_team_data()
 
     def _handle_get_team_cities(self):
         """Handle request for available team cities."""
