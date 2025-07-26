@@ -11,8 +11,8 @@ import random
 from datetime import datetime
 from typing import Dict, List, Optional
 
-import requests
 import google.generativeai as genai
+import requests
 
 from ..config import config_manager
 from ..models.capstone_models import WeatherPoem
@@ -32,17 +32,25 @@ class WeatherPoetryService:
         self.gemini_enabled = bool(self.config.gemini_api_key)
         self.openai_enabled = bool(self.config.openai_api_key)
         self.ai_enabled = self.gemini_enabled or self.openai_enabled
-        self.ai_fallback_chance = self.config.ai_fallback_chance  # Chance to use AI when available
+        self.ai_fallback_chance = (
+            self.config.ai_fallback_chance
+        )  # Chance to use AI when available
 
         if self.gemini_enabled:
-            self.logger.info("Weather poetry service initialized with Gemini Pro (primary) + OpenAI (fallback)" if self.openai_enabled else "Weather poetry service initialized with Gemini Pro only")
+            self.logger.info(
+                "Weather poetry service initialized with Gemini Pro (primary) + OpenAI (fallback)"
+                if self.openai_enabled
+                else "Weather poetry service initialized with Gemini Pro only"
+            )
         elif self.openai_enabled:
             self.logger.info("Weather poetry service initialized with OpenAI only")
         else:
             self.logger.info(
                 "Weather poetry service initialized with template-based generation"
             )
-            self.logger.debug("AI enhancement disabled - no Gemini or OpenAI API keys configured")
+            self.logger.debug(
+                "AI enhancement disabled - no Gemini or OpenAI API keys configured"
+            )
 
     def _load_poetry_templates(self):
         """Load poetry templates and word banks."""
@@ -359,34 +367,35 @@ class WeatherPoetryService:
 
         try:
             import google.generativeai as genai
-            
+
             # Configure Gemini
             genai.configure(api_key=self.config.gemini_api_key)
             model = genai.GenerativeModel(self.config.gemini_model)
-            
+
             # Create generation config
             generation_config = genai.types.GenerationConfig(
                 temperature=self.config.ai_temperature,
                 max_output_tokens=self.config.ai_max_tokens,
             )
-            
+
             # Enhanced system prompt for weather poetry
             enhanced_prompt = f"""You are a creative weather poet who writes beautiful, unique poetry about weather conditions. Your poems should be weather-themed, creative, and capture the essence of the moment.
 
 {prompt}"""
-            
+
             response = model.generate_content(
-                enhanced_prompt,
-                generation_config=generation_config
+                enhanced_prompt, generation_config=generation_config
             )
-            
+
             if response.text:
                 return response.text.strip()
             else:
                 self.logger.warning("Gemini API returned empty response")
-                
+
         except ImportError:
-            self.logger.error("google-generativeai package not installed. Install with: pip install google-generativeai")
+            self.logger.error(
+                "google-generativeai package not installed. Install with: pip install google-generativeai"
+            )
         except Exception as e:
             self.logger.error(f"Error calling Gemini API: {e}")
 
@@ -474,7 +483,9 @@ class WeatherPoetryService:
         if self.openai_enabled:
             result = self._call_openai_api(prompt)
             if result:
-                self.logger.debug("Successfully generated content using OpenAI (fallback)")
+                self.logger.debug(
+                    "Successfully generated content using OpenAI (fallback)"
+                )
                 return result
             else:
                 self.logger.warning("OpenAI API also failed")

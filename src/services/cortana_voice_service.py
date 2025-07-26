@@ -28,10 +28,10 @@ except ImportError:
     )
     ConfigManager = None
 
-from ..business.interfaces import ICortanaVoiceService, ICacheService, IStorageService
+from ..business.interfaces import ICacheService, ICortanaVoiceService, IStorageService
 from ..interfaces.weather_interfaces import IWeatherAPI
 from ..models.weather_models import CurrentWeather, WeatherForecast
-from .voice_command_processor import VoiceCommandProcessor, CommandResponse
+from .voice_command_processor import CommandResponse, VoiceCommandProcessor
 
 
 class CortanaVoiceService(ICortanaVoiceService):
@@ -51,24 +51,24 @@ class CortanaVoiceService(ICortanaVoiceService):
             storage_service: Storage service for user preferences
         """
         self.logger = logging.getLogger(self.__class__.__name__)
-        
+
         # Services
         self.weather_service = weather_service
         self.cache_service = cache_service
         self.storage_service = storage_service
-        
+
         # Configuration
         self.config_manager: Optional[ConfigManager] = None
         self.config: Dict[str, Any] = {}
         self.is_enabled = False
-        
+
         # Voice processing
         self.command_processor = VoiceCommandProcessor(
             weather_service=weather_service,
             cache_service=cache_service,
             storage_service=storage_service,
         )
-        
+
         # Voice profiles and settings
         self.available_voice_profiles = [
             "en-US_Standard",
@@ -78,12 +78,12 @@ class CortanaVoiceService(ICortanaVoiceService):
             "en-CA_Standard",
         ]
         self.current_voice_profile = "en-US_Standard"
-        
+
         # Speech synthesis settings
         self.speech_rate = 1.0
         self.speech_volume = 0.8
         self.speech_pitch = 0.0
-        
+
         # Legacy command mappings for backward compatibility
         self.voice_commands: Dict[str, Callable] = {}
 
@@ -152,7 +152,9 @@ class CortanaVoiceService(ICortanaVoiceService):
             return "disabled"
 
         # Use current voice profile or fall back to config
-        return self.current_voice_profile or self.config.get("voice", {}).get("profile", "en-US_Standard")
+        return self.current_voice_profile or self.config.get("voice", {}).get(
+            "profile", "en-US_Standard"
+        )
 
     def get_personality_traits(self) -> List[str]:
         """Get the personality traits for responses.
@@ -167,7 +169,9 @@ class CortanaVoiceService(ICortanaVoiceService):
             "traits", ["helpful", "curious", "witty"]
         )
 
-    async def process_voice_command(self, command: str, context: Optional[Dict[str, Any]] = None) -> str:
+    async def process_voice_command(
+        self, command: str, context: Optional[Dict[str, Any]] = None
+    ) -> str:
         """Process a voice command and return a response.
 
         Args:
@@ -183,22 +187,26 @@ class CortanaVoiceService(ICortanaVoiceService):
         try:
             # Use the advanced command processor
             response = await self.command_processor.process_command(command, context)
-            
+
             # Log the interaction
-            self.logger.info(f"Processed command: '{command}' -> Success: {response.success}")
-            
+            self.logger.info(
+                f"Processed command: '{command}' -> Success: {response.success}"
+            )
+
             # Format response with suggestions if available
             message = response.message
             if response.suggestions and not response.success:
                 message += "\n\nSuggestions: " + ", ".join(response.suggestions)
-            
+
             return message
-            
+
         except Exception as e:
             self.logger.error(f"Error processing voice command '{command}': {e}")
             return "I'm sorry, I encountered an error processing your request. Please try again."
 
-    def process_voice_command_sync(self, command: str, city: Optional[str] = None) -> str:
+    def process_voice_command_sync(
+        self, command: str, city: Optional[str] = None
+    ) -> str:
         """Synchronous wrapper for voice command processing (backward compatibility).
 
         Args:
@@ -209,18 +217,23 @@ class CortanaVoiceService(ICortanaVoiceService):
             str: Response text
         """
         context = {"city": city} if city else None
-        
+
         # Run async method in event loop
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
                 # If we're already in an event loop, create a task
                 import concurrent.futures
+
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(asyncio.run, self.process_voice_command(command, context))
+                    future = executor.submit(
+                        asyncio.run, self.process_voice_command(command, context)
+                    )
                     return future.result(timeout=10)
             else:
-                return loop.run_until_complete(self.process_voice_command(command, context))
+                return loop.run_until_complete(
+                    self.process_voice_command(command, context)
+                )
         except Exception as e:
             self.logger.error(f"Error in sync voice command processing: {e}")
             return asyncio.run(self.process_voice_command(command, context))
@@ -479,7 +492,7 @@ class CortanaVoiceService(ICortanaVoiceService):
         return response
 
     # ICortanaVoiceService interface implementation
-    
+
     async def speech_to_text(self, audio_data: bytes) -> str:
         """Convert speech audio to text.
 
@@ -534,7 +547,7 @@ class CortanaVoiceService(ICortanaVoiceService):
                 else:
                     self.logger.warning(f"Invalid voice profile: {profile}")
                     return False
-            
+
             if "speech_rate" in settings:
                 rate = float(settings["speech_rate"])
                 if 0.5 <= rate <= 2.0:
@@ -542,7 +555,7 @@ class CortanaVoiceService(ICortanaVoiceService):
                 else:
                     self.logger.warning(f"Invalid speech rate: {rate}")
                     return False
-            
+
             if "speech_volume" in settings:
                 volume = float(settings["speech_volume"])
                 if 0.0 <= volume <= 1.0:
@@ -550,7 +563,7 @@ class CortanaVoiceService(ICortanaVoiceService):
                 else:
                     self.logger.warning(f"Invalid speech volume: {volume}")
                     return False
-            
+
             if "speech_pitch" in settings:
                 pitch = float(settings["speech_pitch"])
                 if -1.0 <= pitch <= 1.0:
@@ -558,18 +571,21 @@ class CortanaVoiceService(ICortanaVoiceService):
                 else:
                     self.logger.warning(f"Invalid speech pitch: {pitch}")
                     return False
-            
+
             # Store settings if storage service is available
             if self.storage_service:
-                await self.storage_service.store_user_preference_async("voice_settings", {
-                    "voice_profile": self.current_voice_profile,
-                    "speech_rate": self.speech_rate,
-                    "speech_volume": self.speech_volume,
-                    "speech_pitch": self.speech_pitch,
-                })
-            
+                await self.storage_service.store_user_preference_async(
+                    "voice_settings",
+                    {
+                        "voice_profile": self.current_voice_profile,
+                        "speech_rate": self.speech_rate,
+                        "speech_volume": self.speech_volume,
+                        "speech_pitch": self.speech_pitch,
+                    },
+                )
+
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Error configuring voice settings: {e}")
             return False
@@ -619,7 +635,6 @@ class CortanaVoiceService(ICortanaVoiceService):
         except Exception as e:
             self.logger.error(f"Failed to reload Cortana configuration: {e}")
             return False
-
 
     def set_default_location(self, location: str) -> None:
         """Set default location for voice commands.

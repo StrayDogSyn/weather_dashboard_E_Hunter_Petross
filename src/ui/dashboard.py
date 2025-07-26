@@ -133,7 +133,10 @@ class WeatherDashboard:
         # Get responsive spacing
         # Use ResponsiveSpacing class attributes directly
         main_frame.pack(
-            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         # Title bar

@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from ..models.capstone_models import (
     Activity,
+    ActivityFactory,
     ActivitySuggestion,
     ActivityType,
-    ActivityFactory,
 )
 from ..models.weather_models import CurrentWeather, WeatherCondition
 

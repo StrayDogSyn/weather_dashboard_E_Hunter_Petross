@@ -172,14 +172,14 @@ class DependencyContainer:
         """
         # Import interface types
         from ..business.interfaces import (
-            IWeatherService,
-            ICityComparisonService,
-            IWeatherJournalService,
             IActivitySuggestionService,
-            IWeatherPoetryService,
+            ICityComparisonService,
             ICortanaVoiceService,
+            IWeatherJournalService,
+            IWeatherPoetryService,
+            IWeatherService,
         )
-        
+
         type_mappings = {
             # Concrete types
             WeatherService: "weather_service",

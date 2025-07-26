@@ -23,8 +23,8 @@ except ImportError:
 
 from src.models.weather_models import CurrentWeather, WeatherForecast
 
-from .styles.glassmorphic import GlassmorphicFrame
 from .components.responsive_layout import ResponsiveSpacing
+from .styles.glassmorphic import GlassmorphicFrame
 from .styling import GlassmorphicStyle
 
 
@@ -65,7 +65,10 @@ class WeatherChartWidget(GlassmorphicFrame):
         canvas_widget = self.canvas.get_tk_widget()
         canvas_widget.configure(bg="#1a1a2e")
         canvas_widget.pack(
-            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
         )
 
     def setup_no_chart_message(self):
@@ -166,7 +169,10 @@ class ForecastChartWidget(GlassmorphicFrame):
         canvas_widget = self.canvas.get_tk_widget()
         canvas_widget.configure(bg="#1a1a2e")
         canvas_widget.pack(
-            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
         )
 
     def setup_no_chart_message(self):
@@ -285,7 +291,10 @@ class ComparisonChartWidget(GlassmorphicFrame):
         canvas_widget = self.canvas.get_tk_widget()
         canvas_widget.configure(bg="#1a1a2e")
         canvas_widget.pack(
-            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
         )
 
     def setup_no_chart_message(self):

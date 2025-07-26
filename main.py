@@ -20,23 +20,24 @@ Features:
 - Voice assistant integration
 """
 
-import sys
-import os
 import logging
+import os
+import sys
 from pathlib import Path
 
 # Add the src directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 
 def check_tkinter() -> bool:
     """Check if TKinter is available.
-    
+
     Returns:
         True if TKinter is available, False otherwise
     """
     try:
         import tkinter
+
         return True
     except ImportError:
         print("❌ Error: TKinter is not available.")
@@ -52,8 +53,8 @@ def setup_environment() -> None:
     """Setup the application environment."""
     # Ensure required directories exist
     base_dir = Path(__file__).parent
-    required_dirs = ['config', 'data', 'logs', 'cache', 'temp']
-    
+    required_dirs = ["config", "data", "logs", "cache", "temp"]
+
     for dir_name in required_dirs:
         dir_path = base_dir / dir_name
         dir_path.mkdir(exist_ok=True)
@@ -63,36 +64,36 @@ def main() -> None:
     """Main entry point for the application."""
     print("🌤️ Weather Dashboard - Clean Architecture")
     print("=" * 50)
-    
+
     try:
         # Check TKinter availability
         if not check_tkinter():
             sys.exit(1)
-        
+
         print("✅ TKinter: Available")
-        
+
         # Setup environment
         setup_environment()
         print("✅ Environment: Setup complete")
-        
+
         # Import application factory
         from src.application.app_factory import create_application
-        
+
         # Create and initialize application
         print("🔧 Initializing Weather Dashboard...")
         app_factory = create_application()
         print("✅ Application Factory: Initialized")
-        
+
         # Create GUI application
         gui_app = app_factory.create_gui_application()
         print("✅ GUI Application: Created")
-        
+
         # Initialize and run GUI
         gui_app.initialize()
         print("✅ GUI Application: Initialized")
         print("🚀 Starting Weather Dashboard GUI...")
         gui_app.run()
-        
+
     except KeyboardInterrupt:
         print("\n⚠️ Application interrupted by user.")
         sys.exit(0)
@@ -104,7 +105,7 @@ def main() -> None:
     finally:
         # Cleanup
         try:
-            if 'app_factory' in locals():
+            if "app_factory" in locals():
                 print("🧹 Cleaning up...")
                 app_factory.shutdown()
                 print("✅ Cleanup: Complete")

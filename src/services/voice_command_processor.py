@@ -16,6 +16,7 @@ from ..business.interfaces import ICacheService, IStorageService, IWeatherServic
 
 class CommandType(Enum):
     """Voice command types."""
+
     WEATHER_CURRENT = "weather_current"
     WEATHER_FORECAST = "weather_forecast"
     WEATHER_HOURLY = "weather_hourly"
@@ -26,6 +27,7 @@ class CommandType(Enum):
 
 class ConfidenceLevel(Enum):
     """Command recognition confidence levels."""
+
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
@@ -34,6 +36,7 @@ class ConfidenceLevel(Enum):
 @dataclass
 class VoiceCommand:
     """Structured voice command representation."""
+
     command_type: CommandType
     confidence: ConfidenceLevel
     parameters: Dict[str, Any]
@@ -45,6 +48,7 @@ class VoiceCommand:
 @dataclass
 class CommandResponse:
     """Structured command response."""
+
     success: bool
     message: str
     data: Optional[Dict[str, Any]] = None
@@ -69,21 +73,21 @@ class VoiceCommandProcessor:
             storage_service: Storage service for user preferences
         """
         self.logger = logging.getLogger(__name__)
-        
+
         # Services
         self.weather_service = weather_service
         self.cache_service = cache_service
         self.storage_service = storage_service
-        
+
         # Command patterns
         self.command_patterns = self._initialize_command_patterns()
-        
+
         # Entity extractors
         self.entity_extractors = self._initialize_entity_extractors()
-        
+
         # Default location
         self.default_location = "New York"
-        
+
         # Conversation context
         self.conversation_context = {}
 
@@ -99,29 +103,29 @@ class VoiceCommandProcessor:
                 r"(?:weather|temperature|conditions?).*?(?:in|for|at) ([\w\s,]+?)(?:\?|$|today|now|currently)",
                 r"(?:current|today'?s|right now) weather.*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
                 r"(?:what'?s|how'?s) (?:the )?(?:weather|temperature) (?:like )?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
-                r"(?:is it|will it be) (?:hot|cold|warm|cool|sunny|rainy|cloudy|snowy) (?:in|at) ([\w\s,]+?)(?:\?|$)"
+                r"(?:is it|will it be) (?:hot|cold|warm|cool|sunny|rainy|cloudy|snowy) (?:in|at) ([\w\s,]+?)(?:\?|$)",
             ],
             CommandType.WEATHER_FORECAST: [
                 r"(?:what'?s|how'?s|tell me|get|show|check).*?(?:the )?(?:weather )?forecast.*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
                 r"(?:forecast|prediction).*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
                 r"(?:tomorrow|next \d+ days?|this week|weekend) weather.*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
-                r"(?:will it|is it going to) (?:rain|snow|be sunny|be cloudy) (?:tomorrow|this week) (?:in|at) ([\w\s,]+?)(?:\?|$)"
+                r"(?:will it|is it going to) (?:rain|snow|be sunny|be cloudy) (?:tomorrow|this week) (?:in|at) ([\w\s,]+?)(?:\?|$)",
             ],
             CommandType.WEATHER_HOURLY: [
                 r"(?:hourly|hour by hour) (?:weather|forecast).*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
                 r"(?:weather|forecast) (?:for )?(?:the )?(?:next|coming) (?:few )?hours?.*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
-                r"(?:what'?s|how'?s) (?:the )?weather (?:going to be )?(?:for )?(?:the )?(?:next|coming) hours?.*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)"
+                r"(?:what'?s|how'?s) (?:the )?weather (?:going to be )?(?:for )?(?:the )?(?:next|coming) hours?.*?(?:in|for|at) ([\w\s,]+?)(?:\?|$)",
             ],
             CommandType.LOCATION_SET: [
                 r"(?:set|change|update) (?:my )?(?:location|city) to ([\w\s,]+?)(?:\?|$)",
                 r"(?:i'?m|i am) (?:in|at|from) ([\w\s,]+?)(?:\?|$)",
-                r"(?:my location is|i live in) ([\w\s,]+?)(?:\?|$)"
+                r"(?:my location is|i live in) ([\w\s,]+?)(?:\?|$)",
             ],
             CommandType.HELP: [
                 r"(?:help|what can you do|commands?|how to use)",
                 r"(?:what|how) (?:can|do) (?:i|you) (?:ask|say|do)(?:\?|$)",
-                r"(?:show|list) (?:commands?|options|help)(?:\?|$)"
-            ]
+                r"(?:show|list) (?:commands?|options|help)(?:\?|$)",
+            ],
         }
 
     def _initialize_entity_extractors(self) -> Dict[str, callable]:
@@ -134,10 +138,12 @@ class VoiceCommandProcessor:
             "location": self._extract_location,
             "time": self._extract_time,
             "weather_condition": self._extract_weather_condition,
-            "temperature_unit": self._extract_temperature_unit
+            "temperature_unit": self._extract_temperature_unit,
         }
 
-    async def process_command(self, text: str, context: Optional[Dict[str, Any]] = None) -> CommandResponse:
+    async def process_command(
+        self, text: str, context: Optional[Dict[str, Any]] = None
+    ) -> CommandResponse:
         """Process voice command with advanced NLU.
 
         Args:
@@ -154,26 +160,33 @@ class VoiceCommandProcessor:
 
             # Parse and classify command
             command = await self._parse_command(text)
-            
+
             # Log command processing
-            self.logger.info(f"Processing command: {command.command_type.value} with confidence {command.confidence.value}")
-            
+            self.logger.info(
+                f"Processing command: {command.command_type.value} with confidence {command.confidence.value}"
+            )
+
             # Route to appropriate handler
             response = await self._route_command(command)
-            
+
             # Cache successful responses
             if response.success and self.cache_service:
                 cache_key = f"voice_command:{hash(text)}"
-                await self.cache_service.set_async(cache_key, response, ttl=300)  # 5 minutes
-            
+                await self.cache_service.set_async(
+                    cache_key, response, ttl=300
+                )  # 5 minutes
+
             return response
-            
+
         except Exception as e:
             self.logger.error(f"Error processing voice command '{text}': {e}")
             return CommandResponse(
                 success=False,
                 message="I'm sorry, I encountered an error processing your request. Please try again.",
-                suggestions=["Try rephrasing your question", "Check your internet connection"]
+                suggestions=[
+                    "Try rephrasing your question",
+                    "Check your internet connection",
+                ],
             )
 
     async def _parse_command(self, text: str) -> VoiceCommand:
@@ -187,20 +200,22 @@ class VoiceCommandProcessor:
         """
         # Normalize text
         processed_text = self._normalize_text(text)
-        
+
         # Extract entities
         entities = await self._extract_entities(processed_text)
-        
+
         # Classify command type
-        command_type, confidence, parameters = await self._classify_command(processed_text, entities)
-        
+        command_type, confidence, parameters = await self._classify_command(
+            processed_text, entities
+        )
+
         return VoiceCommand(
             command_type=command_type,
             confidence=confidence,
             parameters=parameters,
             original_text=text,
             processed_text=processed_text,
-            entities=entities
+            entities=entities,
         )
 
     def _normalize_text(self, text: str) -> str:
@@ -214,10 +229,10 @@ class VoiceCommandProcessor:
         """
         # Convert to lowercase
         text = text.lower().strip()
-        
+
         # Remove extra whitespace
-        text = re.sub(r'\s+', ' ', text)
-        
+        text = re.sub(r"\s+", " ", text)
+
         # Handle common contractions
         contractions = {
             "what's": "what is",
@@ -236,12 +251,12 @@ class VoiceCommandProcessor:
             "hadn't": "had not",
             "wouldn't": "would not",
             "shouldn't": "should not",
-            "couldn't": "could not"
+            "couldn't": "could not",
         }
-        
+
         for contraction, expansion in contractions.items():
             text = text.replace(contraction, expansion)
-        
+
         return text
 
     async def _extract_entities(self, text: str) -> Dict[str, Any]:
@@ -254,7 +269,7 @@ class VoiceCommandProcessor:
             Dictionary of extracted entities
         """
         entities = {}
-        
+
         for entity_type, extractor in self.entity_extractors.items():
             try:
                 entity_value = extractor(text)
@@ -262,10 +277,12 @@ class VoiceCommandProcessor:
                     entities[entity_type] = entity_value
             except Exception as e:
                 self.logger.warning(f"Error extracting {entity_type}: {e}")
-        
+
         return entities
 
-    async def _classify_command(self, text: str, entities: Dict[str, Any]) -> Tuple[CommandType, ConfidenceLevel, Dict[str, Any]]:
+    async def _classify_command(
+        self, text: str, entities: Dict[str, Any]
+    ) -> Tuple[CommandType, ConfidenceLevel, Dict[str, Any]]:
         """Classify command type and extract parameters.
 
         Args:
@@ -278,26 +295,28 @@ class VoiceCommandProcessor:
         best_match = None
         best_confidence = ConfidenceLevel.LOW
         best_parameters = {}
-        
+
         for command_type, patterns in self.command_patterns.items():
             for pattern in patterns:
                 match = re.search(pattern, text, re.IGNORECASE)
                 if match:
                     # Calculate confidence based on match quality
                     confidence = self._calculate_confidence(text, pattern, match)
-                    
+
                     # Extract parameters from match groups
                     parameters = self._extract_parameters(match, entities)
-                    
+
                     # Update best match if this is better
                     if self._is_better_match(confidence, best_confidence):
                         best_match = command_type
                         best_confidence = confidence
                         best_parameters = parameters
-        
+
         return best_match or CommandType.UNKNOWN, best_confidence, best_parameters
 
-    def _calculate_confidence(self, text: str, pattern: str, match: re.Match) -> ConfidenceLevel:
+    def _calculate_confidence(
+        self, text: str, pattern: str, match: re.Match
+    ) -> ConfidenceLevel:
         """Calculate confidence level for pattern match.
 
         Args:
@@ -312,7 +331,7 @@ class VoiceCommandProcessor:
         match_length = len(match.group(0))
         text_length = len(text)
         coverage = match_length / text_length
-        
+
         # Determine confidence based on coverage and specificity
         if coverage > 0.8:
             return ConfidenceLevel.HIGH
@@ -321,7 +340,9 @@ class VoiceCommandProcessor:
         else:
             return ConfidenceLevel.LOW
 
-    def _is_better_match(self, new_confidence: ConfidenceLevel, current_confidence: ConfidenceLevel) -> bool:
+    def _is_better_match(
+        self, new_confidence: ConfidenceLevel, current_confidence: ConfidenceLevel
+    ) -> bool:
         """Determine if new match is better than current best.
 
         Args:
@@ -331,10 +352,18 @@ class VoiceCommandProcessor:
         Returns:
             True if new match is better
         """
-        confidence_order = [ConfidenceLevel.LOW, ConfidenceLevel.MEDIUM, ConfidenceLevel.HIGH]
-        return confidence_order.index(new_confidence) > confidence_order.index(current_confidence)
+        confidence_order = [
+            ConfidenceLevel.LOW,
+            ConfidenceLevel.MEDIUM,
+            ConfidenceLevel.HIGH,
+        ]
+        return confidence_order.index(new_confidence) > confidence_order.index(
+            current_confidence
+        )
 
-    def _extract_parameters(self, match: re.Match, entities: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_parameters(
+        self, match: re.Match, entities: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Extract parameters from regex match and entities.
 
         Args:
@@ -345,20 +374,20 @@ class VoiceCommandProcessor:
             Dictionary of extracted parameters
         """
         parameters = {}
-        
+
         # Extract location from match groups
         if match.groups():
             location = match.group(1).strip()
             if location:
                 parameters["location"] = self._clean_location(location)
-        
+
         # Add entities as parameters
         parameters.update(entities)
-        
+
         # Use default location if none specified
         if "location" not in parameters:
             parameters["location"] = self.default_location
-        
+
         return parameters
 
     def _clean_location(self, location: str) -> str:
@@ -374,8 +403,8 @@ class VoiceCommandProcessor:
         trailing_words = ["please", "today", "now", "currently", "right now"]
         for word in trailing_words:
             if location.lower().endswith(f" {word}"):
-                location = location[:-len(f" {word}")]
-        
+                location = location[: -len(f" {word}")]
+
         # Capitalize properly
         return location.title().strip()
 
@@ -393,16 +422,16 @@ class VoiceCommandProcessor:
         patterns = [
             r"(?:in|for|at) ([\w\s,]+?)(?:\s|$|\?|today|now|currently)",
             r"([\w\s,]+?) weather",
-            r"weather (?:in|for|at) ([\w\s,]+?)"
+            r"weather (?:in|for|at) ([\w\s,]+?)",
         ]
-        
+
         for pattern in patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 location = match.group(1).strip()
                 if len(location) > 1:  # Avoid single characters
                     return self._clean_location(location)
-        
+
         return None
 
     def _extract_time(self, text: str) -> Optional[str]:
@@ -419,14 +448,14 @@ class VoiceCommandProcessor:
             r"(tomorrow|next day)",
             r"(this week|next week|weekend)",
             r"(next \d+ days?)",
-            r"(hourly|hour by hour|next (?:few )?hours?)"
+            r"(hourly|hour by hour|next (?:few )?hours?)",
         ]
-        
+
         for pattern in time_patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 return match.group(1).lower()
-        
+
         return None
 
     def _extract_weather_condition(self, text: str) -> Optional[str]:
@@ -439,15 +468,28 @@ class VoiceCommandProcessor:
             Extracted weather condition or None
         """
         conditions = [
-            "sunny", "cloudy", "rainy", "snowy", "stormy", "foggy",
-            "hot", "cold", "warm", "cool", "humid", "dry",
-            "clear", "overcast", "partly cloudy", "mostly sunny"
+            "sunny",
+            "cloudy",
+            "rainy",
+            "snowy",
+            "stormy",
+            "foggy",
+            "hot",
+            "cold",
+            "warm",
+            "cool",
+            "humid",
+            "dry",
+            "clear",
+            "overcast",
+            "partly cloudy",
+            "mostly sunny",
         ]
-        
+
         for condition in conditions:
             if condition in text.lower():
                 return condition
-        
+
         return None
 
     def _extract_temperature_unit(self, text: str) -> Optional[str]:
@@ -465,7 +507,7 @@ class VoiceCommandProcessor:
             return "fahrenheit"
         elif "kelvin" in text.lower() or "k" in text.lower():
             return "kelvin"
-        
+
         return None
 
     async def _route_command(self, command: VoiceCommand) -> CommandResponse:
@@ -483,9 +525,9 @@ class VoiceCommandProcessor:
             CommandType.WEATHER_HOURLY: self._handle_hourly_weather,
             CommandType.LOCATION_SET: self._handle_location_set,
             CommandType.HELP: self._handle_help,
-            CommandType.UNKNOWN: self._handle_unknown
+            CommandType.UNKNOWN: self._handle_unknown,
         }
-        
+
         handler = handlers.get(command.command_type, self._handle_unknown)
         return await handler(command)
 
@@ -502,41 +544,46 @@ class VoiceCommandProcessor:
             return CommandResponse(
                 success=False,
                 message="Weather service is not available.",
-                suggestions=["Check your internet connection", "Try again later"]
+                suggestions=["Check your internet connection", "Try again later"],
             )
-        
+
         location = command.parameters.get("location", self.default_location)
-        
+
         try:
             # Get current weather data
-            weather_data = await self.weather_service.get_current_weather_async(location)
-            
+            weather_data = await self.weather_service.get_current_weather_async(
+                location
+            )
+
             if not weather_data:
                 return CommandResponse(
                     success=False,
                     message=f"I couldn't find weather information for {location}. Please check the location name.",
-                    suggestions=["Try a different city name", "Include country or state"]
+                    suggestions=[
+                        "Try a different city name",
+                        "Include country or state",
+                    ],
                 )
-            
+
             # Format response message
             message = self._format_current_weather_response(weather_data, location)
-            
+
             return CommandResponse(
                 success=True,
                 message=message,
                 data=weather_data,
                 follow_up_questions=[
                     f"Would you like the forecast for {location}?",
-                    "Do you want hourly weather updates?"
-                ]
+                    "Do you want hourly weather updates?",
+                ],
             )
-            
+
         except Exception as e:
             self.logger.error(f"Error getting current weather for {location}: {e}")
             return CommandResponse(
                 success=False,
                 message=f"I encountered an error getting weather for {location}. Please try again.",
-                suggestions=["Check the location name", "Try again in a moment"]
+                suggestions=["Check the location name", "Try again in a moment"],
             )
 
     async def _handle_weather_forecast(self, command: VoiceCommand) -> CommandResponse:
@@ -550,36 +597,31 @@ class VoiceCommandProcessor:
         """
         if not self.weather_service:
             return CommandResponse(
-                success=False,
-                message="Weather service is not available."
+                success=False, message="Weather service is not available."
             )
-        
+
         location = command.parameters.get("location", self.default_location)
-        
+
         try:
             # Get forecast data
             forecast_data = await self.weather_service.get_forecast_async(location)
-            
+
             if not forecast_data:
                 return CommandResponse(
                     success=False,
-                    message=f"I couldn't find forecast information for {location}."
+                    message=f"I couldn't find forecast information for {location}.",
                 )
-            
+
             # Format response message
             message = self._format_forecast_response(forecast_data, location)
-            
-            return CommandResponse(
-                success=True,
-                message=message,
-                data=forecast_data
-            )
-            
+
+            return CommandResponse(success=True, message=message, data=forecast_data)
+
         except Exception as e:
             self.logger.error(f"Error getting forecast for {location}: {e}")
             return CommandResponse(
                 success=False,
-                message=f"I encountered an error getting the forecast for {location}."
+                message=f"I encountered an error getting the forecast for {location}.",
             )
 
     async def _handle_hourly_weather(self, command: VoiceCommand) -> CommandResponse:
@@ -592,12 +634,12 @@ class VoiceCommandProcessor:
             Command response
         """
         location = command.parameters.get("location", self.default_location)
-        
+
         # For now, redirect to current weather with hourly context
         return CommandResponse(
             success=True,
             message=f"Hourly weather for {location} is not yet available. Here's the current weather instead.",
-            suggestions=["Ask for current weather", "Ask for the forecast"]
+            suggestions=["Ask for current weather", "Ask for the forecast"],
         )
 
     async def _handle_location_set(self, command: VoiceCommand) -> CommandResponse:
@@ -610,28 +652,33 @@ class VoiceCommandProcessor:
             Command response
         """
         location = command.parameters.get("location")
-        
+
         if not location:
             return CommandResponse(
                 success=False,
                 message="I didn't understand which location you want to set. Please try again.",
-                suggestions=["Say 'set my location to New York'", "Try 'I'm in London'"]
+                suggestions=[
+                    "Say 'set my location to New York'",
+                    "Try 'I'm in London'",
+                ],
             )
-        
+
         # Update default location
         self.default_location = location
-        
+
         # Store in user preferences if storage service is available
         if self.storage_service:
             try:
-                await self.storage_service.store_user_preference_async("default_location", location)
+                await self.storage_service.store_user_preference_async(
+                    "default_location", location
+                )
             except Exception as e:
                 self.logger.warning(f"Failed to store location preference: {e}")
-        
+
         return CommandResponse(
             success=True,
             message=f"I've set your location to {location}. I'll use this for weather queries.",
-            follow_up_questions=[f"Would you like the current weather for {location}?"]
+            follow_up_questions=[f"Would you like the current weather for {location}?"],
         )
 
     async def _handle_help(self, command: VoiceCommand) -> CommandResponse:
@@ -651,15 +698,15 @@ class VoiceCommandProcessor:
             "• General queries: 'Is it raining in Tokyo?'\n\n"
             "You can speak naturally - I'll understand!"
         )
-        
+
         return CommandResponse(
             success=True,
             message=help_message,
             suggestions=[
                 "Ask about weather in your city",
                 "Set your default location",
-                "Get a weather forecast"
-            ]
+                "Get a weather forecast",
+            ],
         )
 
     async def _handle_unknown(self, command: VoiceCommand) -> CommandResponse:
@@ -677,11 +724,13 @@ class VoiceCommandProcessor:
             suggestions=[
                 "Ask about current weather",
                 "Request a weather forecast",
-                "Say 'help' for more options"
-            ]
+                "Say 'help' for more options",
+            ],
         )
 
-    def _format_current_weather_response(self, weather_data: Dict[str, Any], location: str) -> str:
+    def _format_current_weather_response(
+        self, weather_data: Dict[str, Any], location: str
+    ) -> str:
         """Format current weather response message.
 
         Args:
@@ -696,22 +745,24 @@ class VoiceCommandProcessor:
             condition = weather_data.get("condition", "Unknown")
             humidity = weather_data.get("humidity", "Unknown")
             wind_speed = weather_data.get("wind_speed", "Unknown")
-            
+
             message = f"The current weather in {location} is {condition} with a temperature of {temp}°F."
-            
+
             if humidity != "Unknown":
                 message += f" Humidity is {humidity}%."
-            
+
             if wind_speed != "Unknown":
                 message += f" Wind speed is {wind_speed} mph."
-            
+
             return message
-            
+
         except Exception as e:
             self.logger.error(f"Error formatting weather response: {e}")
             return f"I found weather information for {location}, but had trouble formatting it."
 
-    def _format_forecast_response(self, forecast_data: Dict[str, Any], location: str) -> str:
+    def _format_forecast_response(
+        self, forecast_data: Dict[str, Any], location: str
+    ) -> str:
         """Format forecast response message.
 
         Args:
@@ -724,22 +775,24 @@ class VoiceCommandProcessor:
         try:
             # Extract forecast information
             days = forecast_data.get("forecast", [])
-            
+
             if not days:
-                return f"I found forecast data for {location}, but it appears to be empty."
-            
+                return (
+                    f"I found forecast data for {location}, but it appears to be empty."
+                )
+
             message = f"Here's the forecast for {location}:\n\n"
-            
+
             for i, day in enumerate(days[:3]):  # Show first 3 days
                 date = day.get("date", f"Day {i+1}")
                 high = day.get("high_temp", "Unknown")
                 low = day.get("low_temp", "Unknown")
                 condition = day.get("condition", "Unknown")
-                
+
                 message += f"{date}: {condition}, High {high}°F, Low {low}°F\n"
-            
+
             return message.strip()
-            
+
         except Exception as e:
             self.logger.error(f"Error formatting forecast response: {e}")
             return f"I found forecast information for {location}, but had trouble formatting it."

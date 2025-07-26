@@ -117,7 +117,9 @@ class MainDashboard(GlassmorphicFrame):
         Args:
             parent: Parent widget
         """
-        left_panel = GlassmorphicFrame(parent, padding=ResponsiveSpacing.ELEMENT_SPACING)
+        left_panel = GlassmorphicFrame(
+            parent, padding=ResponsiveSpacing.ELEMENT_SPACING
+        )
         left_panel.grid(
             row=0, column=0, sticky="nsew", padx=(0, ResponsiveSpacing.ELEMENT_SPACING)
         )
@@ -148,7 +150,9 @@ class MainDashboard(GlassmorphicFrame):
         Args:
             parent: Parent widget
         """
-        right_panel = GlassmorphicFrame(parent, padding=ResponsiveSpacing.ELEMENT_SPACING)
+        right_panel = GlassmorphicFrame(
+            parent, padding=ResponsiveSpacing.ELEMENT_SPACING
+        )
         right_panel.grid(row=0, column=1, sticky="nsew")
         right_panel.grid_columnconfigure(0, weight=1)
         right_panel.grid_rowconfigure(0, weight=1)
@@ -213,14 +217,14 @@ class MainDashboard(GlassmorphicFrame):
         try:
             # Import interface types
             from ...business.interfaces import (
-                IWeatherService,
-                IWeatherPoetryService,
-                IWeatherJournalService,
                 IActivitySuggestionService,
                 ICityComparisonService,
                 ICortanaVoiceService,
+                IWeatherJournalService,
+                IWeatherPoetryService,
+                IWeatherService,
             )
-            
+
             # Inject services
             self.weather_service = container.get_service(IWeatherService)
             self.poetry_service = container.get_service(IWeatherPoetryService)
@@ -228,11 +232,11 @@ class MainDashboard(GlassmorphicFrame):
             self.activity_service = container.get_service(IActivitySuggestionService)
             self.comparison_service = container.get_service(ICityComparisonService)
             self.voice_service = container.get_service(ICortanaVoiceService)
-            
+
             # Connect search panel to weather service
-            if hasattr(self.search_panel, 'set_weather_service'):
+            if hasattr(self.search_panel, "set_weather_service"):
                 self.search_panel.set_weather_service(self.weather_service)
-                
+
         except Exception as e:
             print(f"Failed to initialize services in MainDashboard: {e}")
 
@@ -270,7 +274,10 @@ class MainDashboard(GlassmorphicFrame):
         # Current weather content
         content_frame = GlassmorphicFrame(self.current_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         # Title
@@ -315,7 +322,10 @@ class MainDashboard(GlassmorphicFrame):
         # Forecast content
         content_frame = GlassmorphicFrame(self.forecast_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         title_label = tk.Label(
@@ -344,7 +354,10 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.comparison_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         title_label = tk.Label(
@@ -372,7 +385,10 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.journal_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         title_label = tk.Label(
@@ -400,7 +416,10 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.activities_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         title_label = tk.Label(
@@ -428,7 +447,10 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.poetry_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         title_label = tk.Label(
@@ -456,7 +478,10 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.voice_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         title_label = tk.Label(
@@ -484,7 +509,10 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.favorites_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
+            fill="both",
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.MEDIUM,
         )
 
         title_label = tk.Label(
@@ -540,15 +568,15 @@ class MainDashboard(GlassmorphicFrame):
         try:
             # Get current weather
             weather_data = self.weather_service.get_current_weather(city)
-            
+
             if weather_data:
                 # Update the dashboard with real weather data
                 self.update_weather_data(weather_data)
-                
+
                 # Call location change callback
                 if self.on_location_change:
                     self.on_location_change(city)
-                    
+
                 # Get forecast data if available
                 try:
                     forecast_data = self.weather_service.get_forecast(city)
@@ -558,11 +586,11 @@ class MainDashboard(GlassmorphicFrame):
                     self.logger.warning(f"Failed to get forecast data: {e}")
             else:
                 self.logger.warning(f"No weather data returned for {city}")
-                
+
         except Exception as e:
             self.logger.error(f"Failed to fetch weather data: {e}")
             # Show error to user
-            if hasattr(self, 'show_error'):
+            if hasattr(self, "show_error"):
                 self.show_error(f"Failed to get weather for {city}: {e}")
         finally:
             self.set_loading_state(False)

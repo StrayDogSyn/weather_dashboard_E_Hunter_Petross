@@ -83,7 +83,13 @@ class VoiceAssistantTab(GlassmorphicFrame):
     def _create_header_section(self) -> None:
         """Create header section with status and controls."""
         header_frame = GlassmorphicFrame(self, padding=ResponsiveSpacing.MEDIUM)
-        header_frame.grid(row=0, column=0, sticky="ew", padx=ResponsiveSpacing.MEDIUM, pady=(ResponsiveSpacing.MEDIUM, 0))
+        header_frame.grid(
+            row=0,
+            column=0,
+            sticky="ew",
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=(ResponsiveSpacing.MEDIUM, 0),
+        )
         header_frame.grid_columnconfigure(1, weight=1)
 
         # Voice status indicator
@@ -98,7 +104,9 @@ class VoiceAssistantTab(GlassmorphicFrame):
 
         # Voice profile selection
         profile_frame = tk.Frame(header_frame, bg=self.style.colors["surface"])
-        profile_frame.grid(row=0, column=1, sticky="e", padx=(ResponsiveSpacing.MEDIUM, 0))
+        profile_frame.grid(
+            row=0, column=1, sticky="e", padx=(ResponsiveSpacing.MEDIUM, 0)
+        )
 
         tk.Label(
             profile_frame,
@@ -117,12 +125,20 @@ class VoiceAssistantTab(GlassmorphicFrame):
             width=15,
         )
         self.voice_profile_combo.pack(side="left")
-        self.voice_profile_combo.bind("<<ComboboxSelected>>", self._on_voice_profile_change)
+        self.voice_profile_combo.bind(
+            "<<ComboboxSelected>>", self._on_voice_profile_change
+        )
 
     def _create_main_content(self) -> None:
         """Create main conversation area."""
         main_frame = GlassmorphicFrame(self, padding=ResponsiveSpacing.MEDIUM)
-        main_frame.grid(row=1, column=0, sticky="nsew", padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL)
+        main_frame.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
+        )
         main_frame.grid_columnconfigure(0, weight=1)
         main_frame.grid_rowconfigure(0, weight=1)
 
@@ -154,22 +170,35 @@ class VoiceAssistantTab(GlassmorphicFrame):
         self.conversation_text.grid(row=0, column=0, sticky="nsew")
 
         # Scrollbar for conversation
-        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self.conversation_text.yview)
+        scrollbar = ttk.Scrollbar(
+            text_frame, orient="vertical", command=self.conversation_text.yview
+        )
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.conversation_text.config(yscrollcommand=scrollbar.set)
 
         # Add initial welcome message
-        self._add_conversation_message("Cortana", "Hello! I'm your weather assistant. You can ask me about weather conditions, forecasts, and more. Try saying 'get weather for New York' or type your command below.")
+        self._add_conversation_message(
+            "Cortana",
+            "Hello! I'm your weather assistant. You can ask me about weather conditions, forecasts, and more. Try saying 'get weather for New York' or type your command below.",
+        )
 
     def _create_control_panel(self) -> None:
         """Create control panel with voice and text input."""
         control_frame = GlassmorphicFrame(self, padding=ResponsiveSpacing.MEDIUM)
-        control_frame.grid(row=2, column=0, sticky="ew", padx=ResponsiveSpacing.MEDIUM, pady=(0, ResponsiveSpacing.MEDIUM))
+        control_frame.grid(
+            row=2,
+            column=0,
+            sticky="ew",
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=(0, ResponsiveSpacing.MEDIUM),
+        )
         control_frame.grid_columnconfigure(1, weight=1)
 
         # Voice control buttons
         voice_buttons_frame = tk.Frame(control_frame, bg=self.style.colors["surface"])
-        voice_buttons_frame.grid(row=0, column=0, sticky="w", padx=(0, ResponsiveSpacing.MEDIUM))
+        voice_buttons_frame.grid(
+            row=0, column=0, sticky="w", padx=(0, ResponsiveSpacing.MEDIUM)
+        )
 
         self.listen_button = self.button_factory.create_button(
             voice_buttons_frame,
@@ -190,7 +219,9 @@ class VoiceAssistantTab(GlassmorphicFrame):
 
         # Text input area
         input_frame = tk.Frame(control_frame, bg=self.style.colors["surface"])
-        input_frame.grid(row=0, column=1, sticky="ew", padx=(0, ResponsiveSpacing.MEDIUM))
+        input_frame.grid(
+            row=0, column=1, sticky="ew", padx=(0, ResponsiveSpacing.MEDIUM)
+        )
         input_frame.grid_columnconfigure(0, weight=1)
 
         self.command_entry = tk.Entry(
@@ -202,7 +233,9 @@ class VoiceAssistantTab(GlassmorphicFrame):
             relief="flat",
             bd=1,
         )
-        self.command_entry.grid(row=0, column=0, sticky="ew", padx=(0, ResponsiveSpacing.SMALL))
+        self.command_entry.grid(
+            row=0, column=0, sticky="ew", padx=(0, ResponsiveSpacing.SMALL)
+        )
         self.command_entry.bind("<Return>", self._on_text_command)
         self.command_entry.bind("<KeyPress>", self._on_typing)
 
@@ -236,26 +269,22 @@ class VoiceAssistantTab(GlassmorphicFrame):
 
         if not self.voice_service:
             self.status_label.config(
-                text="Voice Assistant Unavailable",
-                fg=self.style.colors["error"]
+                text="Voice Assistant Unavailable", fg=self.style.colors["error"]
             )
             self._disable_voice_controls()
             return
 
         if self.is_listening:
             self.status_label.config(
-                text="🎤 Listening...",
-                fg=self.style.colors["accent"]
+                text="🎤 Listening...", fg=self.style.colors["accent"]
             )
         elif self.is_speaking:
             self.status_label.config(
-                text="🔊 Speaking...",
-                fg=self.style.colors["accent"]
+                text="🔊 Speaking...", fg=self.style.colors["accent"]
             )
         else:
             self.status_label.config(
-                text="Voice Assistant Ready",
-                fg=self.style.colors["success"]
+                text="Voice Assistant Ready", fg=self.style.colors["success"]
             )
 
     def _disable_voice_controls(self) -> None:
@@ -276,7 +305,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
 
         self.is_listening = True
         self._update_voice_status()
-        
+
         # Update button states
         self.listen_button.config(state="disabled")
         self.stop_button.config(state="normal")
@@ -290,7 +319,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
         """Stop voice listening."""
         self.is_listening = False
         self._update_voice_status()
-        
+
         # Update button states
         self.listen_button.config(state="normal")
         self.stop_button.config(state="disabled")
@@ -302,23 +331,29 @@ class VoiceAssistantTab(GlassmorphicFrame):
         try:
             # Simulate listening delay
             import time
+
             time.sleep(2)
-            
+
             if not self.is_listening:
                 return
 
             # Placeholder: In a real implementation, this would capture audio
             # and use the voice service's speech_to_text method
-            
+
             # For now, simulate a recognized command
             recognized_text = "get weather for London"
-            
+
             # Process the recognized command
             self.after(0, lambda: self._process_recognized_speech(recognized_text))
-            
+
         except Exception as e:
             self.logger.error(f"Error during speech recognition: {e}")
-            self.after(0, lambda: self._add_conversation_message("System", f"Speech recognition error: {e}"))
+            self.after(
+                0,
+                lambda: self._add_conversation_message(
+                    "System", f"Speech recognition error: {e}"
+                ),
+            )
         finally:
             self.after(0, self._stop_listening)
 
@@ -376,9 +411,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
 
         # Process command in separate thread
         threading.Thread(
-            target=self._process_command_async,
-            args=(command,),
-            daemon=True
+            target=self._process_command_async, args=(command,), daemon=True
         ).start()
 
     def _process_command_async(self, command: str) -> None:
@@ -390,9 +423,9 @@ class VoiceAssistantTab(GlassmorphicFrame):
         try:
             # Extract city from command if present
             city = self._extract_city_from_command(command)
-            
+
             # Use the existing voice service's process_voice_command method
-            if hasattr(self.voice_service, 'process_voice_command'):
+            if hasattr(self.voice_service, "process_voice_command"):
                 response = self.voice_service.process_voice_command(command, city)
             else:
                 response = "Voice command processing is not available."
@@ -401,7 +434,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
             self.after(0, lambda: self._add_conversation_message("Cortana", response))
 
             # Trigger text-to-speech if available
-            if response and hasattr(self.voice_service, 'text_to_speech'):
+            if response and hasattr(self.voice_service, "text_to_speech"):
                 self.after(0, lambda: self._speak_response(response))
 
             # Call external command callback
@@ -410,8 +443,12 @@ class VoiceAssistantTab(GlassmorphicFrame):
 
         except Exception as e:
             self.logger.error(f"Error processing voice command: {e}")
-            error_response = "I'm sorry, I encountered an error processing your request."
-            self.after(0, lambda: self._add_conversation_message("Cortana", error_response))
+            error_response = (
+                "I'm sorry, I encountered an error processing your request."
+            )
+            self.after(
+                0, lambda: self._add_conversation_message("Cortana", error_response)
+            )
 
     def _extract_city_from_command(self, command: str) -> Optional[str]:
         """Extract city name from voice command.
@@ -424,7 +461,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
         """
         # Simple city extraction logic
         command_lower = command.lower()
-        
+
         # Look for "for [city]" pattern
         if " for " in command_lower:
             parts = command_lower.split(" for ")
@@ -433,16 +470,16 @@ class VoiceAssistantTab(GlassmorphicFrame):
                 # Remove common trailing words
                 for word in ["please", "today", "now", "currently"]:
                     if city.endswith(f" {word}"):
-                        city = city[:-len(f" {word}")]
+                        city = city[: -len(f" {word}")]
                 return city.title()
-        
+
         # Look for "in [city]" pattern
         if " in " in command_lower:
             parts = command_lower.split(" in ")
             if len(parts) > 1:
                 city = parts[1].strip()
                 return city.title()
-        
+
         return self.current_city
 
     def _speak_response(self, text: str) -> None:
@@ -458,11 +495,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
         self._update_voice_status()
 
         # Start speaking in separate thread
-        threading.Thread(
-            target=self._speak_async,
-            args=(text,),
-            daemon=True
-        ).start()
+        threading.Thread(target=self._speak_async, args=(text,), daemon=True).start()
 
     def _speak_async(self, text: str) -> None:
         """Speak text asynchronously.
@@ -474,8 +507,9 @@ class VoiceAssistantTab(GlassmorphicFrame):
             # Placeholder: In a real implementation, this would use
             # the voice service's text_to_speech method
             import time
+
             time.sleep(len(text) * 0.05)  # Simulate speaking time
-            
+
         except Exception as e:
             self.logger.error(f"Error during text-to-speech: {e}")
         finally:
@@ -497,6 +531,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
 
         # Add timestamp
         import datetime
+
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
 
         # Format message based on sender
@@ -514,9 +549,15 @@ class VoiceAssistantTab(GlassmorphicFrame):
         self.conversation_text.insert(tk.END, formatted_message, tag)
 
         # Configure tags for styling
-        self.conversation_text.tag_config("user", foreground=self.style.colors["accent"])
-        self.conversation_text.tag_config("assistant", foreground=self.style.colors["success"])
-        self.conversation_text.tag_config("system", foreground=self.style.colors["text_secondary"])
+        self.conversation_text.tag_config(
+            "user", foreground=self.style.colors["accent"]
+        )
+        self.conversation_text.tag_config(
+            "assistant", foreground=self.style.colors["success"]
+        )
+        self.conversation_text.tag_config(
+            "system", foreground=self.style.colors["text_secondary"]
+        )
 
         # Scroll to bottom
         self.conversation_text.see(tk.END)
@@ -525,11 +566,9 @@ class VoiceAssistantTab(GlassmorphicFrame):
         self.conversation_text.config(state="disabled")
 
         # Store in history
-        self.conversation_history.append({
-            "timestamp": timestamp,
-            "sender": sender,
-            "message": message
-        })
+        self.conversation_history.append(
+            {"timestamp": timestamp, "sender": sender, "message": message}
+        )
 
     def _on_voice_profile_change(self, event) -> None:
         """Handle voice profile change.
@@ -539,17 +578,25 @@ class VoiceAssistantTab(GlassmorphicFrame):
         """
         new_profile = self.voice_profile_var.get()
         self.logger.info(f"Voice profile changed to: {new_profile}")
-        
+
         # Configure voice service with new profile
-        if self.voice_service and hasattr(self.voice_service, 'configure_voice_settings'):
+        if self.voice_service and hasattr(
+            self.voice_service, "configure_voice_settings"
+        ):
             try:
-                asyncio.run(self.voice_service.configure_voice_settings({
-                    "voice_profile": new_profile
-                }))
-                self._add_conversation_message("System", f"Voice profile changed to {new_profile}")
+                asyncio.run(
+                    self.voice_service.configure_voice_settings(
+                        {"voice_profile": new_profile}
+                    )
+                )
+                self._add_conversation_message(
+                    "System", f"Voice profile changed to {new_profile}"
+                )
             except Exception as e:
                 self.logger.error(f"Failed to change voice profile: {e}")
-                self._add_conversation_message("System", f"Failed to change voice profile: {e}")
+                self._add_conversation_message(
+                    "System", f"Failed to change voice profile: {e}"
+                )
 
     def set_current_city(self, city: str) -> None:
         """Set current city for voice commands.
@@ -566,7 +613,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
             self.conversation_text.config(state="normal")
             self.conversation_text.delete(1.0, tk.END)
             self.conversation_text.config(state="disabled")
-        
+
         self.conversation_history.clear()
         self._add_conversation_message("System", "Conversation cleared.")
 
@@ -586,7 +633,7 @@ class VoiceAssistantTab(GlassmorphicFrame):
         """
         self.voice_service = voice_service
         self._update_voice_status()
-        
+
         # Update voice profiles
         if self.voice_profile_combo:
             profiles = self._get_voice_profiles()

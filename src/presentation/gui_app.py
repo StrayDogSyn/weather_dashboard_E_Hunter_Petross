@@ -177,14 +177,14 @@ class WeatherDashboardGUIApp:
         """Create and configure the root Tkinter window."""
         self._root = tk.Tk()
         self._root.title("Weather Dashboard - Your Personal Weather Companion")
-        
+
         # Set window to fullscreen
         self._root.state("zoomed")  # Windows fullscreen
         self._root.minsize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
 
         # Configure window properties for fullscreen
-        self._root.configure(bg='#1a1a1a')  # Dark background
-        
+        self._root.configure(bg="#1a1a1a")  # Dark background
+
         # Configure grid weights for responsive layout
         self._root.grid_rowconfigure(0, weight=1)
         self._root.grid_columnconfigure(0, weight=1)
@@ -194,7 +194,7 @@ class WeatherDashboardGUIApp:
         self._root.bind("<Configure>", self._on_window_configure)
         self._root.bind("<F11>", self._toggle_fullscreen)
         self._root.bind("<Escape>", self._exit_fullscreen)
-        
+
         # Mark as configured by parent to prevent conflicts
         self._root._configured_by_parent = True
         self._root._events_bound = True
@@ -209,7 +209,7 @@ class WeatherDashboardGUIApp:
 
             # Pass the root window to the GUI constructor
             self._main_window = WeatherDashboardGUI(root=self._root)
-            
+
             # Initialize services in the GUI
             self._main_window.initialize_services(self._container)
 

@@ -71,7 +71,7 @@ class WeatherDashboardGUI(IUserInterface):
 
     def __init__(self, root=None):
         """Initialize the Weather Dashboard GUI.
-        
+
         Args:
             root: Existing root window to use (optional)
         """
@@ -101,7 +101,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Initialize responsive layout manager after root window is created
         self.responsive_layout = ResponsiveLayoutManager(self.root)
- 
+
         # Initialize dependency container and services (will be set by the app factory)
         self.container = None
         self.weather_service = None
@@ -143,7 +143,7 @@ class WeatherDashboardGUI(IUserInterface):
     def setup_window(self) -> None:
         """Configure the main window."""
         # Only configure title and background if not already set by parent
-        if not hasattr(self.root, '_configured_by_parent'):
+        if not hasattr(self.root, "_configured_by_parent"):
             self.root.title("CodeFront 2.0 - Your Personal Weather Companion")
             # Set window to fullscreen
             self.root.state("zoomed")  # Windows fullscreen
@@ -159,7 +159,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.root.grid_columnconfigure(0, weight=1)
 
         # Bind window events (only if not already bound)
-        if not hasattr(self.root, '_events_bound'):
+        if not hasattr(self.root, "_events_bound"):
             self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
             self.root.bind("<Configure>", self.on_window_resize)
             self.root._events_bound = True
@@ -286,17 +286,17 @@ class WeatherDashboardGUI(IUserInterface):
         """
         try:
             self.container = container
-            
+
             # Import interface types
             from ..business.interfaces import (
-                IWeatherService,
-                IWeatherPoetryService,
-                IWeatherJournalService,
                 IActivitySuggestionService,
                 ICityComparisonService,
                 ICortanaVoiceService,
+                IWeatherJournalService,
+                IWeatherPoetryService,
+                IWeatherService,
             )
-            
+
             # Inject services
             self.weather_service = container.get_service(IWeatherService)
             self.poetry_service = container.get_service(IWeatherPoetryService)
@@ -304,47 +304,49 @@ class WeatherDashboardGUI(IUserInterface):
             self.activity_service = container.get_service(IActivitySuggestionService)
             self.comparison_service = container.get_service(ICityComparisonService)
             self.voice_service = container.get_service(ICortanaVoiceService)
-            
+
             self.logger.info("Services initialized successfully")
-            
+
             # Complete UI initialization now that services are available
             if not self._ui_initialized:
                 self.complete_initialization()
-            
+
             # Initialize services in dashboard components
-            if hasattr(self, 'main_dashboard') and self.main_dashboard:
+            if hasattr(self, "main_dashboard") and self.main_dashboard:
                 self.main_dashboard.initialize_services(container)
-                
+
         except Exception as e:
             self.logger.error(f"Failed to initialize services: {e}")
             self.show_error(f"Failed to initialize services: {e}")
-    
+
     def complete_initialization(self) -> None:
         """Complete the UI initialization after services are injected."""
         try:
             # Create layout
             self.create_layout()
-            
+
             # Load saved data
             self.load_saved_data()
-            
+
             # Start periodic updates
             self.start_periodic_updates()
-            
+
             # Load default weather
             self.load_default_weather()
-            
+
             self._ui_initialized = True
             self.logger.info("UI initialization completed")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to complete UI initialization: {e}")
             self.show_error(f"Failed to initialize UI: {e}")
-    
+
     def load_default_weather(self) -> None:
         """Load weather for the default city."""
         try:
-            default_city = self.config.get("default_city", "New York")  # Use configured default city
+            default_city = self.config.get(
+                "default_city", "New York"
+            )  # Use configured default city
             self.search_weather(default_city)
         except Exception as e:
             self.logger.error(f"Failed to load default weather: {e}")
@@ -422,7 +424,9 @@ class WeatherDashboardGUI(IUserInterface):
                 # Play success sound
                 play_sound(SoundType.SUCCESS)
             else:
-                self.root.after(0, lambda: self.show_error("Weather service not available"))
+                self.root.after(
+                    0, lambda: self.show_error("Weather service not available")
+                )
 
         except Exception as e:
             self.logger.error(f"Error searching weather: {e}")
@@ -442,7 +446,7 @@ class WeatherDashboardGUI(IUserInterface):
         if weather_data is None:
             self.logger.warning("Received None weather data, skipping display update")
             return
-            
+
         self.current_weather = weather_data
 
         # Update header

@@ -150,7 +150,10 @@ class ForecastVisualizationFrame(ttk.Frame):
         # Scrollable text area for detailed information
         self.details_scroll_frame = ttk.Frame(self.details_frame)
         self.details_scroll_frame.pack(
-            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
         )
 
         # Text widget with scrollbar
@@ -259,7 +262,10 @@ class ForecastVisualizationFrame(ttk.Frame):
 
         # Forecast display
         self.forecast_notebook.pack(
-            fill=tk.BOTH, expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
         )
 
         # Status bar
