@@ -127,14 +127,14 @@ class GlassmorphicFrame(tk.Frame):
 
     def __init__(
         self,
-        parent,
-        bg_color: Optional[str] = None,
-        border_color: Optional[str] = None,
-        elevated: bool = False,
-        gradient: bool = False,
-        blur_intensity: Optional[int] = None,
-        padding: Optional[int] = None,
-        **kwargs,
+        parent,          # Parent widget that will contain this frame
+        bg_color: Optional[str] = None,        # Optional background color override
+        border_color: Optional[str] = None,    # Optional border color override  
+        elevated: bool = False,                # Controls if frame appears raised/3D
+        gradient: bool = False,                # Enables gradient background effect
+        blur_intensity: Optional[int] = None,  # Controls blur effect (0-10)
+        padding: Optional[int] = None,         # Internal padding for contents
+        **kwargs,                             # Additional tkinter Frame parameters
     ):
         """Initialize glassmorphic frame.
         
