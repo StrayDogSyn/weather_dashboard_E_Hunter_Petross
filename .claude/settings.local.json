@@ -9,7 +9,10 @@
       "Bash(flake8:*)",
       "Bash(git pull:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git merge:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": []
   }
