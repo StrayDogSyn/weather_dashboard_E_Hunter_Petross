@@ -17,6 +17,11 @@ import threading
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
 
+from ..business.interfaces import ICacheService, ICortanaVoiceService, IStorageService
+from ..interfaces.weather_interfaces import IWeatherAPI
+from ..models.weather_models import CurrentWeather, WeatherForecast
+from .voice_command_processor import CommandResponse, VoiceCommandProcessor
+
 # Add configs directory to path for importing ConfigManager
 sys.path.append(str(Path(__file__).parent.parent.parent / "configs" / "cortana"))
 
@@ -27,11 +32,6 @@ except ImportError:
         "Cortana ConfigManager not available. Voice features will be disabled."
     )
     ConfigManager = None
-
-from ..business.interfaces import ICacheService, ICortanaVoiceService, IStorageService
-from ..interfaces.weather_interfaces import IWeatherAPI
-from ..models.weather_models import CurrentWeather, WeatherForecast
-from .voice_command_processor import CommandResponse, VoiceCommandProcessor
 
 
 class CortanaVoiceService(ICortanaVoiceService):

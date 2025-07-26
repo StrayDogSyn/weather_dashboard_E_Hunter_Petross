@@ -347,11 +347,12 @@ class VoiceAssistantTab(GlassmorphicFrame):
             self.after(0, lambda: self._process_recognized_speech(recognized_text))
 
         except Exception as e:
-            self.logger.error(f"Error during speech recognition: {e}")
+            error_msg = str(e)
+            self.logger.error(f"Error during speech recognition: {error_msg}")
             self.after(
                 0,
                 lambda: self._add_conversation_message(
-                    "System", f"Speech recognition error: {e}"
+                    "System", f"Speech recognition error: {error_msg}"
                 ),
             )
         finally:

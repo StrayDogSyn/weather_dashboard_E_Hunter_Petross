@@ -157,7 +157,6 @@ class AnimationHelper:
         """
         steps = 20
         step_time = duration // steps
-        step_distance = distance // steps
 
         # Get current position
         current_x = widget.winfo_x()

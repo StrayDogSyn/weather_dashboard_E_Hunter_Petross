@@ -285,7 +285,6 @@ class WeatherAPIService(IWeatherAPI):
                 # Temperature data
                 min_temp = day.get("mintemp_c", 0.0)
                 max_temp = day.get("maxtemp_c", 0.0)
-                avg_temp = day.get("avgtemp_c", (min_temp + max_temp) / 2)
 
                 high_temp = Temperature(
                     value=max_temp, unit=TemperatureUnit.CELSIUS, feels_like=max_temp

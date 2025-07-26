@@ -141,7 +141,7 @@ class WeatherDashboard:
 
         # Title bar
         title_frame = GlassmorphicFrame(main_frame, elevated=True)
-        title_frame.pack(fill=tk.X, pady=(0, spacing.MEDIUM))
+        title_frame.pack(fill=tk.X, pady=(0, ResponsiveSpacing.MEDIUM))
 
         title_label = tk.Label(
             title_frame,
@@ -150,7 +150,7 @@ class WeatherDashboard:
             fg=GlassmorphicStyle.ACCENT,
             bg=title_frame.bg_color,
         )
-        title_label.pack(pady=spacing.LARGE)
+        title_label.pack(pady=ResponsiveSpacing.LARGE)
 
         # Hotkey info
         hotkey_info = tk.Label(
@@ -160,15 +160,15 @@ class WeatherDashboard:
             fg=GlassmorphicStyle.TEXT_SECONDARY,
             bg=title_frame.bg_color,
         )
-        hotkey_info.pack(pady=(0, spacing.MEDIUM))
+        hotkey_info.pack(pady=(0, ResponsiveSpacing.MEDIUM))
 
         # Chart controls with responsive layout
         controls_frame = GlassmorphicFrame(main_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, pady=(0, spacing.MEDIUM))
+        controls_frame.pack(fill=tk.X, pady=(0, ResponsiveSpacing.MEDIUM))
 
         # Control buttons with enhanced button system
         button_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        button_frame.pack(pady=spacing.element_padding)
+        button_frame.pack(pady=ResponsiveSpacing.SMALL)
 
         # Chart selection buttons using enhanced button factory
         charts_info = [
@@ -188,7 +188,7 @@ class WeatherDashboard:
                 command=self._create_chart_command(chart_id),
                 tooltip=f"Show {text} chart ({hotkey})",
             )
-            btn.pack(side=tk.LEFT, padx=spacing.element_spacing)
+            btn.pack(side=tk.LEFT, padx=ResponsiveSpacing.SMALL)
             self.chart_buttons[chart_id] = btn
 
         # Refresh button using enhanced button factory
@@ -199,7 +199,7 @@ class WeatherDashboard:
             style="accent",
             tooltip="Refresh all charts (Ctrl+R)",
         )
-        self.refresh_btn.pack(side=tk.RIGHT, padx=spacing.element_spacing)
+        self.refresh_btn.pack(side=tk.RIGHT, padx=ResponsiveSpacing.SMALL)
 
         # Charts container with grid layout
         charts_container = GlassmorphicFrame(main_frame)
@@ -228,8 +228,8 @@ class WeatherDashboard:
             chart_frame.grid(
                 row=row,
                 column=col,
-                padx=spacing.element_spacing,
-                pady=spacing.element_spacing,
+                padx=ResponsiveSpacing.SMALL,
+                pady=ResponsiveSpacing.SMALL,
                 sticky="nsew",
             )
             self.chart_frames[chart_id] = chart_frame

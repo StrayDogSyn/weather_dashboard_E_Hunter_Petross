@@ -12,7 +12,8 @@
 [![Type Checking](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
 
-A modern weather dashboard application with glassmorphic design, built using Python TKinter. Features comprehensive weather data, capstone functionality, and an intuitive graphical interface.
+A modern weather dashboard application with glassmorphic design, built using Python TKinter. Features comprehensive
+weather data, capstone functionality, and an intuitive graphical interface.
 
 ## 🌟 Capstone Features
 
@@ -41,7 +42,8 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **📱 Responsive Layout**: Tabbed interface with intuitive navigation and scrollable panels
 - **🎯 Interactive Elements**: Custom styled buttons with modern hover animations and visual feedback
 - **📊 Data Visualization**: Beautiful weather cards and elegantly styled information displays
-- **📈 Visualization Dashboard**: Interactive charts with hotkeys (Ctrl+1-4) for temperature trends, metrics, forecasts, and humidity/pressure data
+- **📈 Visualization Dashboard**: Interactive charts with hotkeys (Ctrl+1-4) for temperature trends, metrics,
+  forecasts, and humidity/pressure data
 - **✨ Poetry Display**: Artistically rendered weather poems with decorative elements and elegant typography
 - **🔄 Auto-Refresh**: Convenient auto-refresh functionality with status indicators
 
@@ -83,7 +85,9 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
    python main.py
    ```
 
-> **💡 Developer Note**: This project includes comprehensive CI/CD with automated testing, code formatting (Black), linting (flake8), and type checking (mypy). All code changes are automatically validated for quality and cross-platform compatibility.
+> **💡 Developer Note**: This project includes comprehensive CI/CD with automated testing, code formatting (Black),
+> linting (flake8), and type checking (mypy). All code changes are automatically validated for quality and
+> cross-platform compatibility.
 
 ## 🎨 GUI Features
 
@@ -381,24 +385,29 @@ python -m pytest tests/test_weather_service.py -v
 ## 📚 Documentation
 
 ### Architecture & Design
+
 - [Architecture Documentation](docs/architecture/architecture.md) - Detailed architecture overview and design principles
 - [Project Structure](docs/architecture/project_structure.md) - Complete project organization and file structure
 
 ### Configuration & Setup
+
 - [Security Guidelines](docs/configuration/security.md) - Security best practices and API key management
 - [Cortana Configuration](docs/configuration/CORTANA_CONFIGURATION.md) - Cortana voice assistant setup and configuration
 - [Cortana Integration](docs/configuration/CORTANA_INTEGRATION.md) - Cortana integration details
 
 ### Development & Implementation
+
 - [Implementation Guide](docs/development/IMPLEMENTATION_GUIDE.md) - Detailed implementation documentation
 - [GUI Layout Analysis](docs/development/GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md) - UI design analysis and improvements
 - [GitHub Team Integration](docs/development/GITHUB_TEAM_DATA_INTEGRATION.md) - Team collaboration features
 - [SQL Database Documentation](docs/development/SQL_DATABASE.md) - Database design and implementation
 
 ### Deployment
+
 - [Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md) - Production deployment instructions
 
 ### Weekly Reflections
+
 - [Week 11 Reflection](docs/reflections/Week11_Reflection.md) - Clean architecture and core service implementation
 - [Week 12 Reflection](docs/reflections/Week12_Reflection.md) - Advanced features and data visualization
 - [Week 13 Reflection](docs/reflections/Week13_Reflection.md) - Machine learning integration and analytics
@@ -406,6 +415,7 @@ python -m pytest tests/test_weather_service.py -v
 - [Week 15 Reflection](docs/reflections/Week15_Reflection.md) - Final project reflection
 
 ### Complete Documentation Index
+
 - [Documentation Index](docs/README.md) - Complete documentation overview with works cited
 
 ## 🔐 Security

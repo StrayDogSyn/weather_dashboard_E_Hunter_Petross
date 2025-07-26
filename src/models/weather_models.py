@@ -25,7 +25,6 @@ from uuid import UUID, uuid4
 # Type aliases for cleaner interfaces
 WeatherData = "CurrentWeather"
 ForecastData = "WeatherForecast"
-LocationData = "Location"
 
 
 # Enhanced protocols for extensibility
@@ -770,7 +769,7 @@ class WeatherFactory:
         # Add AI insights if API key available
         if self.gemini_api_key:
             try:
-                insights = location.generate_ai_insights(self.gemini_api_key)
+                location.generate_ai_insights(self.gemini_api_key)
                 self.logger.info(
                     f"Generated AI insights for location: {location.display_name}"
                 )
@@ -834,7 +833,7 @@ class WeatherFactory:
         # Add AI insights if API key available
         if self.gemini_api_key:
             try:
-                insights = weather.generate_ai_insights(self.gemini_api_key)
+                weather.generate_ai_insights(self.gemini_api_key)
                 self.logger.info(
                     f"Generated AI insights for weather: {location.display_name}"
                 )

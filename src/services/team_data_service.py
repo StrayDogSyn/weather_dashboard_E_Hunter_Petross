@@ -175,7 +175,7 @@ class TeamDataService:
             ]
 
             if city_data.empty:
-                self.logger.warning(f"City '{city_name}' not found in team data")
+                self.logger.warning(f"City '{city_name}' is not available in team data")
                 return None
 
             # Get the most recent data for the city

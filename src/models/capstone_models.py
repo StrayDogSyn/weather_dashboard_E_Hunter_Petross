@@ -1142,8 +1142,7 @@ class ActivitySuggestion(AIEnhancedModel):
     def _generate_basic_suggestions(self) -> None:
         """Generate basic activity suggestions from default activities."""
         # Import here to avoid circular imports - would be reorganized in production
-        factory = ActivityFactory()
-        default_activities = factory.get_default_activities()
+        default_activities = ActivityFactory().get_default_activities()
 
         scored_activities = []
         for activity in default_activities:
@@ -2153,7 +2152,6 @@ def create_activity_suggestions(
     gemini_api_key: Optional[str] = None,
 ) -> ActivitySuggestion:
     """Convenience function to create activity suggestions."""
-    factory = ActivityFactory(gemini_api_key)
     suggestion = ActivitySuggestion(
         weather=weather, user_preferences=user_preferences or {}
     )

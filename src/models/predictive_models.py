@@ -316,32 +316,7 @@ class WeatherPredictor(ABC):
         """
         pass
 
-    def __init__(
-        self,
-        model_type: ModelType = ModelType.ENSEMBLE,
-        gemini_api_key: Optional[str] = None,
-    ):
-        """Initialize the enhanced weather predictor.
-
-        Args:
-            model_type: Type of model to use for predictions
-            gemini_api_key: API key for AI enhancements
-        """
-        super().__init__(model_type, gemini_api_key)
-
-        # Enhanced data storage
-        self.training_data = pd.DataFrame()
-        self.historical_data = pd.DataFrame()
-        self.validation_data = pd.DataFrame()
-
-        # Model storage path
-        self.model_path = Path("data/models")
-        self.model_path.mkdir(exist_ok=True, parents=True)
-
-        # Performance tracking
-        self.performance_history: List[Dict[str, Any]] = []
-        self.last_training_date: Optional[datetime] = None
-        self.auto_retrain_threshold = 0.1  # Retrain if performance drops by this much
+        return "autumn"
 
     def prepare_features(self, weather_data: List[Dict[str, Any]]) -> pd.DataFrame:
         """Prepare features for model training from weather data.

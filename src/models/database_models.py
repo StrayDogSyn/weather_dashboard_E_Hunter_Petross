@@ -822,7 +822,7 @@ class DatabaseModelFactory:
         # Generate AI insights if enabled
         if self.gemini_api_key and prefs.ai_insights_enabled:
             try:
-                insights = prefs.generate_ai_insights(self.gemini_api_key)
+                prefs.generate_ai_insights(self.gemini_api_key)
                 self.logger.info(
                     f"Generated AI insights for user preferences: {user_id}"
                 )
@@ -853,7 +853,7 @@ class DatabaseModelFactory:
         # Generate AI insights if enabled
         if self.gemini_api_key:
             try:
-                insights = city.generate_ai_insights(self.gemini_api_key)
+                city.generate_ai_insights(self.gemini_api_key)
                 self.logger.info(f"Generated AI insights for city: {city_name}")
             except Exception as e:
                 self.logger.warning(f"Failed to generate AI insights: {e}")
@@ -870,9 +870,9 @@ class DatabaseModelFactory:
         if self.gemini_api_key:
             try:
                 # Analyze sentiment
-                sentiment = entry.analyze_sentiment(self.gemini_api_key)
+                entry.analyze_sentiment(self.gemini_api_key)
                 # Generate insights
-                insights = entry.generate_ai_insights(self.gemini_api_key)
+                entry.generate_ai_insights(self.gemini_api_key)
                 self.logger.info(f"Generated AI analysis for journal entry: {title}")
             except Exception as e:
                 self.logger.warning(f"Failed to generate AI analysis: {e}")

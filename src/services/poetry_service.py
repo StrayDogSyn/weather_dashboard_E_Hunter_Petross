@@ -366,8 +366,6 @@ class WeatherPoetryService:
             return None
 
         try:
-            import google.generativeai as genai
-
             # Configure Gemini
             genai.configure(api_key=self.config.gemini_api_key)
             model = genai.GenerativeModel(self.config.gemini_model)
