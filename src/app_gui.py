@@ -90,16 +90,24 @@ class WeatherDashboardGUIApp:
 
         # Activity callbacks
         self.gui.set_callback("get_activities", self._handle_get_activities)
-        self.gui.set_callback("filter_activities", self._handle_filter_activities)
+        self.gui.set_callback(
+            "filter_activities", self._handle_filter_activities
+        )
 
         # Poetry callbacks
         self.gui.set_callback("generate_poetry", self._handle_generate_poetry)
-        self.gui.set_callback("generate_specific_poetry", self._handle_generate_specific_poetry)
-        self.gui.set_callback("generate_poetry_collection", self._handle_generate_poetry_collection)
+        self.gui.set_callback(
+            "generate_specific_poetry", self._handle_generate_specific_poetry
+        )
+        self.gui.set_callback(
+            "generate_poetry_collection", self._handle_generate_poetry_collection
+        )
 
         # Favorites callbacks
         self.gui.set_callback("refresh_favorites", self._handle_refresh_favorites)
-        self.gui.set_callback("view_favorites_weather", self._handle_view_favorites_weather)
+        self.gui.set_callback(
+            "view_favorites_weather", self._handle_view_favorites_weather
+        )
 
         # Application exit callback
         self.gui.set_callback("on_app_exit", self._handle_app_exit)
