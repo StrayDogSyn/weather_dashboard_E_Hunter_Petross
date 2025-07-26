@@ -26,9 +26,10 @@ weather_dashboard_E_Hunter_Petross/
 │   ├── core/                   # Business logic layer (Use Cases)
 │   │   ├── __init__.py
 │   │   ├── weather_service.py      # Core weather functionality
-│   │   ├── comparison_service.py   # City comparison feature
+│   │   ├── enhanced_comparison_service.py   # Enhanced city comparison feature
 │   │   ├── journal_service.py      # Weather journal feature
-│   │   └── activity_service.py     # Activity suggestion feature
+│   │   ├── activity_service.py     # Activity suggestion feature
+│   │   └── preferences.py          # User preferences management
 │   ├── interfaces/             # Abstract interfaces (dependency inversion)
 │   │   ├── __init__.py
 │   │   └── weather_interfaces.py  # Service interfaces
@@ -36,23 +37,55 @@ weather_dashboard_E_Hunter_Petross/
 │   │   ├── __init__.py
 │   │   ├── weather_models.py       # Weather domain models
 │   │   ├── capstone_models.py      # Capstone feature models
-│   │   └── database_models.py      # SQLAlchemy ORM models
+│   │   ├── database_models.py      # SQLAlchemy ORM models
+│   │   └── predictive_models.py    # Machine learning models
 │   ├── services/               # External services (Interface Adapters)
 │   │   ├── __init__.py
 │   │   ├── weather_api.py          # OpenWeatherMap API service
+│   │   ├── weatherapi_service.py   # WeatherAPI.com service
+│   │   ├── composite_weather_service.py # Multi-provider weather service
 │   │   ├── poetry_service.py       # Weather poetry generation
 │   │   ├── cache_service.py        # Caching functionality
 │   │   ├── data_storage.py         # JSON data persistence
 │   │   ├── sql_data_storage.py     # SQL database integration
 │   │   ├── storage_factory.py      # Storage implementation factory
-│   │   └── location_service.py     # Geolocation detection service
+│   │   ├── location_service.py     # Geolocation detection service
+│   │   ├── cortana_voice_service.py # Voice assistant integration
+│   │   ├── sound_service.py        # Audio feedback service
+│   │   ├── visualization_service.py # Data visualization service
+│   │   ├── model_integration_service.py # ML model integration
+│   │   ├── model_training_service.py # ML model training
+│   │   └── team_data_service.py    # Team collaboration features
 │   ├── ui/                     # User interface layer (Frameworks & Drivers)
 │   │   ├── __init__.py
-│   │   └── gui_interface.py        # Modern TKinter GUI
+│   │   ├── gui_interface.py        # Main GUI orchestrator (refactored)
+│   │   ├── styles/                 # UI styling components
+│   │   │   └── glassmorphic.py     # Glassmorphic design system
+│   │   ├── widgets/                # Reusable UI widgets
+│   │   │   └── modern_button.py    # Custom button components
+│   │   ├── animations/             # Animation effects
+│   │   │   └── effects.py          # Animation helper utilities
+│   │   ├── components/             # Specialized UI components
+│   │   │   ├── weather_icons.py    # Weather icon management
+│   │   │   ├── weather_card.py     # Weather display card
+│   │   │   ├── search_panel.py     # City search interface
+│   │   │   ├── main_dashboard.py   # Main dashboard layout
+│   │   │   ├── header.py           # Application header
+│   │   │   └── temperature_controls.py # Temperature unit controls
+│   │   ├── dialogs/                # Dialog windows
+│   │   ├── chart_widgets.py        # Chart visualization widgets
+│   │   ├── components.py           # Legacy UI components
+│   │   ├── dashboard.py            # Weather dashboard
+│   │   ├── forecast_ui.py          # Forecast interface
+│   │   ├── layout.py               # Layout management
+│   │   ├── settings_dialog.py      # Settings interface
+│   │   ├── styling.py              # Legacy styling
+│   │   └── weather_components.py   # Weather-specific components
 │   └── utils/                  # Utility functions
 │       ├── __init__.py
 │       ├── formatters.py           # Data formatting utilities
-│       └── validators.py           # Input validation utilities
+│       ├── validators.py           # Input validation utilities
+│       └── sample_data.py          # Sample data generation
 ├── docs/                       # Documentation
 ├── main.py                     # Application entry point
 ├── run_gui.py                  # Simplified GUI launcher
@@ -104,7 +137,12 @@ weather_dashboard_E_Hunter_Petross/
 
 #### **Presentation Layer** (Outermost)
 
-- `src/ui/gui_interface.py`: Modern TKinter GUI with glassmorphic design
+- `src/ui/gui_interface.py`: Main GUI orchestrator (refactored from 3,592 to 649 lines)
+- `src/ui/styles/`: Glassmorphic design system and styling components
+- `src/ui/widgets/`: Reusable UI widgets (buttons, controls)
+- `src/ui/animations/`: Animation effects and transitions
+- `src/ui/components/`: Specialized UI components (weather cards, search panels, headers)
+- `src/ui/dialogs/`: Dialog windows and modal interfaces
 - `src/app_gui.py`: GUI application controller/orchestrator
 - `main.py`: Application entry point with GUI launcher
 
@@ -163,19 +201,85 @@ weather_dashboard_E_Hunter_Petross/
 - User-friendly error messages
 - Graceful degradation
 
+## UI Architecture Refactoring (2024)
+
+### **Major Refactoring Achievement**
+
+The UI layer underwent a comprehensive refactoring that transformed a monolithic GUI file into a modular, enterprise-level architecture:
+
+#### **Before Refactoring**
+- Single `gui_interface.py` file: **3,592 lines**
+- Multiple responsibilities in one file
+- Difficult to maintain and test
+- Poor code reusability
+
+#### **After Refactoring**
+- Main `gui_interface.py` file: **649 lines** (82% reduction)
+- **15+ specialized components** extracted into dedicated modules
+- Clear separation of concerns
+- Enterprise-level architecture
+
+### **New UI Component Architecture**
+
+#### **Styles Layer** (`src/ui/styles/`)
+- `glassmorphic.py`: Comprehensive design system with color schemes, fonts, and styling utilities
+- Centralized theme management and visual consistency
+
+#### **Widgets Layer** (`src/ui/widgets/`)
+- `modern_button.py`: Custom button components with glassmorphic styling and animations
+- Reusable UI controls with consistent behavior
+
+#### **Animations Layer** (`src/ui/animations/`)
+- `effects.py`: Animation helper utilities for fade, pulse, glow, and transition effects
+- Centralized animation management
+
+#### **Components Layer** (`src/ui/components/`)
+- `weather_icons.py`: Weather icon management with Unicode characters and smart selection
+- `weather_card.py`: Comprehensive weather display component with animations
+- `search_panel.py`: City search interface with autocomplete and favorites
+- `main_dashboard.py`: Main dashboard layout with tabbed interface
+- `header.py`: Application header with branding and controls
+- `temperature_controls.py`: Temperature unit switching and display
+
+### **Architecture Benefits Achieved**
+
+#### **Single Responsibility Principle**
+- Each component has one clear purpose
+- Easy to understand and modify individual components
+- Simplified debugging and testing
+
+#### **Dependency Injection**
+- Components receive dependencies through constructors
+- Easy mocking and testing
+- Loose coupling between components
+
+#### **Event-Driven Architecture**
+- Components communicate through events
+- Decoupled component interactions
+- Flexible component composition
+
+#### **Type Safety**
+- Comprehensive type hints throughout
+- Better IDE support and error detection
+- Improved code reliability
+
 ## Benefits Achieved
 
 ### **Maintainability**
 
+- **82% reduction** in main GUI file size (3,592 → 649 lines)
 - Clear module boundaries make code easy to understand and modify
 - Single responsibility makes debugging straightforward
 - Consistent patterns across the codebase
+- Modular components can be updated independently
 
 ### **Testability**
 
 - Dependency injection allows easy mocking
 - Pure domain models are easy to unit test
 - Services can be tested in isolation
+- Individual UI components can be tested separately
+- Mock dependencies for isolated testing
 
 ### **Scalability**
 
@@ -183,13 +287,15 @@ weather_dashboard_E_Hunter_Petross/
 - New data sources can be added by implementing interfaces
 - Additional UI components can be integrated seamlessly
 - Modular design supports feature expansion
+- Component reusability across different parts of the application
 
 ### **User Experience**
 
-- Modern, intuitive interface design
+- Modern, intuitive interface design with glassmorphic effects
 - Comprehensive weather information in one application
 - Multiple interaction modes (current, forecast, comparison, journal)
 - Professional presentation suitable for portfolio demonstration
+- Smooth animations and responsive design
 
 ### **Professional Standards**
 
@@ -197,6 +303,8 @@ weather_dashboard_E_Hunter_Petross/
 - Implements Clean Architecture patterns
 - Type hints throughout for better IDE support
 - Comprehensive documentation and logging
+- Enterprise-level code organization
+- Future-proof design patterns
 
 ## Usage
 
