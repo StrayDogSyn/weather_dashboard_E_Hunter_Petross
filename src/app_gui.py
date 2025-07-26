@@ -6,7 +6,6 @@ of the Weather Dashboard, properly separated from business logic.
 """
 
 import logging
-import os
 import threading
 from typing import Optional
 
@@ -14,7 +13,6 @@ from src.config.config import config_manager, setup_environment, validate_config
 from src.controllers.gui_controller import WeatherDashboardController
 from src.ui.gui_interface import WeatherDashboardGUI
 from src.models.capstone_models import MoodType, ActivitySuggestion
-from src.utils.validation import validate_city_name, sanitize_input
 
 
 class WeatherDashboardGUIApp:
@@ -72,13 +70,17 @@ class WeatherDashboardGUIApp:
         self.gui.set_callback("get_weather", self._handle_get_weather)
         self.gui.set_callback("search_locations", self._handle_search_locations)
         self.gui.set_callback("add_favorite", self._handle_add_favorite)
-        self.gui.set_callback("get_current_location_weather", self._handle_current_location_weather)
+        self.gui.set_callback(
+            "get_current_location_weather", self._handle_current_location_weather
+        )
 
         # Comparison callbacks
         self.gui.set_callback("compare_cities", self._handle_compare_cities)
 
         # Team data callbacks
-        self.gui.set_callback("get_team_data_status", self._handle_get_team_data_status)
+        self.gui.set_callback(
+            "get_team_data_status", self._handle_get_team_data_status
+        )
         self.gui.set_callback("refresh_team_data", self._handle_refresh_team_data)
         self.gui.set_callback("get_team_cities", self._handle_get_team_cities)
 
