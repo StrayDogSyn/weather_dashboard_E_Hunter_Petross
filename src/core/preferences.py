@@ -3,6 +3,7 @@ import sqlite3
 import threading
 from typing import Any, Callable, Dict, Optional
 
+
 class PreferenceManager:
     _instance = None
     _lock = threading.Lock()

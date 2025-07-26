@@ -291,7 +291,7 @@ class WeatherJournalService:
             lines.append(f"Date: {entry.formatted_date}")
             lines.append(f"Location: {entry.location}")
             lines.append(
-                f"Weather: {entry.weather_summary} ({entry.temperature:.1f}°C)"
+                f"Weather: {entry.weather_summary} ({entry.temperature: .1f}°C)"
             )
             lines.append(f"Mood: {entry.mood_emoji} {entry.mood.value.title()}")
             lines.append(f"Notes: {entry.notes}")

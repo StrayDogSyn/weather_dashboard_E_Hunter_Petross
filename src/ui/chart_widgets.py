@@ -98,9 +98,9 @@ class WeatherChartWidget(GlassmorphicFrame):
 
         # Customize appearance
         self.ax.set_title(title or f"{self.chart_type.title()} Over Time",
-                         color=GlassmorphicStyle.TEXT_PRIMARY)
+                          color=GlassmorphicStyle.TEXT_PRIMARY)
         self.ax.set_ylabel(ylabel or self.chart_type.title(),
-                          color=GlassmorphicStyle.TEXT_SECONDARY)
+                           color=GlassmorphicStyle.TEXT_SECONDARY)
         self.ax.tick_params(colors=GlassmorphicStyle.TEXT_SECONDARY)
 
         # Format x-axis for time
@@ -170,8 +170,8 @@ class ForecastChartWidget(GlassmorphicFrame):
 
         if not forecast or not forecast.daily_forecasts:
             self.ax.text(0.5, 0.5, 'No forecast data available',
-                        transform=self.ax.transAxes, ha='center', va='center',
-                        color=GlassmorphicStyle.TEXT_SECONDARY)
+                         transform=self.ax.transAxes, ha='center', va='center',
+                         color=GlassmorphicStyle.TEXT_SECONDARY)
             self.canvas.draw()
             return
 
@@ -190,13 +190,13 @@ class ForecastChartWidget(GlassmorphicFrame):
         width = 0.4
 
         self.ax.bar([i - width/2 for i in x], highs, width,
-                   label='High', color=GlassmorphicStyle.ACCENT_SECONDARY, alpha=0.8)
+                    label='High', color=GlassmorphicStyle.ACCENT_SECONDARY, alpha=0.8)
         self.ax.bar([i + width/2 for i in x], lows, width,
-                   label='Low', color=GlassmorphicStyle.ACCENT, alpha=0.8)
+                    label='Low', color=GlassmorphicStyle.ACCENT, alpha=0.8)
 
         # Customize appearance
         self.ax.set_title('5-Day Temperature Forecast',
-                         color=GlassmorphicStyle.TEXT_PRIMARY)
+                          color=GlassmorphicStyle.TEXT_PRIMARY)
         self.ax.set_ylabel('Temperature (°C)',
                           color=GlassmorphicStyle.TEXT_SECONDARY)
         self.ax.set_xticks(x)

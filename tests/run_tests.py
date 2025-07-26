@@ -42,7 +42,7 @@ def run_all_tests():
     print(f"Failed Tests: {len(result.failures)}")
     print(f"Error Tests: {len(result.errors)}")
     print(
-        f"Success Rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100):.1f}%"
+        f"Success Rate: {((result.testsRun - len(result.failures) - len(result.errors)) / result.testsRun * 100): .1f}%"
         if result.testsRun > 0
         else "N/A"
     )
@@ -101,7 +101,7 @@ def run_specific_module(module_name):
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)
 
-    print(f"\nModule '{module_name}' Results:")
+    print(f"\nModule '{module_name}' Results: ")
     print(
         f"Tests: {result.testsRun}, Failures: {len(result.failures)}, Errors: {len(result.errors)}"
     )

@@ -83,8 +83,8 @@ def setup_environment():
         )
 
     print("\n✅ Setup completed!")
-    print(f"\n📋 Next steps:")
-    print(f"1. Activate virtual environment:")
+    print(f"\n📋 Next steps: ")
+    print(f"1. Activate virtual environment: ")
     if os.name == "nt":
         print(f"   {activate_script}")
     else:

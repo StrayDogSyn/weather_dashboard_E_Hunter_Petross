@@ -285,7 +285,7 @@ class ModelTrainingService:
             )
 
             self.logger.info(
-                f"Successfully trained {model_type.value} model (R²: {validation_score:.3f})"
+                f"Successfully trained {model_type.value} model (R²: {validation_score: .3f})"
             )
             return result
 
@@ -322,7 +322,7 @@ class ModelTrainingService:
         # Check performance
         if latest_training.validation_score < self.training_config.retrain_threshold:
             self.logger.info(
-                f"Model performance below threshold ({latest_training.validation_score:.3f} < {self.training_config.retrain_threshold})"
+                f"Model performance below threshold ({latest_training.validation_score: .3f} < {self.training_config.retrain_threshold})"
             )
             return True
 
@@ -395,7 +395,7 @@ class ModelTrainingService:
                     score = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0.0
                     validation_scores[model_type] = score
 
-                    self.logger.info(f"{model_type} validation R²: {score:.3f}")
+                    self.logger.info(f"{model_type} validation R²: {score: .3f}")
 
             except Exception as e:
                 self.logger.error(f"Error validating {model_type}: {e}")
@@ -434,10 +434,10 @@ class ModelTrainingService:
             report_lines.append(f"### {model_type.replace('_', ' ').title()}")
             report_lines.append(f"- Status: {result.status}")
             report_lines.append(
-                f"- Training duration: {result.training_duration:.2f} seconds"
+                f"- Training duration: {result.training_duration: .2f} seconds"
             )
             report_lines.append(
-                f"- Validation score (R²): {result.validation_score:.3f}"
+                f"- Validation score (R²): {result.validation_score: .3f}"
             )
             report_lines.append(f"- Data points used: {result.data_points_used}")
 
@@ -445,7 +445,7 @@ class ModelTrainingService:
                 report_lines.append("- Sub-model metrics:")
                 for sub_model, metrics in result.model_metrics.items():
                     report_lines.append(
-                        f"  - {sub_model}: MAE={metrics.mae:.2f}, RMSE={metrics.rmse:.2f}, R²={metrics.r2:.3f}"
+                        f"  - {sub_model}: MAE={metrics.mae: .2f}, RMSE={metrics.rmse: .2f}, R²={metrics.r2: .3f}"
                     )
 
             if result.notes:
@@ -485,8 +485,7 @@ class ModelTrainingService:
         )
         if best_model:
             report_lines.append(
-                f"- Best performing model: {best_model[0]} (R²: {best_model[1].validation_score:.3f})"
-            )
+                f"- Best performing model: {best_model[0]} (R²: {best_model[1].validation_score: .3f})")
 
         failed_models = [
             name for name, result in results.items() if result.status == "failed"

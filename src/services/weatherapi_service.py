@@ -289,7 +289,7 @@ class WeatherAPIService(IWeatherAPI):
                 # Temperature data
                 min_temp = day.get("mintemp_c", 0.0)
                 max_temp = day.get("maxtemp_c", 0.0)
-                avg_temp = day.get("avgtemp_c", (min_temp + max_temp) / 2)
+                _ = day.get("avgtemp_c", (min_temp + max_temp) / 2)
 
                 high_temp = Temperature(
                     value=max_temp,
@@ -403,7 +403,7 @@ class WeatherAPIService(IWeatherAPI):
             CurrentWeather or None if error
         """
         # WeatherAPI.com accepts coordinates as "lat,lon" format
-        coords = f"{latitude},{longitude}"
+        coords = f"{latitude}, {longitude}"
         return self.get_current_weather(coords, units)
 
     def get_forecast_by_coordinates(
@@ -422,5 +422,5 @@ class WeatherAPIService(IWeatherAPI):
             WeatherForecast or None if error
         """
         # WeatherAPI.com accepts coordinates as "lat,lon" format
-        coords = f"{latitude},{longitude}"
+        coords = f"{latitude}, {longitude}"
         return self.get_forecast(coords, days, units)

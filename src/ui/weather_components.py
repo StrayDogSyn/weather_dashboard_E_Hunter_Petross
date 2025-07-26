@@ -84,10 +84,10 @@ class WeatherCard(GlassmorphicFrame):
         if self.gui_ref:
             temp_value, temp_unit = self.gui_ref.convert_temperature(temp_celsius)
             temp_text = (
-                f"{temp_value:.1f}{temp_unit}"  # Fixed: removed extra degree symbol
+                f"{temp_value: .1f}{temp_unit}"  # Fixed: removed extra degree symbol
             )
         else:
-            temp_text = f"{temp_celsius:.1f}°C"
+            temp_text = f"{temp_celsius: .1f}°C"
             temp_value = temp_celsius
 
         # Get temperature color based on value
@@ -183,7 +183,7 @@ class WeatherCard(GlassmorphicFrame):
 
         wind_label = tk.Label(
             wind_frame,
-            text=f" {weather.wind.speed:.1f}",
+            text=f" {weather.wind.speed: .1f}",
             font=(
                 GlassmorphicStyle.FONT_FAMILY,
                 GlassmorphicStyle.FONT_SIZE_MEDIUM,
@@ -219,7 +219,7 @@ class WeatherCard(GlassmorphicFrame):
 
             pressure_label = tk.Label(
                 pressure_frame,
-                text=f" {weather.pressure.value:.0f} hPa",
+                text=f" {weather.pressure.value: .0f} hPa",
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
                     GlassmorphicStyle.FONT_SIZE_MEDIUM,
@@ -255,7 +255,7 @@ class WeatherCard(GlassmorphicFrame):
 
             visibility_label = tk.Label(
                 visibility_frame,
-                text=f" {weather.visibility:.1f}",
+                text=f" {weather.visibility: .1f}",
                 font=(
                     GlassmorphicStyle.FONT_FAMILY,
                     GlassmorphicStyle.FONT_SIZE_MEDIUM,

@@ -99,7 +99,7 @@ class WeatherPredictor:
         self.model_path = Path("data/models")
         self.model_path.mkdir(exist_ok=True)
 
-        logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
 
     def prepare_features(self, weather_data: List[Dict[str, Any]]) -> pd.DataFrame:
         """Prepare features for model training from weather data.
@@ -257,7 +257,7 @@ class WeatherPredictor:
             metrics[name] = ModelMetrics(mae, mse, rmse, r2, cv_score)
             self.models[name] = model
 
-            logging.info(f"{name} - MAE: {mae:.2f}, RMSE: {rmse:.2f}, R²: {r2:.3f}")
+            logging.info(f"{name} - MAE: {mae: .2f}, RMSE: {rmse: .2f}, R²: {r2: .3f}")
 
         self.model_metrics = metrics
         self.is_trained = True
@@ -504,10 +504,10 @@ class WeatherPredictor:
         report.append("Model Performance Metrics:")
         for name, metrics in self.model_metrics.items():
             report.append(f"\n{name.replace('_', ' ').title()}:")
-            report.append(f"  • Mean Absolute Error: {metrics.mae:.2f}°C")
-            report.append(f"  • Root Mean Square Error: {metrics.rmse:.2f}°C")
-            report.append(f"  • R² Score: {metrics.r2:.3f}")
-            report.append(f"  • Cross-validation Score: {metrics.cv_score:.3f}")
+            report.append(f"  • Mean Absolute Error: {metrics.mae: .2f}°C")
+            report.append(f"  • Root Mean Square Error: {metrics.rmse: .2f}°C")
+            report.append(f"  • R² Score: {metrics.r2: .3f}")
+            report.append(f"  • Cross-validation Score: {metrics.cv_score: .3f}")
 
         # Feature importance
         importance = self.get_feature_importance()
@@ -520,11 +520,11 @@ class WeatherPredictor:
                     )
                     report.append(f"\n{model_name.replace('_', ' ').title()}:")
                     for feature, importance_score in sorted_features[:5]:
-                        report.append(f"  • {feature}: {importance_score:.3f}")
+                        report.append(f"  • {feature}: {importance_score: .3f}")
 
         # Training data info
         if not self.training_data.empty:
-            report.append(f"\nTraining Data:")
+            report.append(f"\nTraining Data: ")
             report.append(f"  • Total samples: {len(self.training_data)}")
             report.append(f"  • Features used: {len(self.feature_columns)}")
             report.append(

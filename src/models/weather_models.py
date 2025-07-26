@@ -95,7 +95,7 @@ class Temperature:
             if self.unit == TemperatureUnit.FAHRENHEIT
             else "K"
         )
-        return f"{self.value:.1f}{symbol}"
+        return f"{self.value: .1f}{symbol}"
 
 
 @dataclass

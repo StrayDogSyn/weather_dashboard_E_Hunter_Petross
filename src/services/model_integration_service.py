@@ -600,7 +600,7 @@ class ModelIntegrationService:
 
         try:
             # Test data storage
-            test_data = self.data_storage.load_data("weather_history.json")
+            _ = self.data_storage.load_data("weather_history.json")
             validation_results["data_storage_accessible"] = True
         except:
             pass

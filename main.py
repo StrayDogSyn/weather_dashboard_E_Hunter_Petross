@@ -57,7 +57,7 @@ def main():
     except Exception as e:
         print(f"❌ Critical error: {e}")
         try:
-            messagebox.showerror("Error", f"Failed to start Weather Dashboard:\n{e}")
+            messagebox.showerror("Error", f"Failed to start Weather Dashboard: \n{e}")
         except:
             pass
 

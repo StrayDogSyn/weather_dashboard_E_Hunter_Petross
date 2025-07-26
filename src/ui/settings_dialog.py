@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from core.preferences import PreferenceManager
 
+
 class SettingsDialog(tk.Toplevel):
     def __init__(self, master=None):
         super().__init__(master)

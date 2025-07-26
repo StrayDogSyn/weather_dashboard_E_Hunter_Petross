@@ -133,7 +133,7 @@ class ModernLayoutMixin:
                 if team_status.get('data_loaded', False):
                     cities_count = team_status.get('cities_available', 0)
                     status_text = f"✅ Team data loaded with {cities_count} cities available"
-                    status_color = GlassmorphicStyle.SUCCESS
+                    _ = GlassmorphicStyle.SUCCESS  # status_color not used
 
                     # Show available cities
                     city_list = team_status.get('city_list', [])
@@ -175,7 +175,7 @@ class ModernLayoutMixin:
                     refresh_button.pack(pady=(5, 10))
                 else:
                     status_text = "⚠️ Using API fallback - no team data available"
-                    status_color = GlassmorphicStyle.WARNING
+                    _ = GlassmorphicStyle.WARNING  # status_color not used
 
                 status_label = tk.Label(
                     team_info_frame,

@@ -262,10 +262,11 @@ class ForecastVisualizationFrame(ttk.Frame):
 
             except Exception as e:
                 self.logger.error(f"Error generating forecast: {e}")
+                error_msg = f"Failed to generate forecast: {str(e)}"
                 self.after(
                     0,
                     lambda: messagebox.showerror(
-                        "Error", f"Failed to generate forecast: {str(e)}"
+                        "Error", error_msg
                     ),
                 )
                 self.after(0, lambda: self.status_var.set("Error generating forecast"))
@@ -659,10 +660,11 @@ class ForecastVisualizationFrame(ttk.Frame):
                 self.after(0, lambda: self._display_explanation(explanation))
 
             except Exception as e:
+                error_msg = f"Failed to get model explanation: {str(e)}"
                 self.after(
                     0,
                     lambda: messagebox.showerror(
-                        "Error", f"Failed to get model explanation: {str(e)}"
+                        "Error", error_msg
                     ),
                 )
 

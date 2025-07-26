@@ -8,7 +8,7 @@ print(f"🗄️  Database file: {db_path}")
 print(f"📁 File exists: {db_path.exists()}")
 
 if db_path.exists():
-    print(f"📊 File size: {db_path.stat().st_size:,} bytes")
+    print(f"📊 File size: {db_path.stat().st_size: ,} bytes")
     print(f"📅 Last modified: {datetime.fromtimestamp(db_path.stat().st_mtime)}")
 
     # Connect and check tables

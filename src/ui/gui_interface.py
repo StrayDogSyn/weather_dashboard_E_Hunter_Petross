@@ -687,26 +687,26 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
 
             # Configure the custom combobox style
             style.configure("Glassmorphic.TCombobox",
-                fieldbackground=GlassmorphicStyle.GLASS_BG_LIGHT,  # Background color
-                background=GlassmorphicStyle.GLASS_BG_LIGHT,       # Button background
-                foreground=GlassmorphicStyle.TEXT_PRIMARY,         # Text color
-                borderwidth=2,
-                relief="flat",
-                arrowcolor=GlassmorphicStyle.TEXT_ACCENT,          # Arrow color
-                insertcolor=GlassmorphicStyle.TEXT_PRIMARY,        # Cursor color
-                selectbackground=GlassmorphicStyle.ACCENT,         # Selection background
-                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,   # Selection text
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM)
+                            fieldbackground=GlassmorphicStyle.GLASS_BG_LIGHT,  # Background color
+                            background=GlassmorphicStyle.GLASS_BG_LIGHT,       # Button background
+                            foreground=GlassmorphicStyle.TEXT_PRIMARY,         # Text color
+                            borderwidth=2,
+                            relief="flat",
+                            arrowcolor=GlassmorphicStyle.TEXT_ACCENT,          # Arrow color
+                            insertcolor=GlassmorphicStyle.TEXT_PRIMARY,        # Cursor color
+                            selectbackground=GlassmorphicStyle.ACCENT,         # Selection background
+                            selectforeground=GlassmorphicStyle.TEXT_PRIMARY,   # Selection text
+                            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM)
             )
 
             # Configure the dropdown listbox
             style.configure("Glassmorphic.TCombobox.Listbox",
-                background=GlassmorphicStyle.GLASS_BG_LIGHT,
-                foreground=GlassmorphicStyle.TEXT_PRIMARY,
-                selectbackground=GlassmorphicStyle.ACCENT,
-                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
-                borderwidth=1,
-                relief="solid"
+                            background=GlassmorphicStyle.GLASS_BG_LIGHT,
+                            foreground=GlassmorphicStyle.TEXT_PRIMARY,
+                            selectbackground=GlassmorphicStyle.ACCENT,
+                            selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
+                            borderwidth=1,
+                            relief="solid"
             )
 
             # Map the styles for different states

@@ -242,7 +242,7 @@ if __name__ == "__main__":
     result = runner.run(test_suite)
 
     # Print summary
-    print(f"\nValidation Tests Results:")
+    print(f"\nValidation Tests Results: ")
     print(f"Tests run: {result.testsRun}")
     print(f"Failures: {len(result.failures)}")
     print(f"Errors: {len(result.errors)}")

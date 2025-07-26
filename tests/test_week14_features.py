@@ -120,7 +120,7 @@ class TestWeatherPredictor(unittest.TestCase):
         extended_data = []
         for i in range(50):
             data_point = {
-                "timestamp": f"2024-01-{i+1:02d}T12:00:00",
+                "timestamp": f"2024-01-{i+1: 02d}T12: 00: 00",
                 "temperature": 20.0 + (i % 10),
                 "humidity": 60.0 + (i % 20),
                 "pressure": 1013.0 + (i % 5),
@@ -436,7 +436,7 @@ class TestPerformanceBenchmarks(unittest.TestCase):
                 for i in range(size):
                     test_data.append(
                         {
-                            "timestamp": f"2024-01-{i+1:02d}T12:00:00",
+                            "timestamp": f"2024-01-{i+1: 02d}T12: 00: 00",
                             "temperature": 20.0 + (i % 10),
                             "humidity": 60.0 + (i % 20),
                             "pressure": 1013.0 + (i % 5),

@@ -402,7 +402,7 @@ class WeatherPoetryService:
 
 Weather details:
 - Condition: {condition_name}
-- Temperature: {temp_celsius:.1f}°C
+- Temperature: {temp_celsius: .1f}°C
 - Description: {weather.description}
 - Location: {location}
 
@@ -421,7 +421,7 @@ Only return the haiku, nothing else."""
 
 Weather details:
 - Condition: {condition_name}
-- Temperature: {temp_celsius:.1f}°C
+- Temperature: {temp_celsius: .1f}°C
 - Description: {weather.description}
 - Location: {location}
 
@@ -440,7 +440,7 @@ Only return the limerick, nothing else."""
 
 Weather details:
 - Condition: {condition_name}
-- Temperature: {temp_celsius:.1f}°C
+- Temperature: {temp_celsius: .1f}°C
 - Description: {weather.description}
 - Location: {location}
 
