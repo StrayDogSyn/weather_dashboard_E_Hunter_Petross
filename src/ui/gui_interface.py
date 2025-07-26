@@ -1062,6 +1062,9 @@ class WeatherDashboardGUI(IUserInterface):
         # Poetry tab
         self.create_poetry_tab()
 
+        # Voice Assistant tab
+        self.create_voice_tab()
+
         # Favorites tab
         self.create_favorites_tab()
 
@@ -1644,6 +1647,92 @@ class WeatherDashboardGUI(IUserInterface):
         # Favorites content
         self.favorites_content = ModernScrollableFrame(favorites_frame)
         self.favorites_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+
+    def create_voice_tab(self):
+        """Create voice assistant tab."""
+        voice_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
+        self.notebook.add(voice_frame, text="🎤 Voice Assistant")
+
+        # Voice controls
+        controls_frame = GlassmorphicFrame(voice_frame, elevated=True)
+        controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
+
+        # Voice status
+        status_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        status_frame.pack(fill=tk.X, padx=20, pady=15)
+
+        self.voice_status_label = tk.Label(
+            status_frame,
+            text="Voice Assistant: Checking...",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=controls_frame.bg_color,
+        )
+        self.voice_status_label.pack(side=tk.LEFT)
+
+        # Voice command input
+        input_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
+        input_frame.pack(fill=tk.X, padx=20, pady=(0, 15))
+
+        tk.Label(
+            input_frame,
+            text="Voice Command:",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+            fg=GlassmorphicStyle.TEXT_SECONDARY,
+            bg=controls_frame.bg_color,
+        ).pack(anchor=tk.W, pady=(0, 5))
+
+        command_input_frame = tk.Frame(input_frame, bg=controls_frame.bg_color)
+        command_input_frame.pack(fill=tk.X)
+
+        self.voice_command_entry = ModernEntry(command_input_frame, placeholder="Enter voice command...")
+        self.voice_command_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+
+        self.process_command_btn = ModernButton(
+            command_input_frame,
+            text="🎤 Process",
+            command=self.process_voice_command_gui,
+        )
+        self.process_command_btn.pack(side=tk.RIGHT)
+
+        # Voice configuration
+        config_frame = GlassmorphicFrame(voice_frame, elevated=True)
+        config_frame.pack(fill=tk.X, padx=10, pady=(5, 5))
+
+        config_title = tk.Label(
+            config_frame,
+            text="Voice Configuration",
+            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_LARGE, "bold"),
+            fg=GlassmorphicStyle.TEXT_PRIMARY,
+            bg=config_frame.bg_color,
+        )
+        config_title.pack(pady=(15, 10))
+
+        config_content = tk.Frame(config_frame, bg=config_frame.bg_color)
+        config_content.pack(fill=tk.X, padx=20, pady=(0, 15))
+
+        self.config_reload_btn = ModernButton(
+            config_content,
+            text="🔄 Reload Config",
+            style="secondary",
+            command=self.reload_voice_config_gui,
+        )
+        self.config_reload_btn.pack(side=tk.LEFT, padx=(0, 10))
+
+        self.voice_help_btn = ModernButton(
+            config_content,
+            text="❓ Help",
+            style="secondary",
+            command=self.show_voice_help_gui,
+        )
+        self.voice_help_btn.pack(side=tk.LEFT)
+
+        # Voice response area
+        self.voice_content = ModernScrollableFrame(voice_frame)
+        self.voice_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+
+        # Initialize voice status
+        self.update_voice_status()
 
     def create_status_bar(self):
         """Create status bar."""
@@ -3438,3 +3527,126 @@ class ModernLayoutMixin:
         except Exception as e:
             logging.error(f"Error refreshing team data: {e}")
             messagebox.showerror("Error", f"Error refreshing team data: {str(e)}")
+
+    # Voice Assistant GUI Methods
+    def update_voice_status(self):
+        """Update voice assistant status display."""
+        try:
+            if hasattr(self, 'callbacks') and 'is_voice_enabled' in self.callbacks:
+                is_enabled = self.callbacks['is_voice_enabled']()
+                if is_enabled:
+                    self.voice_status_label.configure(
+                        text="Voice Assistant: ✅ Enabled",
+                        fg=GlassmorphicStyle.SUCCESS
+                    )
+                else:
+                    self.voice_status_label.configure(
+                        text="Voice Assistant: ❌ Disabled",
+                        fg=GlassmorphicStyle.WARNING
+                    )
+            else:
+                self.voice_status_label.configure(
+                    text="Voice Assistant: ⚠️ Not Available",
+                    fg=GlassmorphicStyle.WARNING
+                )
+        except Exception as e:
+            self.voice_status_label.configure(
+                text="Voice Assistant: ❌ Error",
+                fg=GlassmorphicStyle.ERROR
+            )
+            logging.error(f"Error updating voice status: {e}")
+
+    def process_voice_command_gui(self):
+        """Process voice command from GUI input."""
+        try:
+            command = self.voice_command_entry.get().strip()
+            if not command:
+                messagebox.showwarning("Warning", "Please enter a voice command.")
+                return
+
+            if hasattr(self, 'callbacks') and 'process_voice_command' in self.callbacks:
+                response = self.callbacks['process_voice_command'](command)
+                self.display_voice_response(command, response)
+                self.voice_command_entry.delete(0, tk.END)
+            else:
+                messagebox.showerror("Error", "Voice command processing not available.")
+        except Exception as e:
+            logging.error(f"Error processing voice command: {e}")
+            messagebox.showerror("Error", f"Error processing voice command: {str(e)}")
+
+    def reload_voice_config_gui(self):
+        """Reload voice configuration from GUI."""
+        try:
+            if hasattr(self, 'callbacks') and 'reload_voice_configuration' in self.callbacks:
+                self.callbacks['reload_voice_configuration']()
+                self.update_voice_status()
+                messagebox.showinfo("Success", "Voice configuration reloaded successfully.")
+            else:
+                messagebox.showerror("Error", "Voice configuration reload not available.")
+        except Exception as e:
+            logging.error(f"Error reloading voice config: {e}")
+            messagebox.showerror("Error", f"Error reloading voice config: {str(e)}")
+
+    def show_voice_help_gui(self):
+        """Show voice assistant help information."""
+        try:
+            if hasattr(self, 'callbacks') and 'get_voice_help' in self.callbacks:
+                help_info = self.callbacks['get_voice_help']()
+                self.display_voice_response("help", help_info)
+            else:
+                help_text = """Available Voice Commands:
+• get_weather [city] - Get current weather
+• get_forecast [city] - Get weather forecast
+• get_temperature [city] - Get temperature
+• get_humidity [city] - Get humidity
+• get_wind [city] - Get wind information
+• help - Show this help
+• status - Show voice assistant status"""
+                self.display_voice_response("help", help_text)
+        except Exception as e:
+            logging.error(f"Error showing voice help: {e}")
+            messagebox.showerror("Error", f"Error showing voice help: {str(e)}")
+
+    def display_voice_response(self, command, response):
+        """Display voice command and response in the voice content area."""
+        try:
+            # Clear existing content
+            for widget in self.voice_content.scrollable_frame.winfo_children():
+                widget.destroy()
+
+            # Create response card
+            response_card = GlassmorphicFrame(
+                self.voice_content.scrollable_frame,
+                elevated=True,
+                gradient=True
+            )
+            response_card.pack(fill=tk.X, padx=10, pady=10)
+
+            # Command header
+            command_header = tk.Label(
+                response_card,
+                text=f"🎤 Command: {command}",
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
+                fg=GlassmorphicStyle.TEXT_PRIMARY,
+                bg=response_card.bg_color,
+            )
+            command_header.pack(anchor=tk.W, padx=15, pady=(15, 5))
+
+            # Response content
+            response_text = tk.Text(
+                response_card,
+                height=10,
+                wrap=tk.WORD,
+                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                fg=GlassmorphicStyle.TEXT_SECONDARY,
+                bg=GlassmorphicStyle.GLASS_BG_LIGHT,
+                relief=tk.FLAT,
+                padx=10,
+                pady=10
+            )
+            response_text.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 15))
+            response_text.insert(tk.END, response)
+            response_text.configure(state=tk.DISABLED)
+
+        except Exception as e:
+            logging.error(f"Error displaying voice response: {e}")

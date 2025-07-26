@@ -1,5 +1,7 @@
 # Environment variables (NEVER COMMIT THESE!)
 .env
+.env.*
+*.env
 .env.local
 .env.production
 .env.development
@@ -53,6 +55,7 @@ Thumbs.db
 
 # Application specific
 weather_dashboard.log
+*.log
 logs/
 cache/
 exports/
@@ -60,6 +63,19 @@ backups/
 temp/
 *.tmp
 *.bak
+
+# Database files
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Data files that should not be committed
+data/weather_dashboard.db
+data/json_backup/
+
+# Cortana configuration files
+configs/cortana/
 
 # Configuration files with sensitive data
 settings.json

@@ -33,6 +33,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **🎨 Weather Poetry**: AI-generated poems inspired by current weather with beautiful display
 - **🗃️ SQL Database Integration**: Robust data persistence with SQLAlchemy ORM
 - **💾 Data Management**: Intelligent caching and flexible storage options
+- **🔊 Cortana Voice Assistant**: Voice-based weather queries and information with customizable settings
 
 ### Modern GUI Design
 
@@ -132,6 +133,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **Journal Entries**: Record daily weather observations and mood
 - **Activity Suggestions**: Get personalized recommendations based on weather
 - **Weather Poetry**: Generate creative poems inspired by current conditions
+- **Cortana Voice Assistant**: Use voice commands to get weather information and control the application
 
 ## 🛠️ Technical Details
 
@@ -151,6 +153,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **python-dotenv**: Environment variable management
 - **pydantic**: Data validation and modeling
 - **openai**: AI-powered weather poetry generation
+- **PyYAML**: YAML parsing and generation for configuration files
 - **black & flake8**: Code formatting and linting
 - **mypy**: Static type checking
 
@@ -179,7 +182,14 @@ weather_dashboard_E_Hunter_Petross/
 │   ├── 📄 weather_dashboard.db  # SQLite database
 │   ├── 📁 json_backup/          # Data backups
 │   └── 📁 screenshots/          # UI screenshots
+├── 📁 configs/                  # Configuration files
+│   └── 📁 cortana/              # Cortana voice assistant configuration
+│       ├── 📄 manifest.yaml     # Main configuration file
+│       ├── 📄 schema.json       # JSON schema for validation
+│       ├── 📄 config_manager.py # Configuration management utility
+│       └── 📄 README.md         # Cortana configuration documentation
 ├── 📁 docs/                     # Documentation
+│   └── 📄 CORTANA_CONFIGURATION.md # Cortana configuration documentation
 ├── 📁 tests/                    # Test suite
 ├── 📁 logs/                     # Application logs
 └── 📁 scripts/                  # Utility scripts
@@ -204,6 +214,8 @@ Potential additions:
 - **Export functionality** for journal and data
 - **Customizable themes** and color schemes
 - **Weather widgets** for desktop integration
+- **Enhanced Cortana voice assistant** with natural language processing
+- **Multi-language support** for voice commands and responses
 
 ---
 
@@ -222,6 +234,7 @@ This project implements Clean Architecture with clear separation of concerns:
 - **`src/config/`** - Configuration management
 - **`src/ui/`** - User interface layer
 - **`src/utils/`** - Utility functions and helpers
+- **`configs/cortana/`** - Cortana voice assistant configuration and management
 
 ## 🧪 Testing
 
@@ -252,6 +265,7 @@ python -m pytest tests/test_weather_service.py -v
 - [Architecture Documentation](docs/architecture.md) - Detailed architecture overview and design principles
 - [Security Guidelines](docs/security.md) - Security best practices and API key management
 - [Project Structure](docs/project_structure.md) - Complete project organization and file structure
+- [Cortana Configuration](docs/CORTANA_CONFIGURATION.md) - Cortana voice assistant setup and configuration
 - [Week 11 Reflection](docs/Week11_Reflection.md) - Capstone project reflection and planning
 - [Works Cited](docs/README.md#-works-cited) - Bibliography of tools, documentation, and educational resources
 

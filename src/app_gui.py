@@ -109,6 +109,13 @@ class WeatherDashboardGUIApp:
             "view_favorites_weather", self._handle_view_favorites_weather
         )
 
+        # Voice Assistant callbacks
+        self.gui.set_callback("process_voice_command", self._handle_process_voice_command)
+        self.gui.set_callback("reload_voice_config", self._handle_reload_voice_config)
+        self.gui.set_callback("get_voice_help", self._handle_get_voice_help)
+        self.gui.set_callback("is_voice_enabled", self._handle_is_voice_enabled)
+        self.gui.set_callback("get_voice_config", self._handle_get_voice_config)
+
         # Application exit callback
         self.gui.set_callback("on_app_exit", self._handle_app_exit)
 
@@ -505,6 +512,72 @@ class WeatherDashboardGUIApp:
 
         logging.info("Handling current location weather request")
         self.controller.get_current_location_weather(location_callback)
+
+    # Voice Assistant Event Handlers
+
+    def _handle_process_voice_command(self, command: str):
+        """Handle voice command processing."""
+        if not self.controller or not self.gui:
+            return
+
+        def process_command_async():
+            try:
+                response = self.controller.process_voice_command(command)
+                if response:
+                    self.gui.root.after(0, lambda: self.gui.display_voice_response(response))
+                else:
+                    self.gui.root.after(0, lambda: self.gui.display_voice_response("No response from voice assistant"))
+            except Exception as e:
+                logging.error(f"Error processing voice command: {e}")
+                error_msg = f"Error processing voice command: {e}"
+                self.gui.root.after(0, lambda: self.gui.display_voice_response(error_msg))
+
+        self.gui.update_voice_status("Processing voice command...")
+        threading.Thread(target=process_command_async, daemon=True).start()
+
+    def _handle_reload_voice_config(self):
+        """Handle voice configuration reload."""
+        if not self.controller or not self.gui:
+            return
+
+        def reload_config_async():
+            try:
+                success = self.controller.reload_voice_configuration()
+                if success:
+                    self.gui.root.after(0, lambda: self.gui.display_voice_response("✅ Voice configuration reloaded successfully"))
+                else:
+                    self.gui.root.after(0, lambda: self.gui.display_voice_response("❌ Failed to reload voice configuration"))
+            except Exception as e:
+                logging.error(f"Error reloading voice config: {e}")
+                error_msg = f"Error reloading voice config: {e}"
+                self.gui.root.after(0, lambda: self.gui.display_voice_response(error_msg))
+
+        self.gui.update_voice_status("Reloading voice configuration...")
+        threading.Thread(target=reload_config_async, daemon=True).start()
+
+    def _handle_get_voice_help(self):
+        """Handle voice help request."""
+        if not self.controller or not self.gui:
+            return
+
+        try:
+            help_text = self.controller.get_voice_help()
+            self.gui.display_voice_response(help_text)
+        except Exception as e:
+            logging.error(f"Error getting voice help: {e}")
+            self.gui.display_voice_response(f"Error getting voice help: {e}")
+
+    def _handle_is_voice_enabled(self):
+        """Handle voice enabled status check."""
+        if not self.controller:
+            return False
+        return self.controller.is_voice_enabled()
+
+    def _handle_get_voice_config(self):
+        """Handle voice configuration request."""
+        if not self.controller:
+            return {}
+        return self.controller.get_voice_configuration()
 
     def _handle_app_exit(self):
         """Handle application exit."""

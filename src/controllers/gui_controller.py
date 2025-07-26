@@ -21,6 +21,7 @@ from src.services.data_storage import FileDataStorage
 from src.services.poetry_service import WeatherPoetryService
 from src.services.weather_api import OpenWeatherMapAPI
 from src.services.composite_weather_service import CompositeWeatherService
+from src.services.cortana_voice_service import CortanaVoiceService
 from src.utils.formatters import validate_city_name
 from src.utils.validators import sanitize_input
 
@@ -38,6 +39,7 @@ class WeatherDashboardController:
         self.journal_service: Optional[WeatherJournalService] = None
         self.activity_service: Optional[ActivitySuggestionService] = None
         self.poetry_service: Optional[WeatherPoetryService] = None
+        self.cortana_service: Optional[CortanaVoiceService] = None
 
         # Setup environment and logging
         setup_environment()
@@ -90,6 +92,7 @@ class WeatherDashboardController:
             self.journal_service = WeatherJournalService(storage)
             self.activity_service = ActivitySuggestionService()
             self.poetry_service = WeatherPoetryService()
+            self.cortana_service = CortanaVoiceService(weather_api)
 
             logging.info("All services initialized successfully")
 
@@ -368,3 +371,78 @@ class WeatherDashboardController:
     def is_initialized(self) -> bool:
         """Check if controller is properly initialized."""
         return self.config_valid and self.weather_service is not None
+
+    # Cortana Voice Assistant Methods
+    
+    def is_voice_enabled(self) -> bool:
+        """Check if voice functionality is enabled.
+        
+        Returns:
+            bool: True if voice is enabled, False otherwise
+        """
+        return self.cortana_service is not None and self.cortana_service.is_voice_enabled()
+    
+    def process_voice_command(self, command: str, city: str = None, callback=None):
+        """Process a voice command and return response.
+        
+        Args:
+            command: Voice command to process
+            city: Optional city name for weather queries
+            callback: Optional callback for async response
+        """
+        if not self.cortana_service:
+            response = "Voice assistant is not available."
+            if callback:
+                callback(response, "Voice service not initialized")
+            return response
+        
+        def process_voice_async():
+            try:
+                response = self.cortana_service.process_voice_command(command, city)
+                if callback:
+                    callback(response, None)
+                return response
+            except Exception as e:
+                logging.error(f"Error processing voice command: {e}")
+                error_response = "I'm sorry, I encountered an error processing your request."
+                if callback:
+                    callback(error_response, str(e))
+                return error_response
+        
+        if callback:
+            threading.Thread(target=process_voice_async, daemon=True).start()
+        else:
+            return process_voice_async()
+    
+    def get_voice_configuration(self):
+        """Get Cortana voice configuration summary.
+        
+        Returns:
+            dict: Configuration summary
+        """
+        if not self.cortana_service:
+            return {"enabled": False, "reason": "Voice service not available"}
+        
+        return self.cortana_service.get_configuration_summary()
+    
+    def reload_voice_configuration(self) -> bool:
+        """Reload Cortana voice configuration.
+        
+        Returns:
+            bool: True if reload was successful, False otherwise
+        """
+        if not self.cortana_service:
+            return False
+        
+        return self.cortana_service.reload_configuration()
+    
+    def get_voice_help(self) -> str:
+        """Get voice command help text.
+        
+        Returns:
+            str: Help text for voice commands
+        """
+        if not self.cortana_service:
+            return "Voice assistant is not available."
+        
+        return self.cortana_service._generate_help_response()

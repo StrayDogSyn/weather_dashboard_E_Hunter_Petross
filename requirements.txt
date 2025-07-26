@@ -5,6 +5,7 @@
 requests>=2.31.0              # HTTP client for weather API
 python-dotenv>=1.0.0          # Environment variables for API keys
 pydantic>=2.0.0               # Data validation for weather models
+pyyaml>=6.0.0                 # YAML parsing for configuration files
 
 # Database & Storage
 sqlalchemy>=2.0.0             # ORM for database operations
