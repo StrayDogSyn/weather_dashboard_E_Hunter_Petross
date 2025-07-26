@@ -30,12 +30,10 @@ def main():
     print("=" * 50)
 
     try:
-        # Test TKinter availability
+        # Test TKinter availability without creating a window
         try:
-            test_root = tk.Tk()
-            test_root.withdraw()  # Hide test window immediately
-            test_root.destroy()  # Properly destroy test window
-            del test_root  # Remove reference
+            import tkinter as tk
+            # Just test the import, don't create any windows
             print("✅ TKinter: Available")
         except Exception as e:
             print(f"❌ TKinter: Not available - {e}")

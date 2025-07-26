@@ -222,8 +222,8 @@ class WeatherDashboardGUI(IUserInterface):
             dashboard: WeatherDashboard instance
         """
         self.weather_dashboard = dashboard
-        if self.main_dashboard:
-            self.main_dashboard.set_weather_dashboard(dashboard)
+        # Note: MainDashboard doesn't have set_weather_dashboard method
+        # This method is currently unused but kept for potential future use
     
     def set_callback(self, name: str, callback: Callable) -> None:
         """Set a callback function for the specified name.
