@@ -7,12 +7,12 @@ between cities using both API data and team data sources with intelligent fallba
 
 import logging
 from datetime import datetime
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 from ..models.capstone_models import WeatherComparison
 from ..models.weather_models import CurrentWeather
-from .weather_service import WeatherService
 from ..services.team_data_service import TeamDataService
+from .weather_service import WeatherService
 
 
 class EnhancedCityComparisonService:
@@ -56,11 +56,12 @@ class EnhancedCityComparisonService:
 
             # Create and return comparison
             comparison = WeatherComparison(
-                city1_weather=weather1,
-                city2_weather=weather2
+                city1_weather=weather1, city2_weather=weather2
             )
 
-            self.logger.info(f"Successfully created comparison between {city1} and {city2}")
+            self.logger.info(
+                f"Successfully created comparison between {city1} and {city2}"
+            )
             return comparison
 
         except Exception as e:
@@ -95,7 +96,9 @@ class EnhancedCityComparisonService:
 
         return None
 
-    def compare_multiple_cities(self, cities: List[str]) -> Dict[str, Optional[CurrentWeather]]:
+    def compare_multiple_cities(
+        self, cities: List[str]
+    ) -> Dict[str, Optional[CurrentWeather]]:
         """
         Compare weather conditions for multiple cities.
 
@@ -120,7 +123,9 @@ class EnhancedCityComparisonService:
 
         return results
 
-    def get_comparison_analysis(self, city1: str, city2: str) -> Optional[Dict[str, Any]]:
+    def get_comparison_analysis(
+        self, city1: str, city2: str
+    ) -> Optional[Dict[str, Any]]:
         """
         Get detailed comparison analysis between two cities.
 
@@ -148,8 +153,8 @@ class EnhancedCityComparisonService:
                 "timestamp": datetime.now().isoformat(),
                 "data_sources": {
                     city1: "team_data" if self._is_from_team_data(city1) else "api",
-                    city2: "team_data" if self._is_from_team_data(city2) else "api"
-                }
+                    city2: "team_data" if self._is_from_team_data(city2) else "api",
+                },
             }
             return analysis
         except Exception as e:
@@ -162,7 +167,9 @@ class EnhancedCityComparisonService:
             return False
         return self.team_data_service.get_city_weather_from_team_data(city) is not None
 
-    def export_comparison(self, city1: str, city2: str, format: str = "json") -> Optional[str]:
+    def export_comparison(
+        self, city1: str, city2: str, format: str = "json"
+    ) -> Optional[str]:
         """
         Export comparison data in specified format.
 
@@ -185,13 +192,15 @@ class EnhancedCityComparisonService:
                 import json
                 import os
 
-                exports_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'exports')
+                exports_dir = os.path.join(
+                    os.path.dirname(__file__), "..", "..", "exports"
+                )
                 os.makedirs(exports_dir, exist_ok=True)
 
                 filename = f"comparison_{city1}_{city2}_{timestamp}.json"
                 filepath = os.path.join(exports_dir, filename)
 
-                with open(filepath, 'w') as f:
+                with open(filepath, "w") as f:
                     json.dump(analysis, f, indent=2)
 
                 self.logger.info(f"Exported comparison to {filepath}")
@@ -214,7 +223,9 @@ class EnhancedCityComparisonService:
             prefer_team_data: True to prefer team data, False to prefer API
         """
         self.prefer_team_data = prefer_team_data
-        self.logger.info(f"Data source preference set to: {'team_data' if prefer_team_data else 'api'}")
+        self.logger.info(
+            f"Data source preference set to: {'team_data' if prefer_team_data else 'api'}"
+        )
 
     def get_available_cities(self) -> Dict[str, List[str]]:
         """
@@ -225,7 +236,7 @@ class EnhancedCityComparisonService:
         """
         result = {
             "team_data": [],
-            "api": []  # API can handle any city, so this would be extensive
+            "api": [],  # API can handle any city, so this would be extensive
         }
 
         # Get cities from team data
@@ -234,8 +245,18 @@ class EnhancedCityComparisonService:
 
         # For API, we could maintain a list of popular cities or let users try any city
         result["api"] = [
-            "New York", "London", "Paris", "Tokyo", "Sydney", "Toronto",
-            "Berlin", "Mumbai", "Beijing", "Los Angeles", "Chicago", "Miami"
+            "New York",
+            "London",
+            "Paris",
+            "Tokyo",
+            "Sydney",
+            "Toronto",
+            "Berlin",
+            "Mumbai",
+            "Beijing",
+            "Los Angeles",
+            "Chicago",
+            "Miami",
         ]
 
         return result

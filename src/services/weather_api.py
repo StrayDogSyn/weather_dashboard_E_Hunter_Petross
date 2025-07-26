@@ -79,19 +79,25 @@ class OpenWeatherMapAPI(IWeatherAPI):
 
         for attempt in range(max_retries + 1):
             try:
-                response = self.session.get(url, params=params, timeout=self.config.timeout)
+                response = self.session.get(
+                    url, params=params, timeout=self.config.timeout
+                )
                 response.raise_for_status()
                 return response.json()
 
             except requests.exceptions.Timeout:
                 if attempt < max_retries:
-                    logging.warning(f"Request timeout (attempt {attempt + 1}/{max_retries + 1}), retrying...")
+                    logging.warning(
+                        f"Request timeout (attempt {attempt + 1}/{max_retries + 1}), retrying..."
+                    )
                     continue
                 logging.error("Request timeout after retries")
                 return None
             except requests.exceptions.ConnectionError:
                 if attempt < max_retries:
-                    logging.warning(f"Connection error (attempt {attempt + 1}/{max_retries + 1}), retrying...")
+                    logging.warning(
+                        f"Connection error (attempt {attempt + 1}/{max_retries + 1}), retrying..."
+                    )
                     continue
                 logging.error("Connection error after retries")
                 return None

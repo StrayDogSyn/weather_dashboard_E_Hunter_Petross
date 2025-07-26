@@ -265,8 +265,8 @@ class ForecastVisualizationFrame(ttk.Frame):
                 error_msg = f"Failed to generate forecast: {str(e)}"
                 self.after(
                     0,
-                    lambda: messagebox.showerror(
-                        "Error", error_msg
+                    lambda e=e: messagebox.showerror(
+                        "Error", f"Failed to generate forecast: {str(e)}"
                     ),
                 )
                 self.after(0, lambda: self.status_var.set("Error generating forecast"))
@@ -322,16 +322,18 @@ class ForecastVisualizationFrame(ttk.Frame):
         # API temperatures (if available)
         api_temps = []
         api_forecast = self.current_forecast.api_forecast or {}
-        if "forecast_days" in api_forecast:
-            for day_data in api_forecast["forecast_days"]:
-                temp_data = day_data.get("temperature", {})
-                if isinstance(temp_data, dict):
-                    api_temps.append(temp_data.get("max", 0))
-                else:
-                    api_temps.append(float(temp_data) if temp_data else 0)
+        forecast_days = api_forecast.get("forecast_days", [])
+        if not isinstance(forecast_days, list):
+            forecast_days = []
+        for day_data in forecast_days:
+            temp_data = day_data.get("temperature", {})
+            if isinstance(temp_data, dict):
+                api_temps.append(temp_data.get("max", 0))
+            else:
+                api_temps.append(float(temp_data) if temp_data else 0)
 
         # ML predictions
-        ml_predictions = self.current_forecast.ml_predictions or []
+        ml_predictions = getattr(self.current_forecast, "ml_predictions", []) or []
         ml_temps = [pred.predicted_temperature for pred in ml_predictions]
         confidence_intervals = [pred.confidence_interval for pred in ml_predictions]
 
@@ -363,11 +365,13 @@ class ForecastVisualizationFrame(ttk.Frame):
         # Hybrid forecast (if available)
         hybrid_temps = []
         hybrid_forecast = self.current_forecast.hybrid_forecast or {}
-        if "forecast_days" in hybrid_forecast:
-            for day_data in hybrid_forecast["forecast_days"]:
-                hybrid_temp = day_data.get("temperature", {}).get("ml_enhanced")
-                if hybrid_temp:
-                    hybrid_temps.append(hybrid_temp)
+        hybrid_days = hybrid_forecast.get("forecast_days", [])
+        if not isinstance(hybrid_days, list):
+            hybrid_days = []
+        for day_data in hybrid_days:
+            hybrid_temp = day_data.get("temperature", {}).get("ml_enhanced")
+            if hybrid_temp:
+                hybrid_temps.append(hybrid_temp)
 
         if hybrid_temps and len(hybrid_temps) == len(days):
             ax.plot(
@@ -585,7 +589,9 @@ class ForecastVisualizationFrame(ttk.Frame):
                     "ml_predictions": [],
                 }
 
-                ml_predictions = self.current_forecast.ml_predictions or []
+                ml_predictions = (
+                    getattr(self.current_forecast, "ml_predictions", []) or []
+                )
                 for pred in ml_predictions:
                     pred_data = {
                         "timestamp": pred.timestamp.isoformat(),
@@ -663,8 +669,8 @@ class ForecastVisualizationFrame(ttk.Frame):
                 error_msg = f"Failed to get model explanation: {str(e)}"
                 self.after(
                     0,
-                    lambda: messagebox.showerror(
-                        "Error", error_msg
+                    lambda e=e: messagebox.showerror(
+                        "Error", f"Failed to get model explanation: {str(e)}"
                     ),
                 )
 
