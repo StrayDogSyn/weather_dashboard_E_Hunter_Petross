@@ -1,14 +1,24 @@
 """Models package for the Weather Dashboard application."""
 
-from .capstone_models import (  # Enums; Capstone entities; Default data
-    DEFAULT_ACTIVITIES,
+from .capstone_models import (  # Enums; Capstone entities; Enhanced models
     Activity,
+    ActivityFactory,
     ActivitySuggestion,
     ActivityType,
     JournalEntry,
     MoodType,
     WeatherComparison,
+    WeatherComparisonBuilder,
     WeatherPoem,
+    # Enhanced enums
+    ActivityDifficulty,
+    WeatherImpact,
+    PoemType,
+    TemperatureRange,
+    # Convenience functions
+    create_activity_suggestions,
+    create_journal_entry_from_weather,
+    create_weather_poem,
 )
 from .weather_models import (  # Enums; Core entities; API Response models; Type aliases
     APIResponse,
@@ -54,6 +64,18 @@ __all__ = [
     "Activity",
     "ActivitySuggestion",
     "WeatherPoem",
+    # Enhanced enums
+    "ActivityDifficulty",
+    "WeatherImpact",
+    "PoemType",
+    "TemperatureRange",
+    # Factory and builder patterns
+    "ActivityFactory",
+    "WeatherComparisonBuilder",
+    # Convenience functions
+    "create_activity_suggestions",
+    "create_journal_entry_from_weather",
+    "create_weather_poem",
     # API Response models
     "APIResponse",
     "WeatherAPIResponse",
@@ -62,6 +84,5 @@ __all__ = [
     "WeatherData",
     "ForecastData",
     "LocationData",
-    # Default data
-    "DEFAULT_ACTIVITIES",
+    # Enhanced functionality - use ActivityFactory.get_default_activities() instead
 ]

@@ -53,6 +53,11 @@ class MainDashboard(GlassmorphicFrame):
 
         # Services
         self.weather_service = weather_service
+        self.poetry_service = None
+        self.journal_service = None
+        self.activity_service = None
+        self.comparison_service = None
+        self.voice_service = None
 
         # Components
         self.weather_card: Optional[WeatherCard] = None
@@ -196,8 +201,40 @@ class MainDashboard(GlassmorphicFrame):
         self.notebook = ttk.Notebook(parent, style="Custom.TNotebook")
         self.notebook.grid(row=0, column=0, sticky="nsew")
 
-        # Bind tab change event
+        # Bind events
         self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
+
+    def initialize_services(self, container) -> None:
+        """Initialize services from the dependency container.
+
+        Args:
+            container: Dependency injection container with all services
+        """
+        try:
+            # Import interface types
+            from ...business.interfaces import (
+                IWeatherService,
+                IWeatherPoetryService,
+                IWeatherJournalService,
+                IActivitySuggestionService,
+                ICityComparisonService,
+                ICortanaVoiceService,
+            )
+            
+            # Inject services
+            self.weather_service = container.get_service(IWeatherService)
+            self.poetry_service = container.get_service(IWeatherPoetryService)
+            self.journal_service = container.get_service(IWeatherJournalService)
+            self.activity_service = container.get_service(IActivitySuggestionService)
+            self.comparison_service = container.get_service(ICityComparisonService)
+            self.voice_service = container.get_service(ICortanaVoiceService)
+            
+            # Connect search panel to weather service
+            if hasattr(self.search_panel, 'set_weather_service'):
+                self.search_panel.set_weather_service(self.weather_service)
+                
+        except Exception as e:
+            print(f"Failed to initialize services in MainDashboard: {e}")
 
     def _create_all_tabs(self) -> None:
         """Create all dashboard tabs."""
@@ -487,13 +524,48 @@ class MainDashboard(GlassmorphicFrame):
             self.set_loading_state(True)
 
             try:
-                # Get weather data (this would be async in a real implementation)
-                # For now, we'll create a placeholder
-                self._simulate_weather_fetch(city)
+                # Use actual weather service
+                self._fetch_weather_data(city)
 
             except Exception as e:
                 self.logger.error(f"Error fetching weather: {e}")
                 self.set_loading_state(False)
+
+    def _fetch_weather_data(self, city: str) -> None:
+        """Fetch weather data using the weather service.
+
+        Args:
+            city: City name
+        """
+        try:
+            # Get current weather
+            weather_data = self.weather_service.get_current_weather(city)
+            
+            if weather_data:
+                # Update the dashboard with real weather data
+                self.update_weather_data(weather_data)
+                
+                # Call location change callback
+                if self.on_location_change:
+                    self.on_location_change(city)
+                    
+                # Get forecast data if available
+                try:
+                    forecast_data = self.weather_service.get_forecast(city)
+                    if forecast_data:
+                        self.update_forecast_data(forecast_data)
+                except Exception as e:
+                    self.logger.warning(f"Failed to get forecast data: {e}")
+            else:
+                self.logger.warning(f"No weather data returned for {city}")
+                
+        except Exception as e:
+            self.logger.error(f"Failed to fetch weather data: {e}")
+            # Show error to user
+            if hasattr(self, 'show_error'):
+                self.show_error(f"Failed to get weather for {city}: {e}")
+        finally:
+            self.set_loading_state(False)
 
     def _simulate_weather_fetch(self, city: str) -> None:
         """Simulate weather data fetching.

@@ -69,10 +69,23 @@ logger = logging.getLogger(__name__)
 class WeatherDashboardGUI(IUserInterface):
     """Main Weather Dashboard GUI application with refactored components."""
 
-    def __init__(self):
-        """Initialize the Weather Dashboard GUI."""
-        # Initialize ttkbootstrap style
-        self.style = ttk_bs.Style(theme="darkly")
+    def __init__(self, root=None):
+        """Initialize the Weather Dashboard GUI.
+        
+        Args:
+            root: Existing root window to use (optional)
+        """
+        # Use provided root or create new one
+        if root is not None:
+            self.root = root
+            # Initialize ttkbootstrap style with existing root
+            self.style = ttk_bs.Style()
+        else:
+            # Initialize ttkbootstrap style
+            self.style = ttk_bs.Style(theme="darkly")
+            # Initialize main window
+            self.root = ttk_bs.Window(themename="darkly")
+            self.setup_window()
 
         # Load configuration
         self.config = config_manager
@@ -86,15 +99,21 @@ class WeatherDashboardGUI(IUserInterface):
         self.weather_icons = WeatherIcons()
         self.button_factory = ButtonFactory()
 
-        # Initialize main window
-        self.root = ttk_bs.Window(themename="darkly")
-        self.setup_window()
-
         # Initialize responsive layout manager after root window is created
         self.responsive_layout = ResponsiveLayoutManager(self.root)
+ 
+        # Initialize dependency container and services (will be set by the app factory)
+        self.container = None
+        self.weather_service = None
+        self.poetry_service = None
+        self.journal_service = None
+        self.activity_service = None
+        self.comparison_service = None
+        self.voice_service = None
 
-        # Initialize weather dashboard (will be set later to avoid circular import)
-        self.weather_dashboard = None
+        # Setup window if using provided root
+        if root is not None:
+            self.setup_window()
 
         # Initialize callbacks dictionary
         self.callbacks: Dict[str, Callable] = {}
@@ -114,40 +133,36 @@ class WeatherDashboardGUI(IUserInterface):
         self.update_thread: Optional[threading.Thread] = None
         self.stop_updates = threading.Event()
 
-        # Setup UI
-        self.setup_styles()
-        self.create_layout()
-
         # Initialize sound service
         self.sound_service = get_sound_service()
 
-        # Load saved data
-        self.load_saved_data()
-
-        # Start periodic updates
-        self.start_periodic_updates()
+        # Setup UI (will be completed after services are injected)
+        self.setup_styles()
+        self._ui_initialized = False
 
     def setup_window(self) -> None:
         """Configure the main window."""
-        self.root.title("Weather Dashboard - Your Personal Weather Companion")
-
-        # Set window to fullscreen
-        self.root.state("zoomed")  # Windows fullscreen
-        self.root.minsize(1200, 800)
+        # Only configure title and background if not already set by parent
+        if not hasattr(self.root, '_configured_by_parent'):
+            self.root.title("Weather Dashboard - Your Personal Weather Companion")
+            # Set window to fullscreen
+            self.root.state("zoomed")  # Windows fullscreen
+            self.root.minsize(1200, 800)
+            # Center window on screen (fallback if fullscreen fails)
+            self.center_window()
 
         # Configure window properties
         self.root.configure(bg=self.glassmorphic_style.BACKGROUND)
 
-        # Center window on screen (fallback if fullscreen fails)
-        self.center_window()
-
-        # Configure grid weights
+        # Configure grid weights for main content
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
 
-        # Bind window events
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.bind("<Configure>", self.on_window_resize)
+        # Bind window events (only if not already bound)
+        if not hasattr(self.root, '_events_bound'):
+            self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+            self.root.bind("<Configure>", self.on_window_resize)
+            self.root._events_bound = True
 
     def center_window(self) -> None:
         """Center the window on the screen."""
@@ -263,15 +278,76 @@ class WeatherDashboardGUI(IUserInterface):
         self.animation_helper.slide_in(self.header, direction="down")
         self.animation_helper.fade_in(main_content)
 
-    def set_weather_dashboard(self, dashboard) -> None:
-        """Set the weather dashboard instance (to avoid circular imports).
+    def initialize_services(self, container) -> None:
+        """Initialize services from the dependency container.
 
         Args:
-            dashboard: WeatherDashboard instance
+            container: Dependency injection container with all services
         """
-        self.weather_dashboard = dashboard
-        # Note: MainDashboard doesn't have set_weather_dashboard method
-        # This method is currently unused but kept for potential future use
+        try:
+            self.container = container
+            
+            # Import interface types
+            from ..business.interfaces import (
+                IWeatherService,
+                IWeatherPoetryService,
+                IWeatherJournalService,
+                IActivitySuggestionService,
+                ICityComparisonService,
+                ICortanaVoiceService,
+            )
+            
+            # Inject services
+            self.weather_service = container.get_service(IWeatherService)
+            self.poetry_service = container.get_service(IWeatherPoetryService)
+            self.journal_service = container.get_service(IWeatherJournalService)
+            self.activity_service = container.get_service(IActivitySuggestionService)
+            self.comparison_service = container.get_service(ICityComparisonService)
+            self.voice_service = container.get_service(ICortanaVoiceService)
+            
+            self.logger.info("Services initialized successfully")
+            
+            # Complete UI initialization now that services are available
+            if not self._ui_initialized:
+                self.complete_initialization()
+            
+            # Initialize services in dashboard components
+            if hasattr(self, 'main_dashboard') and self.main_dashboard:
+                self.main_dashboard.initialize_services(container)
+                
+        except Exception as e:
+            self.logger.error(f"Failed to initialize services: {e}")
+            self.show_error(f"Failed to initialize services: {e}")
+    
+    def complete_initialization(self) -> None:
+        """Complete the UI initialization after services are injected."""
+        try:
+            # Create layout
+            self.create_layout()
+            
+            # Load saved data
+            self.load_saved_data()
+            
+            # Start periodic updates
+            self.start_periodic_updates()
+            
+            # Load default weather
+            self.load_default_weather()
+            
+            self._ui_initialized = True
+            self.logger.info("UI initialization completed")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to complete UI initialization: {e}")
+            self.show_error(f"Failed to initialize UI: {e}")
+    
+    def load_default_weather(self) -> None:
+        """Load weather for the default city."""
+        try:
+            default_city = self.config.get("default_city", "New York")  # Use configured default city
+            self.search_weather(default_city)
+        except Exception as e:
+            self.logger.error(f"Failed to load default weather: {e}")
 
     def set_callback(self, name: str, callback: Callable) -> None:
         """Set a callback function for the specified name.
@@ -336,15 +412,17 @@ class WeatherDashboardGUI(IUserInterface):
             city: City name to search for
         """
         try:
-            if self.weather_dashboard:
-                # Get weather data
-                weather_data = self.weather_dashboard.get_weather(city)
+            if self.weather_service:
+                # Get weather data using the weather service
+                weather_data = self.weather_service.get_current_weather(city)
 
                 # Update UI in main thread
                 self.root.after(0, lambda: self._update_weather_display(weather_data))
 
                 # Play success sound
                 play_sound(SoundType.SUCCESS)
+            else:
+                self.root.after(0, lambda: self.show_error("Weather service not available"))
 
         except Exception as e:
             self.logger.error(f"Error searching weather: {e}")
@@ -360,6 +438,11 @@ class WeatherDashboardGUI(IUserInterface):
         Args:
             weather_data: Current weather data
         """
+        # Check if weather_data is None
+        if weather_data is None:
+            self.logger.warning("Received None weather data, skipping display update")
+            return
+            
         self.current_weather = weather_data
 
         # Update header

@@ -176,17 +176,30 @@ class WeatherDashboardGUIApp:
     def _create_root_window(self) -> None:
         """Create and configure the root Tkinter window."""
         self._root = tk.Tk()
-        self._root.title("Weather Dashboard")
-        self._root.geometry(f"{DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
+        self._root.title("Weather Dashboard - Your Personal Weather Companion")
+        
+        # Set window to fullscreen
+        self._root.state("zoomed")  # Windows fullscreen
         self._root.minsize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
 
-        # Center window on screen
-        self._center_window()
+        # Configure window properties for fullscreen
+        self._root.configure(bg='#1a1a1a')  # Dark background
+        
+        # Configure grid weights for responsive layout
+        self._root.grid_rowconfigure(0, weight=1)
+        self._root.grid_columnconfigure(0, weight=1)
 
         # Configure window properties
         self._root.protocol("WM_DELETE_WINDOW", self._on_window_close)
+        self._root.bind("<Configure>", self._on_window_configure)
+        self._root.bind("<F11>", self._toggle_fullscreen)
+        self._root.bind("<Escape>", self._exit_fullscreen)
+        
+        # Mark as configured by parent to prevent conflicts
+        self._root._configured_by_parent = True
+        self._root._events_bound = True
 
-        self._logger.debug("Root window created")
+        self._logger.debug("Root window created with fullscreen support")
 
     def _create_main_window(self) -> None:
         """Create the main application window."""
@@ -194,11 +207,13 @@ class WeatherDashboardGUIApp:
             # Import here to avoid circular imports
             from ..ui.gui_interface import WeatherDashboardGUI
 
-            self._main_window = WeatherDashboardGUI()
-            self._main_window.root = self._root
-            self._main_window.container = self._container
+            # Pass the root window to the GUI constructor
+            self._main_window = WeatherDashboardGUI(root=self._root)
+            
+            # Initialize services in the GUI
+            self._main_window.initialize_services(self._container)
 
-            self._logger.debug("Main window created")
+            self._logger.debug("Main window created with shared root")
 
         except Exception as e:
             raise UIError(
@@ -300,6 +315,32 @@ class WeatherDashboardGUIApp:
         if event.widget == self._root:
             # Update window state if needed
             pass
+
+    def _toggle_fullscreen(self, event=None) -> None:
+        """Toggle fullscreen mode."""
+        try:
+            current_state = self._root.state()
+            if current_state == "zoomed":
+                self._root.state("normal")
+                self._root.geometry(f"{DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
+                self._center_window()
+                self._logger.debug("Exited fullscreen mode")
+            else:
+                self._root.state("zoomed")
+                self._logger.debug("Entered fullscreen mode")
+        except Exception as e:
+            self._logger.error(f"Error toggling fullscreen: {e}")
+
+    def _exit_fullscreen(self, event=None) -> None:
+        """Exit fullscreen mode."""
+        try:
+            if self._root.state() == "zoomed":
+                self._root.state("normal")
+                self._root.geometry(f"{DEFAULT_WINDOW_WIDTH}x{DEFAULT_WINDOW_HEIGHT}")
+                self._center_window()
+                self._logger.debug("Exited fullscreen mode via Escape key")
+        except Exception as e:
+            self._logger.error(f"Error exiting fullscreen: {e}")
 
     def _cleanup(self) -> None:
         """Cleanup application resources."""
