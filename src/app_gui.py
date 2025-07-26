@@ -11,8 +11,8 @@ from typing import Optional
 
 from src.config.config import config_manager, setup_environment, validate_config
 from src.controllers.gui_controller import WeatherDashboardController
+from src.models.capstone_models import ActivitySuggestion, MoodType
 from src.ui.gui_interface import WeatherDashboardGUI
-from src.models.capstone_models import MoodType, ActivitySuggestion
 
 
 class WeatherDashboardGUIApp:
@@ -39,7 +39,7 @@ class WeatherDashboardGUIApp:
             self.gui = WeatherDashboardGUI()
 
             # Setup event bindings
-            if hasattr(self.gui, 'setup_event_bindings'):
+            if hasattr(self.gui, "setup_event_bindings"):
                 self.gui.setup_event_bindings()
 
             # Setup GUI callbacks to use controller
@@ -59,6 +59,7 @@ class WeatherDashboardGUIApp:
                 logging.StreamHandler(),
             ],
         )
+
     def _setup_gui_callbacks(self):
         """Setup GUI event callbacks to use the controller."""
         if not self.gui:
@@ -76,9 +77,7 @@ class WeatherDashboardGUIApp:
         self.gui.set_callback("compare_cities", self._handle_compare_cities)
 
         # Team data callbacks
-        self.gui.set_callback(
-            "get_team_data_status", self._handle_get_team_data_status
-        )
+        self.gui.set_callback("get_team_data_status", self._handle_get_team_data_status)
         self.gui.set_callback("refresh_team_data", self._handle_refresh_team_data)
         self.gui.set_callback("get_team_cities", self._handle_get_team_cities)
 
@@ -88,9 +87,7 @@ class WeatherDashboardGUIApp:
 
         # Activity callbacks
         self.gui.set_callback("get_activities", self._handle_get_activities)
-        self.gui.set_callback(
-            "filter_activities", self._handle_filter_activities
-        )
+        self.gui.set_callback("filter_activities", self._handle_filter_activities)
 
         # Poetry callbacks
         self.gui.set_callback("generate_poetry", self._handle_generate_poetry)
@@ -108,7 +105,9 @@ class WeatherDashboardGUIApp:
         )
 
         # Voice Assistant callbacks
-        self.gui.set_callback("process_voice_command", self._handle_process_voice_command)
+        self.gui.set_callback(
+            "process_voice_command", self._handle_process_voice_command
+        )
         self.gui.set_callback("reload_voice_config", self._handle_reload_voice_config)
         self.gui.set_callback("get_voice_help", self._handle_get_voice_help)
         self.gui.set_callback("is_voice_enabled", self._handle_is_voice_enabled)
@@ -118,11 +117,11 @@ class WeatherDashboardGUIApp:
         self.gui.set_callback("on_app_exit", self._handle_app_exit)
 
         # Refresh city dropdowns
-        if hasattr(self.gui, 'refresh_city_dropdowns_after_callbacks'):
+        if hasattr(self.gui, "refresh_city_dropdowns_after_callbacks"):
             self.gui.refresh_city_dropdowns_after_callbacks()
-            
+
         # Update voice status after callbacks are set
-        if hasattr(self.gui, 'update_voice_status'):
+        if hasattr(self.gui, "update_voice_status"):
             self.gui.update_voice_status()
 
     def run(self):
@@ -192,13 +191,16 @@ class WeatherDashboardGUIApp:
         def search_async():
             try:
                 from src.utils.input_sanitization import sanitize_input
+
                 clean_query = sanitize_input(query)
                 self.gui.update_status(f"Searching for locations: {clean_query}")
-                
+
                 # Simple message for now - could implement actual location search
-                results = f"Location search for '{clean_query}' would be implemented here"
+                results = (
+                    f"Location search for '{clean_query}' would be implemented here"
+                )
                 self.gui.root.after(0, lambda: self.gui.show_message(results))
-                
+
             except Exception as e:
                 logging.error(f"Error searching locations: {e}")
                 error_msg = f"Search failed: {e}"
@@ -214,15 +216,23 @@ class WeatherDashboardGUIApp:
         def add_favorite_async():
             try:
                 from src.utils.input_sanitization import sanitize_input
+
                 clean_city = sanitize_input(city)
                 self.gui.update_status(f"Adding {clean_city} to favorites...")
-                
+
                 # For now, just show success message - could implement actual favorite storage
-                self.gui.root.after(0, lambda: self.gui.show_message(f"✅ Added {clean_city} to favorites!"))
-                
+                self.gui.root.after(
+                    0,
+                    lambda: self.gui.show_message(
+                        f"✅ Added {clean_city} to favorites!"
+                    ),
+                )
+
             except Exception as e:
                 logging.error(f"Error adding favorite: {e}")
-                self.gui.root.after(0, lambda: self.gui.show_error(f"Could not add {city} to favorites"))
+                self.gui.root.after(
+                    0, lambda: self.gui.show_error(f"Could not add {city} to favorites")
+                )
 
         threading.Thread(target=add_favorite_async, daemon=True).start()
 
@@ -235,7 +245,9 @@ class WeatherDashboardGUIApp:
             if error:
                 self.gui.root.after(0, lambda: self.gui.show_warning(error))
             elif comparison:
-                self.gui.root.after(0, lambda: self.gui.display_weather_comparison(comparison))
+                self.gui.root.after(
+                    0, lambda: self.gui.display_weather_comparison(comparison)
+                )
 
         self.gui.update_status(f"Comparing {city1} and {city2}...")
         self.controller.compare_cities(city1, city2, comparison_callback)
@@ -265,7 +277,9 @@ class WeatherDashboardGUIApp:
 
         try:
             if not self.gui.current_weather:
-                self.gui.show_error("Please get weather data first to create a journal entry")
+                self.gui.show_error(
+                    "Please get weather data first to create a journal entry"
+                )
                 return
 
             # Get mood input
@@ -280,12 +294,18 @@ class WeatherDashboardGUIApp:
             try:
                 mood_index = int(mood_input) - 1
                 moods = list(MoodType)
-                mood = moods[mood_index] if 0 <= mood_index < len(moods) else MoodType.CONTENT
+                mood = (
+                    moods[mood_index]
+                    if 0 <= mood_index < len(moods)
+                    else MoodType.CONTENT
+                )
             except ValueError:
                 mood = MoodType.CONTENT
 
             # Get notes
-            notes = self.gui.get_user_input("Write your thoughts about today's weather:")
+            notes = self.gui.get_user_input(
+                "Write your thoughts about today's weather:"
+            )
             if not notes:
                 return
 
@@ -293,16 +313,24 @@ class WeatherDashboardGUIApp:
             activities_input = self.gui.get_user_input(
                 "What activities did you do today? (comma-separated):"
             )
-            activities = [
-                activity.strip() for activity in activities_input.split(",") if activity.strip()
-            ] if activities_input else []
+            activities = (
+                [
+                    activity.strip()
+                    for activity in activities_input.split(",")
+                    if activity.strip()
+                ]
+                if activities_input
+                else []
+            )
 
             # Create entry
             entry = self.controller.create_journal_entry(
                 self.gui.current_weather, mood, notes, activities
             )
             if entry:
-                self.gui.show_message(f"✅ Journal entry created for {entry.formatted_date}!")
+                self.gui.show_message(
+                    f"✅ Journal entry created for {entry.formatted_date}!"
+                )
             else:
                 self.gui.show_error("Failed to create journal entry")
 
@@ -323,14 +351,16 @@ class WeatherDashboardGUIApp:
                 return
 
             # Format entries for display
-            entries_text = "\\n".join([
-                f"📅 {entry.formatted_date} | {entry.location}\\n"
-                f"   {entry.mood_emoji} {entry.mood.value.title()} | "
-                f"{entry.weather_summary}\\n"
-                f"   📝 {entry.notes[:60]}"
-                f"{'...' if len(entry.notes) > 60 else ''}\\n"
-                for entry in entries
-            ])
+            entries_text = "\\n".join(
+                [
+                    f"📅 {entry.formatted_date} | {entry.location}\\n"
+                    f"   {entry.mood_emoji} {entry.mood.value.title()} | "
+                    f"{entry.weather_summary}\\n"
+                    f"   📝 {entry.notes[:60]}"
+                    f"{'...' if len(entry.notes) > 60 else ''}\\n"
+                    for entry in entries
+                ]
+            )
 
             self.gui.show_message(f"Recent Journal Entries: \\n\\n{entries_text}")
 
@@ -346,19 +376,32 @@ class WeatherDashboardGUIApp:
         def get_activities_async():
             try:
                 if not self.gui.current_weather:
-                    self.gui.root.after(0, lambda: self.gui.display_no_weather_message_activities())
+                    self.gui.root.after(
+                        0, lambda: self.gui.display_no_weather_message_activities()
+                    )
                     return
 
-                suggestions = self.controller.get_activity_suggestions(self.gui.current_weather)
+                suggestions = self.controller.get_activity_suggestions(
+                    self.gui.current_weather
+                )
                 if suggestions:
-                    self.gui.root.after(0, lambda: self.gui.display_activity_suggestions(suggestions))
+                    self.gui.root.after(
+                        0, lambda: self.gui.display_activity_suggestions(suggestions)
+                    )
                 else:
-                    self.gui.root.after(0, lambda: self.gui.display_activity_error("No suggestions available"))
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.display_activity_error(
+                            "No suggestions available"
+                        ),
+                    )
 
             except Exception as e:
                 logging.error(f"Error getting activities: {e}")
                 error_msg = f"Error getting activities: {e}"
-                self.gui.root.after(0, lambda: self.gui.display_activity_error(error_msg))
+                self.gui.root.after(
+                    0, lambda: self.gui.display_activity_error(error_msg)
+                )
 
         self.gui.update_status("Getting activity suggestions...")
         threading.Thread(target=get_activities_async, daemon=True).start()
@@ -373,7 +416,9 @@ class WeatherDashboardGUIApp:
                 self.gui.display_no_weather_message_activities()
                 return
 
-            activities = self.controller.get_filtered_activities(self.gui.current_weather, activity_type)
+            activities = self.controller.get_filtered_activities(
+                self.gui.current_weather, activity_type
+            )
 
             # Create ActivitySuggestion object for display
             filtered_suggestion = ActivitySuggestion(
@@ -395,14 +440,20 @@ class WeatherDashboardGUIApp:
         def generate_poetry_async():
             try:
                 if not self.gui.current_weather:
-                    self.gui.show_error("Please get weather data first to generate poetry")
+                    self.gui.show_error(
+                        "Please get weather data first to generate poetry"
+                    )
                     return
 
-                poem = self.controller.generate_poetry(self.gui.current_weather, "random")
+                poem = self.controller.generate_poetry(
+                    self.gui.current_weather, "random"
+                )
                 if poem:
                     self.gui.root.after(0, lambda: self.gui.display_weather_poem(poem))
                 else:
-                    self.gui.root.after(0, lambda: self.gui.show_error("Failed to generate poetry"))
+                    self.gui.root.after(
+                        0, lambda: self.gui.show_error("Failed to generate poetry")
+                    )
 
             except Exception as e:
                 logging.error(f"Error generating poetry: {e}")
@@ -420,14 +471,23 @@ class WeatherDashboardGUIApp:
         def generate_specific_async():
             try:
                 if not self.gui.current_weather:
-                    self.gui.show_error("Please get weather data first to generate poetry")
+                    self.gui.show_error(
+                        "Please get weather data first to generate poetry"
+                    )
                     return
 
-                poem = self.controller.generate_poetry(self.gui.current_weather, poetry_type)
+                poem = self.controller.generate_poetry(
+                    self.gui.current_weather, poetry_type
+                )
                 if poem:
                     self.gui.root.after(0, lambda: self.gui.display_weather_poem(poem))
                 else:
-                    self.gui.root.after(0, lambda: self.gui.show_error(f"Failed to generate {poetry_type}"))
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.show_error(
+                            f"Failed to generate {poetry_type}"
+                        ),
+                    )
 
             except Exception as e:
                 logging.error(f"Error generating {poetry_type}: {e}")
@@ -445,14 +505,25 @@ class WeatherDashboardGUIApp:
         def generate_collection_async():
             try:
                 if not self.gui.current_weather:
-                    self.gui.show_error("Please get weather data first to generate poetry collection")
+                    self.gui.show_error(
+                        "Please get weather data first to generate poetry collection"
+                    )
                     return
 
-                collection = self.controller.generate_poetry_collection(self.gui.current_weather, 3)
+                collection = self.controller.generate_poetry_collection(
+                    self.gui.current_weather, 3
+                )
                 if collection:
-                    self.gui.root.after(0, lambda: self.gui.display_weather_poem_collection(collection))
+                    self.gui.root.after(
+                        0, lambda: self.gui.display_weather_poem_collection(collection)
+                    )
                 else:
-                    self.gui.root.after(0, lambda: self.gui.show_error("Failed to generate poetry collection"))
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.show_error(
+                            "Failed to generate poetry collection"
+                        ),
+                    )
 
             except Exception as e:
                 logging.error(f"Error generating poetry collection: {e}")
@@ -472,10 +543,20 @@ class WeatherDashboardGUIApp:
                 favorites = self.controller.get_favorite_cities()
 
                 if favorites:
-                    favorites_text = "\\n".join([f"⭐ {fav.display_name}" for fav in favorites])
-                    self.gui.root.after(0, lambda: self.gui.show_message(f"Favorite Cities: \\n\\n{favorites_text}"))
+                    favorites_text = "\\n".join(
+                        [f"⭐ {fav.display_name}" for fav in favorites]
+                    )
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.show_message(
+                            f"Favorite Cities: \\n\\n{favorites_text}"
+                        ),
+                    )
                 else:
-                    self.gui.root.after(0, lambda: self.gui.show_message("No favorite cities added yet."))
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.show_message("No favorite cities added yet."),
+                    )
 
             except Exception as e:
                 logging.error(f"Error refreshing favorites: {e}")
@@ -499,8 +580,15 @@ class WeatherDashboardGUIApp:
 
                 # Note: This would need to be implemented in the controller
                 # For now, show favorites list
-                favorites_text = "\\n".join([f"📍 {fav.display_name}" for fav in favorites])
-                self.gui.root.after(0, lambda: self.gui.show_message(f"Favorite Cities: \\n\\n{favorites_text}"))
+                favorites_text = "\\n".join(
+                    [f"📍 {fav.display_name}" for fav in favorites]
+                )
+                self.gui.root.after(
+                    0,
+                    lambda: self.gui.show_message(
+                        f"Favorite Cities: \\n\\n{favorites_text}"
+                    ),
+                )
 
             except Exception as e:
                 logging.error(f"Error viewing favorites: {e}")
@@ -535,13 +623,22 @@ class WeatherDashboardGUIApp:
             try:
                 response = self.controller.process_voice_command(command)
                 if response:
-                    self.gui.root.after(0, lambda: self.gui.display_voice_response(response))
+                    self.gui.root.after(
+                        0, lambda: self.gui.display_voice_response(response)
+                    )
                 else:
-                    self.gui.root.after(0, lambda: self.gui.display_voice_response("No response from voice assistant"))
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.display_voice_response(
+                            "No response from voice assistant"
+                        ),
+                    )
             except Exception as e:
                 logging.error(f"Error processing voice command: {e}")
                 error_msg = f"Error processing voice command: {e}"
-                self.gui.root.after(0, lambda: self.gui.display_voice_response(error_msg))
+                self.gui.root.after(
+                    0, lambda: self.gui.display_voice_response(error_msg)
+                )
 
         self.gui.update_voice_status("Processing voice command...")
         threading.Thread(target=process_command_async, daemon=True).start()
@@ -555,13 +652,25 @@ class WeatherDashboardGUIApp:
             try:
                 success = self.controller.reload_voice_configuration()
                 if success:
-                    self.gui.root.after(0, lambda: self.gui.display_voice_response("✅ Voice configuration reloaded successfully"))
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.display_voice_response(
+                            "✅ Voice configuration reloaded successfully"
+                        ),
+                    )
                 else:
-                    self.gui.root.after(0, lambda: self.gui.display_voice_response("❌ Failed to reload voice configuration"))
+                    self.gui.root.after(
+                        0,
+                        lambda: self.gui.display_voice_response(
+                            "❌ Failed to reload voice configuration"
+                        ),
+                    )
             except Exception as e:
                 logging.error(f"Error reloading voice config: {e}")
                 error_msg = f"Error reloading voice config: {e}"
-                self.gui.root.after(0, lambda: self.gui.display_voice_response(error_msg))
+                self.gui.root.after(
+                    0, lambda: self.gui.display_voice_response(error_msg)
+                )
 
         self.gui.update_voice_status("Reloading voice configuration...")
         threading.Thread(target=reload_config_async, daemon=True).start()

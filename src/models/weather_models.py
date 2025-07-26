@@ -93,14 +93,14 @@ class Temperature:
             if self.unit == TemperatureUnit.CELSIUS
             else "°F" if self.unit == TemperatureUnit.FAHRENHEIT else "K"
         )
-        return f"{self.value:.1f}{symbol}"
-    
+        return f"{self.value: .1f}{symbol}"
+
     def __format__(self, format_spec: str) -> str:
         """Format temperature value for f-strings."""
         # If no format spec, return string representation
         if not format_spec:
             return str(self)
-        
+
         # For numeric format specs, format just the value
         try:
             return format(self.value, format_spec)

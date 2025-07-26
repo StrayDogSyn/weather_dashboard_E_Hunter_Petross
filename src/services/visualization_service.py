@@ -4,7 +4,7 @@
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 from src.models.weather_models import CurrentWeather, WeatherForecast
 
@@ -64,7 +64,7 @@ class WeatherVisualizationService:
             return {
                 "has_data": False,
                 "title": "Temperature Trend (24h)",
-                "placeholder_message": "No data available yet.\nWeather data will appear here\nafter collecting measurements."
+                "placeholder_message": "No data available yet.\nWeather data will appear here\nafter collecting measurements.",
             }
 
         # Extract data
@@ -79,7 +79,7 @@ class WeatherVisualizationService:
             "line_color": "#4a9eff",
             "xlabel": "Time",
             "ylabel": "Temperature (°C)",
-            "chart_type": "line"
+            "chart_type": "line",
         }
 
     def get_weather_metrics_data(self) -> Dict[str, Any]:
@@ -88,7 +88,7 @@ class WeatherVisualizationService:
             return {
                 "has_data": False,
                 "title": "Current Weather Metrics",
-                "placeholder_message": "No data available yet.\nWeather metrics will appear here\nafter collecting measurements."
+                "placeholder_message": "No data available yet.\nWeather metrics will appear here\nafter collecting measurements.",
             }
 
         # Get latest values
@@ -116,7 +116,7 @@ class WeatherVisualizationService:
             "values": values,
             "colors": colors,
             "ylabel": "Value",
-            "chart_type": "bar"
+            "chart_type": "bar",
         }
 
     def get_forecast_comparison_data(
@@ -127,7 +127,7 @@ class WeatherVisualizationService:
             return {
                 "has_data": False,
                 "title": "5-Day Temperature Forecast",
-                "placeholder_message": "No forecast data available.\nForecast comparison will appear here\nafter loading weather data."
+                "placeholder_message": "No forecast data available.\nForecast comparison will appear here\nafter loading weather data.",
             }
 
         # Extract forecast data (first 5 days)
@@ -151,7 +151,7 @@ class WeatherVisualizationService:
             "xlabel": "Days",
             "ylabel": "Temperature (°C)",
             "chart_type": "grouped_bar",
-            "bar_width": 0.35
+            "bar_width": 0.35,
         }
 
     def get_humidity_pressure_data(self) -> Dict[str, Any]:
@@ -160,7 +160,7 @@ class WeatherVisualizationService:
             return {
                 "has_data": False,
                 "title": "Humidity & Pressure Trends (24h)",
-                "placeholder_message": "No atmospheric data available.\nHumidity and pressure trends\nwill appear after data collection."
+                "placeholder_message": "No atmospheric data available.\nHumidity and pressure trends\nwill appear after data collection.",
             }
 
         humidity_series = None
@@ -176,7 +176,7 @@ class WeatherVisualizationService:
                 "color": "#4a9eff",
                 "label": "Humidity (%)",
                 "ylabel": "Humidity (%)",
-                "marker": "o"
+                "marker": "o",
             }
 
         # Process pressure data
@@ -189,7 +189,7 @@ class WeatherVisualizationService:
                 "color": "#22c55e",
                 "label": "Pressure (hPa)",
                 "ylabel": "Pressure (hPa)",
-                "marker": "s"
+                "marker": "s",
             }
 
         return {
@@ -198,7 +198,7 @@ class WeatherVisualizationService:
             "xlabel": "Time",
             "humidity_series": humidity_series,
             "pressure_series": pressure_series,
-            "chart_type": "dual_axis"
+            "chart_type": "dual_axis",
         }
 
     def get_data_summary(self) -> Dict[str, Any]:
@@ -209,7 +209,7 @@ class WeatherVisualizationService:
             "pressure_points": len(self.pressure_data),
             "wind_points": len(self.wind_data),
             "data_time_range": self._get_time_range(),
-            "latest_values": self._get_latest_values()
+            "latest_values": self._get_latest_values(),
         }
 
     def _get_time_range(self) -> Optional[Dict[str, datetime]]:
@@ -228,18 +228,17 @@ class WeatherVisualizationService:
         if not all_times:
             return None
 
-        return {
-            "earliest": min(all_times),
-            "latest": max(all_times)
-        }
+        return {"earliest": min(all_times), "latest": max(all_times)}
 
     def _get_latest_values(self) -> Dict[str, Optional[float]]:
         """Get the latest values for all metrics."""
         return {
-            "temperature": self.temperature_data[-1][1] if self.temperature_data else None,
+            "temperature": (
+                self.temperature_data[-1][1] if self.temperature_data else None
+            ),
             "humidity": self.humidity_data[-1][1] if self.humidity_data else None,
             "pressure": self.pressure_data[-1][1] if self.pressure_data else None,
-            "wind_speed": self.wind_data[-1][1] if self.wind_data else None
+            "wind_speed": self.wind_data[-1][1] if self.wind_data else None,
         }
 
     def clear_old_data(self, hours: int = 24) -> None:
@@ -255,15 +254,13 @@ class WeatherVisualizationService:
         self.pressure_data = [
             (t, press) for t, press in self.pressure_data if t > cutoff_time
         ]
-        self.wind_data = [
-            (t, wind) for t, wind in self.wind_data if t > cutoff_time
-        ]
+        self.wind_data = [(t, wind) for t, wind in self.wind_data if t > cutoff_time]
 
     def has_sufficient_data(self, min_points: int = 2) -> bool:
         """Check if there's sufficient data for meaningful visualization."""
         return (
-            len(self.temperature_data) >= min_points or
-            len(self.humidity_data) >= min_points or
-            len(self.pressure_data) >= min_points or
-            len(self.wind_data) >= min_points
+            len(self.temperature_data) >= min_points
+            or len(self.humidity_data) >= min_points
+            or len(self.pressure_data) >= min_points
+            or len(self.wind_data) >= min_points
         )

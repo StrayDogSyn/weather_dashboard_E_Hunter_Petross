@@ -3,7 +3,11 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(python:*)",
-      "Bash(set PYTHONIOENCODING=utf-8)"
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(flake8:*)",
+      "Bash(black:*)",
+      "Bash(isort:*)",
+      "Bash(autopep8:*)"
     ],
     "deny": []
   }

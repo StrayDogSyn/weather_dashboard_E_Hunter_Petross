@@ -485,7 +485,8 @@ class ModelTrainingService:
         )
         if best_model:
             report_lines.append(
-                f"- Best performing model: {best_model[0]} (R²: {best_model[1].validation_score: .3f})")
+                f"- Best performing model: {best_model[0]} (R²: {best_model[1].validation_score: .3f})"
+            )
 
         failed_models = [
             name for name, result in results.items() if result.status == "failed"

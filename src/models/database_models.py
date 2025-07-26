@@ -21,11 +21,9 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, relationship, sessionmaker
 
-
-
 # Database configuration
 DATABASE_PATH = Path(__file__).parent.parent.parent / "data" / "weather_dashboard.db"
-DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+DATABASE_URL = "sqlite:///" + str(DATABASE_PATH)
 
 # SQLAlchemy setup
 Base = declarative_base()

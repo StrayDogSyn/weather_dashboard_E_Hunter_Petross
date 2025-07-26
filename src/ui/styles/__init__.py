@@ -3,6 +3,6 @@
 This module contains styling components and themes for the weather dashboard.
 """
 
-from .glassmorphic import GlassmorphicStyle, GlassmorphicFrame
+from .glassmorphic import GlassmorphicFrame, GlassmorphicStyle
 
-__all__ = ['GlassmorphicStyle', 'GlassmorphicFrame']
+__all__ = ["GlassmorphicStyle", "GlassmorphicFrame"]

@@ -28,7 +28,7 @@ class PreferenceManager:
             "theme": {"type": str, "default": "light", "allowed": ["light", "dark"]},
             "auto_update": {"type": bool, "default": True},
             "refresh_interval": {"type": int, "default": 15, "min": 5, "max": 60},
-            "schema_version": {"type": int, "default": 1}
+            "schema_version": {"type": int, "default": 1},
         }
 
     def _load_preferences(self) -> Dict[str, Any]:

@@ -14,6 +14,7 @@ CITY_CACHE_TTL: Final[int] = 86400  # 24 hours for city data
 
 # API Configuration
 API_TIMEOUT: Final[int] = 30  # seconds
+DEFAULT_API_TIMEOUT: Final[int] = 30  # seconds
 MAX_RETRIES: Final[int] = 3
 RETRY_DELAY: Final[float] = 1.0  # seconds
 RATE_LIMIT_DELAY: Final[float] = 0.1  # seconds between requests
@@ -45,6 +46,8 @@ DATA_DIR: Final[str] = "data"
 LOGS_DIR: Final[str] = "logs"
 CACHE_DIR: Final[str] = "cache"
 TEMP_DIR: Final[str] = "temp"
+CACHE_FILE_PATH: Final[str] = "cache/weather_cache.json"
+CONFIG_FILE_PATH: Final[str] = "settings.json"
 
 # File Extensions
 CONFIG_FILE_EXT: Final[str] = ".yaml"
@@ -61,6 +64,7 @@ MAX_LOG_FILES: Final[int] = 5
 
 # Database Configuration
 DEFAULT_DB_NAME: Final[str] = "weather_dashboard.db"
+DEFAULT_DATABASE_PATH: Final[str] = "data/weather_dashboard.db"
 DB_CONNECTION_TIMEOUT: Final[int] = 30
 DB_QUERY_TIMEOUT: Final[int] = 10
 MAX_DB_CONNECTIONS: Final[int] = 10
@@ -78,7 +82,7 @@ WEATHER_CONDITIONS: Final[dict] = {
     "rainy": ["rain", "drizzle", "shower", "thunderstorm"],
     "snowy": ["snow", "sleet", "blizzard", "flurries"],
     "foggy": ["fog", "mist", "haze"],
-    "windy": ["windy", "breezy", "gusty"]
+    "windy": ["windy", "breezy", "gusty"],
 }
 
 # Temperature Ranges (Celsius)
@@ -89,7 +93,7 @@ TEMPERATURE_RANGES: Final[dict] = {
     "mild": (20, 25),
     "warm": (25, 30),
     "hot": (30, 40),
-    "extreme": (40, 60)
+    "extreme": (40, 60),
 }
 
 # Activity Categories
@@ -101,7 +105,7 @@ ACTIVITY_CATEGORIES: Final[tuple] = (
     "relaxation",
     "adventure",
     "social",
-    "educational"
+    "educational",
 )
 
 # Poetry Styles
@@ -111,7 +115,7 @@ POETRY_STYLES: Final[tuple] = (
     "sonnet",
     "free_verse",
     "acrostic",
-    "cinquain"
+    "cinquain",
 )
 
 # Error Messages
@@ -123,7 +127,7 @@ ERROR_MESSAGES: Final[dict] = {
     "storage_error": "Data storage operation failed. Please try again.",
     "cache_error": "Cache operation failed. Data may not be up to date.",
     "ui_error": "User interface error occurred. Please restart the application.",
-    "service_error": "Service operation failed. Please try again later."
+    "service_error": "Service operation failed. Please try again later.",
 }
 
 # Success Messages
@@ -133,7 +137,7 @@ SUCCESS_MESSAGES: Final[dict] = {
     "cache_cleared": "Cache cleared successfully.",
     "config_updated": "Configuration updated successfully.",
     "export_completed": "Data export completed successfully.",
-    "import_completed": "Data import completed successfully."
+    "import_completed": "Data import completed successfully.",
 }
 
 # HTTP Status Codes
@@ -145,7 +149,7 @@ HTTP_STATUS: Final[dict] = {
     "NOT_FOUND": 404,
     "TOO_MANY_REQUESTS": 429,
     "INTERNAL_SERVER_ERROR": 500,
-    "SERVICE_UNAVAILABLE": 503
+    "SERVICE_UNAVAILABLE": 503,
 }
 
 # Regular Expressions
@@ -155,5 +159,5 @@ REGEX_PATTERNS: Final[dict] = {
     "coordinates": r"^-?\d{1,3}\.\d{1,6},-?\d{1,3}\.\d{1,6}$",
     "temperature": r"^-?\d{1,3}(\.\d{1,2})?$",
     "date": r"^\d{4}-\d{2}-\d{2}$",
-    "time": r"^\d{2}:\d{2}(:\d{2})?$"
+    "time": r"^\d{2}:\d{2}(:\d{2})?$",
 }

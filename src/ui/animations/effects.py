@@ -16,7 +16,7 @@ class AnimationHelper:
     @staticmethod
     def fade_in(widget: tk.Widget, duration: int = 500) -> None:
         """Create a fade-in effect for widget.
-        
+
         Args:
             widget: Widget to animate
             duration: Animation duration in milliseconds
@@ -30,10 +30,10 @@ class AnimationHelper:
                 if step <= steps:
                     # Calculate alpha value (simulated with color intensity)
                     alpha = step / steps
-                    color_intensity = int(176 + (255 - 176) * alpha)  # From gray to white
-                    color = (
-                        f"#{color_intensity:02x}{color_intensity:02x}{color_intensity:02x}"
-                    )
+                    color_intensity = int(
+                        176 + (255 - 176) * alpha
+                    )  # From gray to white
+                    color = f"#{color_intensity:02x}{color_intensity:02x}{color_intensity:02x}"
                     try:
                         widget.configure(fg=color)
                     except tk.TclError:
@@ -54,12 +54,10 @@ class AnimationHelper:
 
     @staticmethod
     def pulse_effect(
-        widget: tk.Widget, 
-        color: Optional[str] = None, 
-        duration: int = 1000
+        widget: tk.Widget, color: Optional[str] = None, duration: int = 1000
     ) -> None:
         """Create a pulsing effect on widget.
-        
+
         Args:
             widget: Widget to animate
             color: Pulse color (defaults to accent color)
@@ -86,12 +84,10 @@ class AnimationHelper:
 
     @staticmethod
     def text_glow_effect(
-        widget: tk.Widget, 
-        glow_color: Optional[str] = None, 
-        duration: int = 2000
+        widget: tk.Widget, glow_color: Optional[str] = None, duration: int = 2000
     ) -> None:
         """Create a text glow effect by cycling through related colors.
-        
+
         Args:
             widget: Widget to animate
             glow_color: Glow color (defaults to accent color)
@@ -124,7 +120,7 @@ class AnimationHelper:
     @staticmethod
     def rainbow_text_effect(widget: tk.Widget, duration: int = 3000) -> None:
         """Create a subtle rainbow effect on text.
-        
+
         Args:
             widget: Widget to animate
             duration: Animation duration in milliseconds
@@ -146,13 +142,13 @@ class AnimationHelper:
 
     @staticmethod
     def slide_in(
-        widget: tk.Widget, 
-        direction: str = "left", 
-        distance: int = 100, 
-        duration: int = 500
+        widget: tk.Widget,
+        direction: str = "left",
+        distance: int = 100,
+        duration: int = 500,
     ) -> None:
         """Slide widget in from specified direction.
-        
+
         Args:
             widget: Widget to animate
             direction: Direction to slide from ('left', 'right', 'top', 'bottom')
@@ -162,11 +158,11 @@ class AnimationHelper:
         steps = 20
         step_time = duration // steps
         step_distance = distance // steps
-        
+
         # Get current position
         current_x = widget.winfo_x()
         current_y = widget.winfo_y()
-        
+
         # Calculate start position based on direction
         if direction == "left":
             start_x, start_y = current_x - distance, current_y
@@ -178,10 +174,10 @@ class AnimationHelper:
             start_x, start_y = current_x, current_y + distance
         else:
             start_x, start_y = current_x, current_y
-        
+
         # Set initial position
         widget.place(x=start_x, y=start_y)
-        
+
         def animate_step(step: int) -> None:
             if step <= steps:
                 progress = step / steps
@@ -191,17 +187,15 @@ class AnimationHelper:
                 widget.after(step_time, lambda: animate_step(step + 1))
             else:
                 widget.place(x=current_x, y=current_y)
-        
+
         animate_step(0)
 
     @staticmethod
     def scale_effect(
-        widget: tk.Widget, 
-        scale_factor: float = 1.1, 
-        duration: int = 200
+        widget: tk.Widget, scale_factor: float = 1.1, duration: int = 200
     ) -> None:
         """Create a scaling effect on widget (simulated with font size changes).
-        
+
         Args:
             widget: Widget to animate
             scale_factor: Scale multiplier
@@ -212,10 +206,10 @@ class AnimationHelper:
             if isinstance(original_font, tuple) and len(original_font) >= 2:
                 family, size = original_font[0], original_font[1]
                 scaled_size = int(size * scale_factor)
-                
+
                 # Scale up
                 widget.configure(font=(family, scaled_size))
-                
+
                 # Scale back down after duration
                 widget.after(duration, lambda: widget.configure(font=original_font))
         except (tk.TclError, IndexError, TypeError):
@@ -225,7 +219,7 @@ class AnimationHelper:
     @staticmethod
     def pulse(widget: tk.Widget, duration: int = 1000) -> None:
         """Create a pulse animation on widget (alias for pulse_effect).
-        
+
         Args:
             widget: Widget to animate
             duration: Animation duration in milliseconds
@@ -233,9 +227,11 @@ class AnimationHelper:
         AnimationHelper.pulse_effect(widget, duration=duration)
 
     @staticmethod
-    def glow_effect(widget: tk.Widget, color: Optional[str] = None, duration: int = 2000) -> None:
+    def glow_effect(
+        widget: tk.Widget, color: Optional[str] = None, duration: int = 2000
+    ) -> None:
         """Create a glow effect on widget (alias for text_glow_effect).
-        
+
         Args:
             widget: Widget to animate
             color: Glow color (defaults to accent color)
@@ -244,9 +240,11 @@ class AnimationHelper:
         AnimationHelper.text_glow_effect(widget, color, duration)
 
     @staticmethod
-    def text_glow(widget: tk.Widget, color: Optional[str] = None, duration: int = 2000) -> None:
+    def text_glow(
+        widget: tk.Widget, color: Optional[str] = None, duration: int = 2000
+    ) -> None:
         """Create a text glow effect on widget (alias for text_glow_effect).
-        
+
         Args:
             widget: Widget to animate
             color: Glow color (defaults to accent color)

@@ -5,13 +5,15 @@ This module contains classes for managing responsive layouts and modern
 layout patterns.
 """
 
-import tkinter as tk
 import logging
+import tkinter as tk
 from tkinter import messagebox
+
 import ttkbootstrap as ttk_bs
 
+from .components import BootstrapButton, BootstrapFrame
+from .styles.glassmorphic import GlassmorphicFrame
 from .styling import GlassmorphicStyle
-from .components import BootstrapFrame, BootstrapButton, GlassmorphicFrame
 
 
 class ResponsiveLayout:
@@ -103,9 +105,9 @@ class ModernLayoutMixin:
         """Add team data information to the comparison display."""
         try:
             # Check if we have access to team comparison service through callbacks
-            callbacks = getattr(self, 'callbacks', {})
-            if 'get_team_data_status' in callbacks:
-                team_status = callbacks['get_team_data_status']()
+            callbacks = getattr(self, "callbacks", {})
+            if "get_team_data_status" in callbacks:
+                team_status = callbacks["get_team_data_status"]()
 
                 # Create team data info frame
                 team_info_frame = GlassmorphicFrame(
@@ -130,13 +132,15 @@ class ModernLayoutMixin:
                 header_label.pack(pady=(10, 5))
 
                 # Status information
-                if team_status.get('data_loaded', False):
-                    cities_count = team_status.get('cities_available', 0)
-                    status_text = f"✅ Team data loaded with {cities_count} cities available"
+                if team_status.get("data_loaded", False):
+                    cities_count = team_status.get("cities_available", 0)
+                    status_text = (
+                        f"✅ Team data loaded with {cities_count} cities available"
+                    )
                     _ = GlassmorphicStyle.SUCCESS  # status_color not used
 
                     # Show available cities
-                    city_list = team_status.get('city_list', [])
+                    city_list = team_status.get("city_list", [])
                     if city_list:
                         cities_text = f"Available cities: {', '.join(city_list[:5])}"
                         if len(city_list) > 5:
@@ -145,7 +149,10 @@ class ModernLayoutMixin:
                         cities_label = tk.Label(
                             team_info_frame,
                             text=cities_text,
-                            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                            font=(
+                                GlassmorphicStyle.FONT_FAMILY,
+                                GlassmorphicStyle.FONT_SIZE_SMALL,
+                            ),
                             fg=GlassmorphicStyle.TEXT_SECONDARY,
                             bg=team_info_frame.bg_color,
                             wraplength=600,
@@ -153,13 +160,16 @@ class ModernLayoutMixin:
                         cities_label.pack(pady=(0, 5))
 
                     # Show data source information
-                    data_source = team_status.get('data_source', {})
-                    if data_source.get('repository'):
+                    data_source = team_status.get("data_source", {})
+                    if data_source.get("repository"):
                         repo_text = f"Data source: {data_source.get('repository', 'GitHub Repository')}"
                         repo_label = tk.Label(
                             team_info_frame,
                             text=repo_text,
-                            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                            font=(
+                                GlassmorphicStyle.FONT_FAMILY,
+                                GlassmorphicStyle.FONT_SIZE_SMALL,
+                            ),
                             fg=GlassmorphicStyle.TEXT_SECONDARY,
                             bg=team_info_frame.bg_color,
                         )
@@ -180,7 +190,10 @@ class ModernLayoutMixin:
                 status_label = tk.Label(
                     team_info_frame,
                     text=status_text,
-                    font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
+                    font=(
+                        GlassmorphicStyle.FONT_FAMILY,
+                        GlassmorphicStyle.FONT_SIZE_SMALL,
+                    ),
                     bg=team_info_frame.bg_color,
                 )
                 status_label.pack(pady=(0, 10))
@@ -193,9 +206,9 @@ class ModernLayoutMixin:
     def _refresh_team_data(self):
         """Refresh team data from GitHub repository."""
         try:
-            callbacks = getattr(self, 'callbacks', {})
-            if 'refresh_team_data' in callbacks:
-                callbacks['refresh_team_data']()
+            callbacks = getattr(self, "callbacks", {})
+            if "refresh_team_data" in callbacks:
+                callbacks["refresh_team_data"]()
             else:
                 messagebox.showerror("Error", "Refresh functionality not available")
         except Exception as e:

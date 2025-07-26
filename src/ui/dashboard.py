@@ -7,7 +7,12 @@ from typing import Dict, Optional
 
 from src.models.weather_models import CurrentWeather, WeatherForecast
 from src.services.visualization_service import WeatherVisualizationService
-from src.ui.gui_interface import GlassmorphicFrame, GlassmorphicStyle
+from src.ui.components.responsive_layout import (
+    ResponsiveLayoutManager,
+    ResponsiveSpacing,
+)
+from src.ui.styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
+from src.ui.widgets.enhanced_button import ButtonFactory, EnhancedButton
 
 
 class WeatherDashboard:
@@ -20,6 +25,10 @@ class WeatherDashboard:
 
         # Initialize visualization service
         self.viz_service = WeatherVisualizationService()
+
+        # Initialize responsive layout and button factory
+        self.responsive_layout = ResponsiveLayoutManager()
+        self.button_factory = ButtonFactory()
 
         # Dashboard window
         self.dashboard_window: Optional[tk.Toplevel] = None
@@ -57,6 +66,14 @@ class WeatherDashboard:
 
         # Make sure the main window can receive focus for hotkeys
         self.parent.focus_set()
+
+    def _create_chart_command(self, chart_id: str):
+        """Create a command function for chart button."""
+
+        def command():
+            self.show_chart_with_feedback(chart_id)
+
+        return command
 
     def toggle_dashboard(self, event=None):
         """Toggle the dashboard visibility."""
@@ -114,11 +131,15 @@ class WeatherDashboard:
             self.dashboard_window,
             bg_color=GlassmorphicStyle.BACKGROUND,
         )
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Get responsive spacing
+        spacing = ResponsiveSpacing()
+        main_frame.pack(
+            fill=tk.BOTH, expand=True, padx=spacing.MEDIUM, pady=spacing.MEDIUM
+        )
 
         # Title bar
         title_frame = GlassmorphicFrame(main_frame, elevated=True)
-        title_frame.pack(fill=tk.X, pady=(0, 10))
+        title_frame.pack(fill=tk.X, pady=(0, spacing.MEDIUM))
 
         title_label = tk.Label(
             title_frame,
@@ -127,7 +148,7 @@ class WeatherDashboard:
             fg=GlassmorphicStyle.ACCENT,
             bg=title_frame.bg_color,
         )
-        title_label.pack(pady=15)
+        title_label.pack(pady=spacing.LARGE)
 
         # Hotkey info
         hotkey_info = tk.Label(
@@ -137,17 +158,17 @@ class WeatherDashboard:
             fg=GlassmorphicStyle.TEXT_SECONDARY,
             bg=title_frame.bg_color,
         )
-        hotkey_info.pack(pady=(0, 10))
+        hotkey_info.pack(pady=(0, spacing.MEDIUM))
 
-        # Chart controls
+        # Chart controls with responsive layout
         controls_frame = GlassmorphicFrame(main_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, pady=(0, 10))
+        controls_frame.pack(fill=tk.X, pady=(0, spacing.MEDIUM))
 
-        # Control buttons
+        # Control buttons with enhanced button system
         button_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        button_frame.pack(pady=10)
+        button_frame.pack(pady=spacing.element_padding)
 
-        # Chart selection buttons
+        # Chart selection buttons using enhanced button factory
         charts_info = [
             ("📈 Temperature Trend", "temperature", "Ctrl+1"),
             ("📊 Weather Metrics", "metrics", "Ctrl+2"),
@@ -159,37 +180,24 @@ class WeatherDashboard:
         self.chart_buttons = {}
 
         for text, chart_id, hotkey in charts_info:
-            btn = tk.Button(
+            btn = self.button_factory.create_chart_button(
                 button_frame,
                 text=f"{text}\n({hotkey})",
-                font=("Segoe UI", 10),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=GlassmorphicStyle.ACCENT,
-                activebackground=GlassmorphicStyle.ACCENT_LIGHT,
-                relief="flat",
-                padx=15,
-                pady=8,
-                cursor="hand2",
-                command=lambda cid=chart_id: self.show_chart_with_feedback(cid),
+                command=self._create_chart_command(chart_id),
+                tooltip=f"Show {text} chart ({hotkey})",
             )
-            btn.pack(side=tk.LEFT, padx=5)
+            btn.pack(side=tk.LEFT, padx=spacing.element_spacing)
             self.chart_buttons[chart_id] = btn
 
-        # Refresh button
-        self.refresh_btn = tk.Button(
+        # Refresh button using enhanced button factory
+        self.refresh_btn = self.button_factory.create_action_button(
             button_frame,
             text="🔄 Refresh All\n(Ctrl+R)",
-            font=("Segoe UI", 10),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=GlassmorphicStyle.SUCCESS,
-            activebackground=GlassmorphicStyle.SUCCESS_LIGHT,
-            relief="flat",
-            padx=15,
-            pady=8,
-            cursor="hand2",
             command=self.refresh_all_charts_with_feedback,
+            style="accent",
+            tooltip="Refresh all charts (Ctrl+R)",
         )
-        self.refresh_btn.pack(side=tk.RIGHT, padx=5)
+        self.refresh_btn.pack(side=tk.RIGHT, padx=spacing.element_spacing)
 
         # Charts container with grid layout
         charts_container = GlassmorphicFrame(main_frame)
@@ -201,7 +209,7 @@ class WeatherDashboard:
         charts_container.grid_columnconfigure(0, weight=1)
         charts_container.grid_columnconfigure(1, weight=1)
 
-        # Create chart placeholder frames
+        # Create chart placeholder frames with responsive spacing
         chart_positions = [
             ("temperature", 0, 0),
             ("metrics", 0, 1),
@@ -215,7 +223,13 @@ class WeatherDashboard:
                 bg_color=GlassmorphicStyle.GLASS_BG,
                 elevated=True,
             )
-            chart_frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+            chart_frame.grid(
+                row=row,
+                column=col,
+                padx=spacing.element_spacing,
+                pady=spacing.element_spacing,
+                sticky="nsew",
+            )
             self.chart_frames[chart_id] = chart_frame
 
     def show_chart(self, chart_type: str):

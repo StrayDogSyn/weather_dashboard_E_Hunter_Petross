@@ -7,10 +7,10 @@ to provide better error handling and debugging capabilities.
 
 class WeatherDashboardError(Exception):
     """Base exception class for Weather Dashboard application."""
-    
+
     def __init__(self, message: str, error_code: str = None, details: dict = None):
         """Initialize the exception.
-        
+
         Args:
             message: Human-readable error message
             error_code: Optional error code for programmatic handling
@@ -30,10 +30,10 @@ class WeatherDashboardError(Exception):
 
 class DependencyInjectionError(WeatherDashboardError):
     """Exception raised when dependency injection fails."""
-    
+
     def __init__(self, message: str, service_name: str = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             service_name: Name of the service that failed to inject
@@ -44,10 +44,10 @@ class DependencyInjectionError(WeatherDashboardError):
 
 class ConfigurationError(WeatherDashboardError):
     """Exception raised when configuration is invalid or missing."""
-    
+
     def __init__(self, message: str, config_key: str = None, config_value: str = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             config_key: Configuration key that caused the error
@@ -60,10 +60,10 @@ class ConfigurationError(WeatherDashboardError):
 
 class ValidationError(WeatherDashboardError):
     """Exception raised when data validation fails."""
-    
+
     def __init__(self, message: str, field_name: str = None, field_value: str = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             field_name: Name of the field that failed validation
@@ -76,10 +76,10 @@ class ValidationError(WeatherDashboardError):
 
 class ServiceError(WeatherDashboardError):
     """Exception raised when a service operation fails."""
-    
+
     def __init__(self, message: str, service_name: str = None, operation: str = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             service_name: Name of the service that failed
@@ -92,10 +92,10 @@ class ServiceError(WeatherDashboardError):
 
 class WeatherAPIError(ServiceError):
     """Exception raised when weather API operations fail."""
-    
+
     def __init__(self, message: str, api_name: str = None, status_code: int = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             api_name: Name of the API that failed
@@ -108,10 +108,10 @@ class WeatherAPIError(ServiceError):
 
 class CacheError(ServiceError):
     """Exception raised when cache operations fail."""
-    
+
     def __init__(self, message: str, cache_key: str = None, operation: str = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             cache_key: Cache key that caused the error
@@ -123,10 +123,10 @@ class CacheError(ServiceError):
 
 class StorageError(ServiceError):
     """Exception raised when storage operations fail."""
-    
+
     def __init__(self, message: str, storage_type: str = None, operation: str = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             storage_type: Type of storage (file, database, etc.)
@@ -138,10 +138,10 @@ class StorageError(ServiceError):
 
 class UIError(WeatherDashboardError):
     """Exception raised when UI operations fail."""
-    
+
     def __init__(self, message: str, component: str = None, action: str = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             component: UI component that caused the error
@@ -154,10 +154,10 @@ class UIError(WeatherDashboardError):
 
 class BusinessLogicError(WeatherDashboardError):
     """Exception raised when business logic validation fails."""
-    
+
     def __init__(self, message: str, rule: str = None, context: dict = None):
         """Initialize the exception.
-        
+
         Args:
             message: Error message
             rule: Business rule that was violated

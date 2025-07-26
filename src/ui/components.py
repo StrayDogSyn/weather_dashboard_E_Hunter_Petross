@@ -8,11 +8,13 @@ entries, and scrollable containers.
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk
+
 import ttkbootstrap as ttk_bs
 from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
 
-from .styling import GlassmorphicStyle
 from src.services.sound_service import SoundType, play_sound
+
+from .styling import GlassmorphicStyle
 
 
 class GlassmorphicFrame(tk.Frame):
@@ -36,7 +38,7 @@ class GlassmorphicFrame(tk.Frame):
             padding = kwargs.pop("padding")
 
         super().__init__(parent, **kwargs)
-        
+
         # Store padding for potential use in layout
         self.padding = padding or 0
 
@@ -236,7 +238,7 @@ class ModernEntry(tk.Entry):
             highlightcolor=GlassmorphicStyle.ACCENT,
             highlightthickness=2,
             insertbackground=GlassmorphicStyle.TEXT_PRIMARY,
-            **kwargs
+            **kwargs,
         )
 
         if self.placeholder:

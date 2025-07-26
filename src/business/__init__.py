@@ -5,24 +5,25 @@ following Domain-Driven Design (DDD) principles and clean architecture.
 """
 
 from .interfaces import (
-    IWeatherService,
-    ICityComparisonService,
-    IWeatherJournalService,
     IActivitySuggestionService,
-    IWeatherPoetryService,
-    ICortanaVoiceService,
     ICacheService,
+    ICityComparisonService,
+    ICortanaVoiceService,
     IStorageService,
+    IWeatherJournalService,
+    IWeatherPoetryService,
+    IWeatherService,
 )
 
-from .services import (
-    WeatherService,
-    CityComparisonService,
-    WeatherJournalService,
-    ActivitySuggestionService,
-    WeatherPoetryService,
-    CortanaVoiceService,
-)
+# Service implementations are in the core package
+# from .services import (
+#     ActivitySuggestionService,
+#     CityComparisonService,
+#     CortanaVoiceService,
+#     WeatherJournalService,
+#     WeatherPoetryService,
+#     WeatherService,
+# )
 
 __all__ = [
     # Interfaces
@@ -34,11 +35,5 @@ __all__ = [
     "ICortanaVoiceService",
     "ICacheService",
     "IStorageService",
-    # Implementations
-    "WeatherService",
-    "CityComparisonService",
-    "WeatherJournalService",
-    "ActivitySuggestionService",
-    "WeatherPoetryService",
-    "CortanaVoiceService",
+    # Service implementations are in the core package
 ]

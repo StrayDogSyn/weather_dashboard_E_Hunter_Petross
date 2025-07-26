@@ -139,9 +139,7 @@ class AnimationHelper:
                 # Calculate alpha value (simulated with color intensity)
                 alpha = step / steps
                 color_intensity = int(176 + (255 - 176) * alpha)  # From gray to white
-                color = (
-                    f"#{color_intensity: 02x}{color_intensity: 02x}{color_intensity: 02x}"
-                )
+                color = f"#{color_intensity: 02x}{color_intensity: 02x}{color_intensity: 02x}"
                 widget.configure(fg=color)
                 widget.after(step_time, lambda: animate_step(step + 1))
             else:

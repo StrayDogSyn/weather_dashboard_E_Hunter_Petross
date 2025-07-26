@@ -1,6 +1,9 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox, ttk
+
 from core.preferences import PreferenceManager
+
+from .components.responsive_layout import ResponsiveSpacing
 
 
 class SettingsDialog(tk.Toplevel):
@@ -8,13 +11,16 @@ class SettingsDialog(tk.Toplevel):
         super().__init__(master)
         self.title("Settings")
         self.pref_mgr = PreferenceManager.get_instance()
+        self.spacing = ResponsiveSpacing()
         self._build_ui()
 
     def _build_ui(self):
         # Example: Theme
         tk.Label(self, text="Theme:").grid(row=0, column=0, sticky="w")
         self.theme_var = tk.StringVar(value=self.pref_mgr.get("theme"))
-        theme_menu = ttk.Combobox(self, textvariable=self.theme_var, values=["light", "dark"])
+        theme_menu = ttk.Combobox(
+            self, textvariable=self.theme_var, values=["light", "dark"]
+        )
         theme_menu.grid(row=0, column=1)
 
         # Example: Auto Update
@@ -25,13 +31,19 @@ class SettingsDialog(tk.Toplevel):
         # Example: Refresh Interval
         tk.Label(self, text="Refresh Interval (min):").grid(row=2, column=0, sticky="w")
         self.refresh_var = tk.IntVar(value=self.pref_mgr.get("refresh_interval"))
-        tk.Spinbox(self, from_=5, to=60, textvariable=self.refresh_var).grid(row=2, column=1)
+        tk.Spinbox(self, from_=5, to=60, textvariable=self.refresh_var).grid(
+            row=2, column=1
+        )
 
         # Save/Cancel buttons
         btn_frame = tk.Frame(self)
         btn_frame.grid(row=3, column=0, columnspan=2, pady=10)
-        tk.Button(btn_frame, text="Save", command=self.save).pack(side="left", padx=5)
-        tk.Button(btn_frame, text="Cancel", command=self.destroy).pack(side="left", padx=5)
+        tk.Button(btn_frame, text="Save", command=self.save).pack(
+            side="left", padx=self.spacing.SMALL
+        )
+        tk.Button(btn_frame, text="Cancel", command=self.destroy).pack(
+            side="left", padx=self.spacing.SMALL
+        )
 
     def save(self):
         # TODO: Validate and save preferences
