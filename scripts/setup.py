@@ -50,7 +50,7 @@ def setup_environment():
         subprocess.run([str(pip_executable), "install", "-r", str(requirements_file)])
 
     # Install development requirements if they exist
-    dev_requirements = project_root / "requirements-dev.txt"
+    dev_requirements = project_root / "docs" / "development" / "requirements-dev.txt"
     if dev_requirements.exists():
         print("🛠️  Installing development requirements...")
         subprocess.run([str(pip_executable), "install", "-r", str(dev_requirements)])

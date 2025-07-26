@@ -1,16 +1,34 @@
 # Weather Dashboard - Documentation Index
 
-This directory contains comprehensive documentation for the Weather Dashboard project, including architecture details, security guidelines, configuration instructions, and development resources.
+This directory contains comprehensive documentation for the Weather Dashboard project, organized into logical categories for easier navigation and maintainability.
 
-## 📚 Documentation Files
+## 📁 Documentation Structure
 
-- **[Architecture](architecture.md)** - Clean Architecture implementation and design patterns
-- **[Project Structure](project_structure.md)** - Detailed file organization and component breakdown
-- **[Security](security.md)** - API key management and security best practices
-- **[Cortana Configuration](CORTANA_CONFIGURATION.md)** - Voice assistant setup and configuration
-- **[SQL Database](SQL_DATABASE.md)** - Database schema and data management
-- **[GitHub Team Integration](GITHUB_TEAM_DATA_INTEGRATION.md)** - Team collaboration features
-- **[Weekly Reflections](Week14_Reflection.md)** - Development progress and milestones
+### 🏗️ Architecture
+- **[Architecture](architecture/architecture.md)** - Clean Architecture implementation and design patterns
+- **[Project Structure](architecture/project_structure.md)** - Detailed file organization and component breakdown
+
+### 🚀 Deployment
+- **[Deployment Guide](deployment/DEPLOYMENT_GUIDE.md)** - Production deployment with Bot Framework and Azure services
+
+### ⚙️ Configuration
+- **[Security](configuration/security.md)** - API key management and security best practices
+- **[Cortana Configuration](configuration/CORTANA_CONFIGURATION.md)** - Voice assistant setup and configuration
+- **[Cortana Integration](configuration/CORTANA_INTEGRATION.md)** - Enhanced voice service implementation
+
+### 💻 Development
+- **[Implementation Guide](development/IMPLEMENTATION_GUIDE.md)** - Development setup and guidelines
+- **[SQL Database](development/SQL_DATABASE.md)** - Database schema and data management
+- **[GitHub Team Integration](development/GITHUB_TEAM_DATA_INTEGRATION.md)** - Team collaboration features
+- **[GUI Layout Analysis](development/GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md)** - UI/UX improvements and analysis
+- **[Development Requirements](development/requirements-dev.txt)** - Development dependencies
+
+### 📝 Reflections
+- **[Week 11 Reflection](reflections/Week11_Reflection.md)** - Clean architecture and core service implementation
+- **[Week 12 Reflection](reflections/Week12_Reflection.md)** - Advanced features and data visualization implementation
+- **[Week 13 Reflection](reflections/Week13_Reflection.md)** - Machine learning integration and advanced analytics
+- **[Week 14 Reflection](reflections/Week14_Reflection.md)** - Development progress and milestones
+- **[Week 15 Reflection](reflections/Week15_Reflection.md)** - Continued development insights
 
 ## 🔗 Works Cited
 

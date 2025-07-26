@@ -8,10 +8,10 @@ import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from ..models.capstone_models import (
-    DEFAULT_ACTIVITIES,
     Activity,
     ActivitySuggestion,
     ActivityType,
+    ActivityFactory,
 )
 from ..models.weather_models import CurrentWeather, WeatherCondition
 
@@ -22,7 +22,8 @@ class ActivitySuggestionService:
     def __init__(self):
         """Initialize the activity suggestion service."""
         self.logger = logging.getLogger(__name__)
-        self.activities: List[Activity] = DEFAULT_ACTIVITIES.copy()
+        self.activity_factory = ActivityFactory()
+        self.activities: List[Activity] = self.activity_factory.get_default_activities()
 
         self.logger.info(
             f"Activity service initialized with {len(self.activities)} default activities"

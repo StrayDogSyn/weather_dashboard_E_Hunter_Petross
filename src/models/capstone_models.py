@@ -359,7 +359,11 @@ class WeatherComparison(AIEnhancedModel):
     @property
     def pressure_difference(self) -> float:
         """Get pressure difference between cities (city1 - city2)."""
-        return getattr(self.city1_weather, 'pressure', 0) - getattr(self.city2_weather, 'pressure', 0)
+        pressure1 = getattr(self.city1_weather, 'pressure', None)
+        pressure2 = getattr(self.city2_weather, 'pressure', None)
+        if pressure1 and pressure2:
+            return pressure1.value - pressure2.value
+        return 0.0
     
     @property
     def wind_speed_difference(self) -> float:
@@ -1613,6 +1617,13 @@ class ActivityFactory:
         **kwargs
     ) -> Activity:
         """Create a new activity with optional AI enhancements."""
+        
+        # Extract equipment_needed and put it in requirements
+        equipment_needed = kwargs.pop('equipment_needed', [])
+        requirements = kwargs.get('requirements', ActivityRequirements())
+        if equipment_needed and hasattr(requirements, 'equipment_needed'):
+            requirements.equipment_needed = equipment_needed
+        kwargs['requirements'] = requirements
         
         # Create base activity
         activity = Activity(

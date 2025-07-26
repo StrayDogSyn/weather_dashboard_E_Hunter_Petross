@@ -22,7 +22,22 @@ This folder contains comprehensive unit tests for the Weather Dashboard applicat
    - Input validation and error handling
    - Service dependencies and injection
 
-3. **`run_tests.py`** - Test runner and reporting utility
+3. **`test_validators.py`** - Tests for data validation utilities
+   - Input validation functions
+   - Data sanitization
+   - Error handling for invalid inputs
+
+4. **`test_cortana_integration.py`** - Tests for voice assistant integration
+   - Voice command processing
+   - Speech recognition functionality
+   - Voice response generation
+
+5. **`test_week14_features.py`** - Tests for advanced features and ML integration
+   - Machine learning model integration
+   - Advanced analytics features
+   - Performance optimization tests
+
+6. **`run_tests.py`** - Test runner and reporting utility
    - Comprehensive test execution
    - Detailed reporting and analytics
    - Module-specific test running

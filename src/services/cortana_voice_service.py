@@ -5,9 +5,11 @@
 Cortana Voice Assistant Service for Weather Dashboard
 
 This service integrates the Cortana voice assistant with the Weather Dashboard
-application, providing voice-based weather queries and responses.
+application, providing voice-based weather queries and responses using
+Bot Framework-inspired patterns and advanced NLU capabilities.
 """
 
+import asyncio
 import logging
 import os
 import sys
@@ -26,24 +28,63 @@ except ImportError:
     )
     ConfigManager = None
 
+from ..business.interfaces import ICortanaVoiceService, ICacheService, IStorageService
 from ..interfaces.weather_interfaces import IWeatherAPI
 from ..models.weather_models import CurrentWeather, WeatherForecast
+from .voice_command_processor import VoiceCommandProcessor, CommandResponse
 
 
-class CortanaVoiceService:
-    """Cortana Voice Assistant Service for Weather Dashboard."""
+class CortanaVoiceService(ICortanaVoiceService):
+    """Cortana Voice Assistant Service for Weather Dashboard with Bot Framework patterns."""
 
-    def __init__(self, weather_service: Optional[IWeatherAPI] = None):
+    def __init__(
+        self,
+        weather_service: Optional[IWeatherAPI] = None,
+        cache_service: Optional[ICacheService] = None,
+        storage_service: Optional[IStorageService] = None,
+    ):
         """Initialize the Cortana voice service.
 
         Args:
             weather_service: Weather service for fetching weather data
+            cache_service: Cache service for performance optimization
+            storage_service: Storage service for user preferences
         """
         self.logger = logging.getLogger(self.__class__.__name__)
+        
+        # Services
         self.weather_service = weather_service
+        self.cache_service = cache_service
+        self.storage_service = storage_service
+        
+        # Configuration
         self.config_manager: Optional[ConfigManager] = None
         self.config: Dict[str, Any] = {}
         self.is_enabled = False
+        
+        # Voice processing
+        self.command_processor = VoiceCommandProcessor(
+            weather_service=weather_service,
+            cache_service=cache_service,
+            storage_service=storage_service,
+        )
+        
+        # Voice profiles and settings
+        self.available_voice_profiles = [
+            "en-US_Standard",
+            "en-US_Neural",
+            "en-GB_Standard",
+            "en-AU_Standard",
+            "en-CA_Standard",
+        ]
+        self.current_voice_profile = "en-US_Standard"
+        
+        # Speech synthesis settings
+        self.speech_rate = 1.0
+        self.speech_volume = 0.8
+        self.speech_pitch = 0.0
+        
+        # Legacy command mappings for backward compatibility
         self.voice_commands: Dict[str, Callable] = {}
 
         # Initialize Cortana configuration
@@ -110,7 +151,8 @@ class CortanaVoiceService:
         if not self.is_voice_enabled():
             return "disabled"
 
-        return self.config.get("voice", {}).get("profile", "en-US_Standard")
+        # Use current voice profile or fall back to config
+        return self.current_voice_profile or self.config.get("voice", {}).get("profile", "en-US_Standard")
 
     def get_personality_traits(self) -> List[str]:
         """Get the personality traits for responses.
@@ -125,8 +167,39 @@ class CortanaVoiceService:
             "traits", ["helpful", "curious", "witty"]
         )
 
-    def process_voice_command(self, command: str, city: Optional[str] = None) -> str:
+    async def process_voice_command(self, command: str, context: Optional[Dict[str, Any]] = None) -> str:
         """Process a voice command and return a response.
+
+        Args:
+            command: Voice command to process
+            context: Optional conversation context
+
+        Returns:
+            str: Response text
+        """
+        if not self.is_voice_enabled():
+            return "Voice assistant is not available. Please check the configuration."
+
+        try:
+            # Use the advanced command processor
+            response = await self.command_processor.process_command(command, context)
+            
+            # Log the interaction
+            self.logger.info(f"Processed command: '{command}' -> Success: {response.success}")
+            
+            # Format response with suggestions if available
+            message = response.message
+            if response.suggestions and not response.success:
+                message += "\n\nSuggestions: " + ", ".join(response.suggestions)
+            
+            return message
+            
+        except Exception as e:
+            self.logger.error(f"Error processing voice command '{command}': {e}")
+            return "I'm sorry, I encountered an error processing your request. Please try again."
+
+    def process_voice_command_sync(self, command: str, city: Optional[str] = None) -> str:
+        """Synchronous wrapper for voice command processing (backward compatibility).
 
         Args:
             command: Voice command to process
@@ -135,24 +208,22 @@ class CortanaVoiceService:
         Returns:
             str: Response text
         """
-        if not self.is_voice_enabled():
-            return "Voice assistant is not available. Please check the configuration."
-
-        command = command.lower().strip()
-
-        # Find matching command
-        for cmd_key, handler in self.voice_commands.items():
-            if cmd_key.replace("_", " ") in command or cmd_key in command:
-                try:
-                    return handler(city)
-                except Exception as e:
-                    self.logger.error(
-                        f"Error processing voice command '{command}': {e}"
-                    )
-                    return "I'm sorry, I encountered an error processing your request."
-
-        # Default response for unrecognized commands
-        return self._generate_help_response()
+        context = {"city": city} if city else None
+        
+        # Run async method in event loop
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # If we're already in an event loop, create a task
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(asyncio.run, self.process_voice_command(command, context))
+                    return future.result(timeout=10)
+            else:
+                return loop.run_until_complete(self.process_voice_command(command, context))
+        except Exception as e:
+            self.logger.error(f"Error in sync voice command processing: {e}")
+            return asyncio.run(self.process_voice_command(command, context))
 
     def _handle_weather_query(self, city: Optional[str] = None) -> str:
         """Handle weather query command.
@@ -407,6 +478,102 @@ class CortanaVoiceService:
 
         return response
 
+    # ICortanaVoiceService interface implementation
+    
+    async def speech_to_text(self, audio_data: bytes) -> str:
+        """Convert speech audio to text.
+
+        Args:
+            audio_data: Audio data in bytes
+
+        Returns:
+            Recognized text
+        """
+        # Placeholder implementation - in a real scenario, this would integrate
+        # with Azure Speech Services or another STT provider
+        self.logger.warning("Speech-to-text not implemented - returning placeholder")
+        return "placeholder recognized text"
+
+    async def text_to_speech(self, text: str) -> bytes:
+        """Convert text to speech audio.
+
+        Args:
+            text: Text to convert to speech
+
+        Returns:
+            Audio data in bytes
+        """
+        # Placeholder implementation - in a real scenario, this would integrate
+        # with Azure Speech Services or another TTS provider
+        self.logger.info(f"Text-to-speech request: '{text[:50]}...'")
+        return b"placeholder audio data"
+
+    def get_available_voice_profiles(self) -> List[str]:
+        """Get list of available voice profiles.
+
+        Returns:
+            List of voice profile names
+        """
+        return self.available_voice_profiles.copy()
+
+    async def configure_voice_settings(self, settings: Dict[str, Any]) -> bool:
+        """Configure voice settings.
+
+        Args:
+            settings: Voice settings dictionary
+
+        Returns:
+            True if configuration was successful
+        """
+        try:
+            if "voice_profile" in settings:
+                profile = settings["voice_profile"]
+                if profile in self.available_voice_profiles:
+                    self.current_voice_profile = profile
+                    self.logger.info(f"Voice profile changed to: {profile}")
+                else:
+                    self.logger.warning(f"Invalid voice profile: {profile}")
+                    return False
+            
+            if "speech_rate" in settings:
+                rate = float(settings["speech_rate"])
+                if 0.5 <= rate <= 2.0:
+                    self.speech_rate = rate
+                else:
+                    self.logger.warning(f"Invalid speech rate: {rate}")
+                    return False
+            
+            if "speech_volume" in settings:
+                volume = float(settings["speech_volume"])
+                if 0.0 <= volume <= 1.0:
+                    self.speech_volume = volume
+                else:
+                    self.logger.warning(f"Invalid speech volume: {volume}")
+                    return False
+            
+            if "speech_pitch" in settings:
+                pitch = float(settings["speech_pitch"])
+                if -1.0 <= pitch <= 1.0:
+                    self.speech_pitch = pitch
+                else:
+                    self.logger.warning(f"Invalid speech pitch: {pitch}")
+                    return False
+            
+            # Store settings if storage service is available
+            if self.storage_service:
+                await self.storage_service.store_user_preference_async("voice_settings", {
+                    "voice_profile": self.current_voice_profile,
+                    "speech_rate": self.speech_rate,
+                    "speech_volume": self.speech_volume,
+                    "speech_pitch": self.speech_pitch,
+                })
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error configuring voice settings: {e}")
+            return False
+
     def get_configuration_summary(self) -> Dict[str, Any]:
         """Get a summary of the current Cortana configuration.
 
@@ -418,7 +585,7 @@ class CortanaVoiceService:
 
         return {
             "enabled": True,
-            "voice_profile": self.get_voice_profile(),
+            "voice_profile": self.current_voice_profile,
             "personality_traits": self.get_personality_traits(),
             "privacy_mode": self.config.get("privacy", {}).get(
                 "enable_privacy_mode", False
@@ -431,6 +598,12 @@ class CortanaVoiceService:
             "validation_status": self.config.get("validation", {}).get(
                 "validation_status", "unknown"
             ),
+            "speech_settings": {
+                "rate": self.speech_rate,
+                "volume": self.speech_volume,
+                "pitch": self.speech_pitch,
+            },
+            "available_profiles": self.available_voice_profiles,
         }
 
     def reload_configuration(self) -> bool:
@@ -448,16 +621,54 @@ class CortanaVoiceService:
             return False
 
 
+    def set_default_location(self, location: str) -> None:
+        """Set default location for voice commands.
+
+        Args:
+            location: Default location name
+        """
+        self.command_processor.set_default_location(location)
+        self.logger.info(f"Default location set to: {location}")
+
+    def get_voice_help(self) -> str:
+        """Get voice command help text.
+
+        Returns:
+            Help text for voice commands
+        """
+        return self._generate_help_response()
+
+    async def get_conversation_context(self) -> Dict[str, Any]:
+        """Get current conversation context.
+
+        Returns:
+            Conversation context dictionary
+        """
+        return self.command_processor.get_conversation_context()
+
+    async def clear_conversation_context(self) -> None:
+        """Clear conversation context."""
+        self.command_processor.clear_conversation_context()
+
+
 # Factory function for creating Cortana voice service
 def create_cortana_voice_service(
     weather_service: Optional[IWeatherAPI] = None,
+    cache_service: Optional[ICacheService] = None,
+    storage_service: Optional[IStorageService] = None,
 ) -> CortanaVoiceService:
     """Create and return a Cortana voice service instance.
 
     Args:
         weather_service: Weather service for fetching weather data
+        cache_service: Cache service for performance optimization
+        storage_service: Storage service for user preferences
 
     Returns:
         CortanaVoiceService: Configured Cortana voice service
     """
-    return CortanaVoiceService(weather_service=weather_service)
+    return CortanaVoiceService(
+        weather_service=weather_service,
+        cache_service=cache_service,
+        storage_service=storage_service,
+    )

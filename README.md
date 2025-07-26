@@ -163,7 +163,7 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 weather_dashboard_E_Hunter_Petross/
 ├── 📄 main.py                    # Main application entry point
 ├── 📄 requirements.txt           # Python dependencies
-├── 📄 requirements-dev.txt       # Development dependencies
+├── 📁 docs/                      # Documentation folder (organized)
 ├── 📄 pyproject.toml            # Project configuration
 ├── 📄 setup.cfg                 # Setup configuration
 ├── 📄 settings.json             # Application settings
@@ -271,17 +271,28 @@ weather_dashboard_E_Hunter_Petross/
 │   ├── 📁 screenshots/         # UI screenshots
 │   └── 📁 sounds/              # Audio files
 ├── 📁 docs/                     # Documentation
-│   ├── 📄 CORTANA_CONFIGURATION.md # Cortana docs
-│   ├── 📄 GITHUB_TEAM_DATA_INTEGRATION.md # Team integration
-│   ├── 📄 GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md # GUI analysis
-│   ├── 📄 IMPLEMENTATION_GUIDE.md # Implementation guide
 │   ├── 📄 README.md            # Documentation index
-│   ├── 📄 SQL_DATABASE.md      # Database documentation
-│   ├── 📄 Week14_Reflection.md # Weekly reflection
-│   ├── 📄 Week15_Reflection.md # Weekly reflection
-│   ├── 📄 architecture.md      # Architecture docs
-│   ├── 📄 project_structure.md # Project structure
-│   └── 📄 security.md          # Security guidelines
+│   ├── 📁 architecture/        # Architecture documentation
+│   │   ├── 📄 architecture.md      # Architecture overview
+│   │   └── 📄 project_structure.md # Project structure
+│   ├── 📁 configuration/       # Configuration documentation
+│   │   ├── 📄 CORTANA_CONFIGURATION.md # Cortana setup
+│   │   ├── 📄 CORTANA_INTEGRATION.md # Cortana integration
+│   │   └── 📄 security.md          # Security guidelines
+│   ├── 📁 deployment/          # Deployment documentation
+│   │   └── 📄 DEPLOYMENT_GUIDE.md  # Deployment guide
+│   ├── 📁 development/         # Development documentation
+│   │   ├── 📄 IMPLEMENTATION_GUIDE.md # Implementation guide
+│   │   ├── 📄 GITHUB_TEAM_DATA_INTEGRATION.md # Team integration
+│   │   ├── 📄 GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md # GUI analysis
+│   │   ├── 📄 SQL_DATABASE.md      # Database documentation
+│   │   ├── 📄 requirements-dev.txt # Development dependencies
+│   └── 📁 reflections/         # Weekly reflections
+│       ├── 📄 Week11_Reflection.md # Week 11 reflection
+│       ├── 📄 Week12_Reflection.md # Week 12 reflection
+│       ├── 📄 Week13_Reflection.md # Week 13 reflection
+│       ├── 📄 Week14_Reflection.md # Week 14 reflection
+│       └── 📄 Week15_Reflection.md # Week 15 reflection
 ├── 📁 exports/                  # Export files
 ├── 📁 logs/                     # Application logs
 ├── 📁 scripts/                  # Utility scripts
@@ -294,8 +305,8 @@ weather_dashboard_E_Hunter_Petross/
     ├── 📄 requirements-test.txt # Test dependencies
     ├── 📄 run_tests.py         # Test runner
     ├── 📄 settings.json        # Test settings
-    ├── 📄 test_enhanced_poetry.py # Poetry tests
-    ├── 📄 test_session_persistence.py # Session tests
+    ├── 📄 test_cortana_integration.py # Voice assistant tests
+├── 📄 test_week14_features.py # Advanced features tests
     ├── 📄 test_validators.py    # Validator tests
     ├── 📄 test_weather_models.py # Model tests
     ├── 📄 test_weather_service.py # Service tests
@@ -369,16 +380,33 @@ python -m pytest tests/test_weather_service.py -v
 
 ## 📚 Documentation
 
-- [Architecture Documentation](docs/architecture.md) - Detailed architecture overview and design principles
-- [Security Guidelines](docs/security.md) - Security best practices and API key management
-- [Project Structure](docs/project_structure.md) - Complete project organization and file structure
-- [Cortana Configuration](docs/CORTANA_CONFIGURATION.md) - Cortana voice assistant setup and configuration
-- [Week 14 Reflection](docs/Week14_Reflection.md) - Development milestones and reflection
-- [Week 15 Reflection](docs/Week15_Reflection.md) - Final project reflection
-- [GUI Layout Analysis](docs/GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md) - UI design analysis and improvements
-- [Implementation Guide](docs/IMPLEMENTATION_GUIDE.md) - Detailed implementation documentation
-- [GitHub Team Integration](docs/GITHUB_TEAM_DATA_INTEGRATION.md) - Team collaboration features
-- [Works Cited](docs/README.md#-works-cited) - Bibliography of tools, documentation, and educational resources
+### Architecture & Design
+- [Architecture Documentation](docs/architecture/architecture.md) - Detailed architecture overview and design principles
+- [Project Structure](docs/architecture/project_structure.md) - Complete project organization and file structure
+
+### Configuration & Setup
+- [Security Guidelines](docs/configuration/security.md) - Security best practices and API key management
+- [Cortana Configuration](docs/configuration/CORTANA_CONFIGURATION.md) - Cortana voice assistant setup and configuration
+- [Cortana Integration](docs/configuration/CORTANA_INTEGRATION.md) - Cortana integration details
+
+### Development & Implementation
+- [Implementation Guide](docs/development/IMPLEMENTATION_GUIDE.md) - Detailed implementation documentation
+- [GUI Layout Analysis](docs/development/GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md) - UI design analysis and improvements
+- [GitHub Team Integration](docs/development/GITHUB_TEAM_DATA_INTEGRATION.md) - Team collaboration features
+- [SQL Database Documentation](docs/development/SQL_DATABASE.md) - Database design and implementation
+
+### Deployment
+- [Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md) - Production deployment instructions
+
+### Weekly Reflections
+- [Week 11 Reflection](docs/reflections/Week11_Reflection.md) - Clean architecture and core service implementation
+- [Week 12 Reflection](docs/reflections/Week12_Reflection.md) - Advanced features and data visualization
+- [Week 13 Reflection](docs/reflections/Week13_Reflection.md) - Machine learning integration and analytics
+- [Week 14 Reflection](docs/reflections/Week14_Reflection.md) - Development milestones and reflection
+- [Week 15 Reflection](docs/reflections/Week15_Reflection.md) - Final project reflection
+
+### Complete Documentation Index
+- [Documentation Index](docs/README.md) - Complete documentation overview with works cited
 
 ## 🔐 Security
 

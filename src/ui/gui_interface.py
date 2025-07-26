@@ -144,7 +144,7 @@ class WeatherDashboardGUI(IUserInterface):
         """Configure the main window."""
         # Only configure title and background if not already set by parent
         if not hasattr(self.root, '_configured_by_parent'):
-            self.root.title("Weather Dashboard - Your Personal Weather Companion")
+            self.root.title("CodeFront 2.0 - Your Personal Weather Companion")
             # Set window to fullscreen
             self.root.state("zoomed")  # Windows fullscreen
             self.root.minsize(1200, 800)

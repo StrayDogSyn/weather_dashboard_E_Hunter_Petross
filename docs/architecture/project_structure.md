@@ -6,7 +6,9 @@
 weather_dashboard_E_Hunter_Petross/
 ├── 📄 main.py                    # Main application entry point
 ├── 📄 requirements.txt           # Python dependencies
-├── 📄 requirements-dev.txt       # Development dependencies
+├── 📁 docs/                      # Documentation folder
+│   ├── 📁 development/
+│   │   ├── 📄 requirements-dev.txt # Development dependencies
 ├── 📄 requirements-test.txt      # Testing dependencies
 ├── 📄 pyproject.toml            # Project configuration and metadata
 ├── 📄 README.md                 # Project documentation
@@ -183,9 +185,9 @@ Transformed a monolithic GUI file into a modular, enterprise-level architecture:
 - Updated `src/ui/__init__.py` to only export GUI interface
 - Fixed file structure documentation in README.md
 - Moved documentation files to /docs/ folder for better organization:
-  - `architecture.md` → `docs/architecture.md`
-  - `security.md` → `docs/security.md`
-  - `project_structure.md` → `docs/project_structure.md`
+  - `architecture.md` → `docs/architecture/architecture.md`
+- `security.md` → `docs/configuration/security.md`
+- `project_structure.md` → `docs/architecture/project_structure.md`
   - `refactor_complete.md` → `docs/refactor_complete.md`
 
 ### 📏 Naming Conventions Applied
@@ -233,7 +235,7 @@ python main.py
 - `pydantic` - Data validation
 - `python-dotenv` - Environment configuration
 
-Development dependencies are specified in `requirements-dev.txt` and test dependencies in `tests/requirements-test.txt`.
+Development dependencies are specified in `docs/development/requirements-dev.txt` and test dependencies in `tests/requirements-test.txt`.
 
 The project is now clean, focused, and ready for professional use or demonstration! 🎉
 
