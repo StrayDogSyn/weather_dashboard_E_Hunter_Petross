@@ -1,6 +1,6 @@
 # 🌤️ Weather Dashboard - TKinter GUI
 
-> **📋 WEEK 13 SUBMISSION STATUS: ✅ READY**  
+> **📋 WEEK 15 SUBMISSION STATUS: ✅ READY**  
 > All core requirements met, including:  
 > ✅ GitHub Repository Updated  
 > ✅ UI Design Implemented  
