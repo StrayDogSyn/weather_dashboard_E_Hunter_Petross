@@ -3527,6 +3527,7 @@ class ModernLayoutMixin:
         except Exception as e:
             logging.error(f"Error refreshing team data: {e}")
             messagebox.showerror("Error", f"Error refreshing team data: {str(e)}")
+<<<<<<< HEAD
 
     # Voice Assistant GUI Methods
     def update_voice_status(self):
@@ -3650,3 +3651,5 @@ class ModernLayoutMixin:
 
         except Exception as e:
             logging.error(f"Error displaying voice response: {e}")
+=======
+>>>>>>> origin/week15_advanced_implementations
