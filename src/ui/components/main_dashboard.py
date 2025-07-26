@@ -233,7 +233,7 @@ class MainDashboard(GlassmorphicFrame):
         # Current weather content
         content_frame = GlassmorphicFrame(self.current_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         # Title
@@ -278,7 +278,7 @@ class MainDashboard(GlassmorphicFrame):
         # Forecast content
         content_frame = GlassmorphicFrame(self.forecast_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         title_label = tk.Label(
@@ -307,7 +307,7 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.comparison_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         title_label = tk.Label(
@@ -335,7 +335,7 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.journal_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         title_label = tk.Label(
@@ -363,7 +363,7 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.activities_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         title_label = tk.Label(
@@ -391,7 +391,7 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.poetry_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         title_label = tk.Label(
@@ -419,7 +419,7 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.voice_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         title_label = tk.Label(
@@ -447,7 +447,7 @@ class MainDashboard(GlassmorphicFrame):
 
         content_frame = GlassmorphicFrame(self.favorites_tab, padding=20)
         content_frame.pack(
-            fill="both", expand=True, padx=self.spacing.MEDIUM, pady=self.spacing.MEDIUM
+            fill="both", expand=True, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.MEDIUM
         )
 
         title_label = tk.Label(

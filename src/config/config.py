@@ -43,15 +43,27 @@ class APIConfiguration:
     )
 
     # AI API configuration for enhanced poetry generation
+    # Gemini Pro (Primary AI)
+    gemini_api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY", ""))
+    gemini_model: str = field(
+        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-pro")
+    )
+    
+    # OpenAI (Fallback AI)
     openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
     ai_model: str = field(
         default_factory=lambda: os.getenv("AI_MODEL", "gpt-3.5-turbo")
     )
+    
+    # Shared AI settings
     ai_max_tokens: int = field(
         default_factory=lambda: int(os.getenv("AI_MAX_TOKENS", "150"))
     )
     ai_temperature: float = field(
         default_factory=lambda: float(os.getenv("AI_TEMPERATURE", "0.8"))
+    )
+    ai_fallback_chance: float = field(
+        default_factory=lambda: float(os.getenv("AI_FALLBACK_CHANCE", "0.8"))
     )
 
 

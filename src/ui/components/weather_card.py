@@ -200,7 +200,7 @@ class WeatherCard(GlassmorphicFrame):
             bg=self.style.colors["surface"],
             fg=self.style.colors["text_primary"],
         )
-        icon_label.grid(row=0, column=0, padx=(0, self.spacing.SMALL))
+        icon_label.grid(row=0, column=0, padx=(0, ResponsiveSpacing.SMALL))
 
         # Label and value container
         text_frame = tk.Frame(detail_frame, bg=self.style.colors["surface"])

@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Dict, List, Optional
 
 import requests
+import google.generativeai as genai
 
 from ..config import config_manager
 from ..models.capstone_models import WeatherPoem
@@ -27,17 +28,21 @@ class WeatherPoetryService:
         self.config = config_manager.config.api
         self._load_poetry_templates()
 
-        # AI API settings
-        self.ai_enabled = bool(self.config.openai_api_key)
-        self.ai_fallback_chance = 0.3  # 30% chance to use AI when available
+        # AI API settings - Gemini Pro as primary, OpenAI as fallback
+        self.gemini_enabled = bool(self.config.gemini_api_key)
+        self.openai_enabled = bool(self.config.openai_api_key)
+        self.ai_enabled = self.gemini_enabled or self.openai_enabled
+        self.ai_fallback_chance = self.config.ai_fallback_chance  # Chance to use AI when available
 
-        if self.ai_enabled:
-            self.logger.info("Weather poetry service initialized with AI enhancement")
+        if self.gemini_enabled:
+            self.logger.info("Weather poetry service initialized with Gemini Pro (primary) + OpenAI (fallback)" if self.openai_enabled else "Weather poetry service initialized with Gemini Pro only")
+        elif self.openai_enabled:
+            self.logger.info("Weather poetry service initialized with OpenAI only")
         else:
             self.logger.info(
                 "Weather poetry service initialized with template-based generation"
             )
-            self.logger.debug("AI enhancement disabled - no OpenAI API key configured")
+            self.logger.debug("AI enhancement disabled - no Gemini or OpenAI API keys configured")
 
     def _load_poetry_templates(self):
         """Load poetry templates and word banks."""
@@ -168,8 +173,9 @@ class WeatherPoetryService:
             ai_haiku = self._generate_ai_haiku(weather)
             if ai_haiku:
                 haiku_text = ai_haiku
+                api_used = "Gemini Pro" if self.gemini_enabled else "OpenAI"
                 self.logger.info(
-                    f"Generated AI haiku for {weather.location.display_name}"
+                    f"Generated AI haiku using {api_used} for {weather.location.display_name}"
                 )
 
         # Fallback to template-based generation
@@ -223,8 +229,9 @@ class WeatherPoetryService:
             ai_phrase = self._generate_ai_phrase(weather)
             if ai_phrase:
                 phrase_text = ai_phrase
+                api_used = "Gemini Pro" if self.gemini_enabled else "OpenAI"
                 self.logger.info(
-                    f"Generated AI phrase for {weather.location.display_name}"
+                    f"Generated AI phrase using {api_used} for {weather.location.display_name}"
                 )
 
         # Fallback to template-based generation
@@ -275,8 +282,9 @@ class WeatherPoetryService:
             ai_limerick = self._generate_ai_limerick(weather)
             if ai_limerick:
                 limerick_text = ai_limerick
+                api_used = "Gemini Pro" if self.gemini_enabled else "OpenAI"
                 self.logger.info(
-                    f"Generated AI limerick for {weather.location.display_name}"
+                    f"Generated AI limerick using {api_used} for {weather.location.display_name}"
                 )
 
         # Fallback to template-based generation
@@ -336,17 +344,65 @@ class WeatherPoetryService:
         }
         return temp_haikus.get(temp_descriptor, [])
 
-    def _call_ai_api(self, prompt: str) -> Optional[str]:
+    def _call_gemini_api(self, prompt: str) -> Optional[str]:
         """
-        Call AI API to generate creative content.
+        Call Gemini Pro API to generate creative content.
 
         Args:
-            prompt: The prompt to send to the AI
+            prompt: The prompt to send to Gemini
 
         Returns:
             Generated text or None if API call fails
         """
-        if not self.ai_enabled:
+        if not self.gemini_enabled:
+            return None
+
+        try:
+            import google.generativeai as genai
+            
+            # Configure Gemini
+            genai.configure(api_key=self.config.gemini_api_key)
+            model = genai.GenerativeModel(self.config.gemini_model)
+            
+            # Create generation config
+            generation_config = genai.types.GenerationConfig(
+                temperature=self.config.ai_temperature,
+                max_output_tokens=self.config.ai_max_tokens,
+            )
+            
+            # Enhanced system prompt for weather poetry
+            enhanced_prompt = f"""You are a creative weather poet who writes beautiful, unique poetry about weather conditions. Your poems should be weather-themed, creative, and capture the essence of the moment.
+
+{prompt}"""
+            
+            response = model.generate_content(
+                enhanced_prompt,
+                generation_config=generation_config
+            )
+            
+            if response.text:
+                return response.text.strip()
+            else:
+                self.logger.warning("Gemini API returned empty response")
+                
+        except ImportError:
+            self.logger.error("google-generativeai package not installed. Install with: pip install google-generativeai")
+        except Exception as e:
+            self.logger.error(f"Error calling Gemini API: {e}")
+
+        return None
+
+    def _call_openai_api(self, prompt: str) -> Optional[str]:
+        """
+        Call OpenAI API to generate creative content (fallback).
+
+        Args:
+            prompt: The prompt to send to OpenAI
+
+        Returns:
+            Generated text or None if API call fails
+        """
+        if not self.openai_enabled:
             return None
 
         try:
@@ -384,12 +440,46 @@ class WeatherPoetryService:
                     return data["choices"][0]["message"]["content"].strip()
             else:
                 self.logger.warning(
-                    f"AI API request failed with status {response.status_code}"
+                    f"OpenAI API request failed with status {response.status_code}"
                 )
 
         except Exception as e:
-            self.logger.error(f"Error calling AI API: {e}")
+            self.logger.error(f"Error calling OpenAI API: {e}")
 
+        return None
+
+    def _call_ai_api(self, prompt: str) -> Optional[str]:
+        """
+        Call AI API with Gemini Pro as primary and OpenAI as fallback.
+
+        Args:
+            prompt: The prompt to send to the AI
+
+        Returns:
+            Generated text or None if all API calls fail
+        """
+        if not self.ai_enabled:
+            return None
+
+        # Try Gemini Pro first (primary)
+        if self.gemini_enabled:
+            result = self._call_gemini_api(prompt)
+            if result:
+                self.logger.debug("Successfully generated content using Gemini Pro")
+                return result
+            else:
+                self.logger.warning("Gemini Pro API failed, trying OpenAI fallback")
+
+        # Fallback to OpenAI if Gemini fails or is not available
+        if self.openai_enabled:
+            result = self._call_openai_api(prompt)
+            if result:
+                self.logger.debug("Successfully generated content using OpenAI (fallback)")
+                return result
+            else:
+                self.logger.warning("OpenAI API also failed")
+
+        self.logger.error("All AI APIs failed to generate content")
         return None
 
     def _generate_ai_haiku(self, weather: CurrentWeather) -> Optional[str]:

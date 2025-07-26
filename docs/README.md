@@ -95,6 +95,12 @@ This section provides comprehensive attribution for all major tools, libraries, 
   - Model Used: GPT-3.5-turbo for creative weather poetry
   - Implementation: Custom poetry service with fallback templates
 
+- **Google Generative AI (Gemini Pro)** - Alternative AI content generation
+  - Website: [https://ai.google.dev/](https://ai.google.dev/)
+  - API Documentation: [https://ai.google.dev/docs](https://ai.google.dev/docs)
+  - Model Used: Gemini Pro for enhanced AI capabilities
+  - Implementation: Multi-provider AI service architecture
+
 ### 🌤️ Weather APIs & Data Sources
 
 #### Primary Weather Service

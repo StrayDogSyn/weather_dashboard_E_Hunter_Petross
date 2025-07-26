@@ -256,10 +256,8 @@ class WeatherDashboardGUI(IUserInterface):
             pady=spacing["element_spacing"],
         )
 
-        # Apply responsive layout management
-        self.responsive_layout.add_component(self.header, "header")
-        self.responsive_layout.add_component(self.temperature_controls, "sidebar")
-        self.responsive_layout.add_component(self.main_dashboard, "main")
+        # Responsive layout management is handled through callbacks
+        # Components are already positioned using grid layout
 
         # Apply entrance animations
         self.animation_helper.slide_in(self.header, direction="down")

@@ -23,5 +23,9 @@ joblib>=1.3.0                 # Model persistence
 # Enhanced UI (Optional)
 ttkbootstrap>=1.10.1          # Bootstrap-inspired styling for Tkinter
 
+# AI & Natural Language Processing
+openai>=1.0.0                 # OpenAI API for AI-powered poetry generation
+google-generativeai>=0.8.0    # Google Gemini Pro API for AI content generation
+
 # Note: TKinter is included with Python by default
 # SQLite is built into Python standard library
