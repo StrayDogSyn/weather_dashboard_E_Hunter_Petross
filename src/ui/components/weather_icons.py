@@ -4,7 +4,11 @@ This module provides weather condition icons using Unicode characters
 and utilities for selecting appropriate icons based on weather conditions.
 """
 
-from typing import Optional
+from typing import Optional, Union, TYPE_CHECKING
+from src.models.weather_models import WeatherCondition
+
+if TYPE_CHECKING:
+    from src.models.weather_models import Temperature
 
 
 class WeatherIcons:
@@ -48,23 +52,31 @@ class WeatherIcons:
     WINTER = "❄️"
 
     @classmethod
-    def get_icon(cls, condition: str, temperature: Optional[float] = None) -> str:
+    def get_icon(cls, condition: Union[str, WeatherCondition], temperature: Optional[Union[float, 'Temperature']] = None) -> str:
         """Get appropriate weather icon for condition.
         
         Args:
-            condition: Weather condition description
-            temperature: Temperature value (optional, for temperature-based icons)
+            condition: Weather condition description (string) or WeatherCondition enum
+            temperature: Temperature value (optional, for temperature-based icons) - can be float or Temperature object
             
         Returns:
             Unicode weather icon string
         """
-        condition_lower = condition.lower()
+        # Handle WeatherCondition enum
+        if isinstance(condition, WeatherCondition):
+            condition_str = condition.value
+        else:
+            condition_str = str(condition)
+        
+        condition_lower = condition_str.lower()
 
         # Temperature-based icons (takes precedence)
         if temperature is not None:
-            if temperature > 85:
+            # Handle Temperature object by extracting the value
+            temp_value = temperature.value if hasattr(temperature, 'value') else temperature
+            if temp_value > 85:
                 return cls.HOT
-            elif temperature < 32:
+            elif temp_value < 32:
                 return cls.COLD
 
         # Condition-based icons

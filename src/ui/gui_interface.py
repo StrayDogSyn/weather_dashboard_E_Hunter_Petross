@@ -15,7 +15,7 @@ import logging
 import threading
 import tkinter as tk
 from datetime import datetime
-from tkinter import messagebox, ttk
+from tkinter import messagebox, simpledialog, ttk
 from typing import Any, Callable, Dict, List, Optional
 
 import ttkbootstrap as ttk_bs
@@ -30,7 +30,7 @@ from src.models.capstone_models import (
     WeatherComparison,
     WeatherPoem,
 )
-from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
+from src.models.weather_models import CurrentWeather, FavoriteCity, Location, WeatherForecast
 from src.services.sound_service import (
     SoundType,
     get_sound_service,
@@ -69,17 +69,20 @@ class WeatherDashboardGUI(IUserInterface):
         # Set up logging
         self.logger = logging.getLogger(__name__)
         
-        # Initialize main window
-        self.root = ttk_bs.Window(themename="darkly")
-        self.setup_window()
-        
-        # Initialize styling and animation helpers
+        # Initialize styling and animation helpers first
         self.glassmorphic_style = GlassmorphicStyle()
         self.animation_helper = AnimationHelper()
         self.weather_icons = WeatherIcons()
         
+        # Initialize main window
+        self.root = ttk_bs.Window(themename="darkly")
+        self.setup_window()
+        
         # Initialize weather dashboard (will be set later to avoid circular import)
         self.weather_dashboard = None
+        
+        # Initialize callbacks dictionary
+        self.callbacks: Dict[str, Callable] = {}
         
         # UI Components
         self.header: Optional[ApplicationHeader] = None
@@ -116,7 +119,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.root.minsize(1200, 800)
         
         # Configure window properties
-        self.root.configure(bg=self.glassmorphic_style.colors['background'])
+        self.root.configure(bg=self.glassmorphic_style.BACKGROUND)
         
         # Center window on screen
         self.center_window()
@@ -146,15 +149,15 @@ class WeatherDashboardGUI(IUserInterface):
         # Configure notebook style
         style.configure(
             "Custom.TNotebook",
-            background=self.glassmorphic_style.colors['surface'],
+            background=self.glassmorphic_style.GLASS_BG,
             borderwidth=0,
             tabmargins=[2, 5, 2, 0]
         )
         
         style.configure(
             "Custom.TNotebook.Tab",
-            background=self.glassmorphic_style.colors['surface_secondary'],
-            foreground=self.glassmorphic_style.colors['text_primary'],
+            background=self.glassmorphic_style.GLASS_BG_LIGHT,
+            foreground=self.glassmorphic_style.TEXT_PRIMARY,
             padding=[20, 10],
             borderwidth=1,
             relief="solid"
@@ -163,12 +166,12 @@ class WeatherDashboardGUI(IUserInterface):
         style.map(
             "Custom.TNotebook.Tab",
             background=[
-                ("selected", self.glassmorphic_style.colors['accent']),
-                ("active", self.glassmorphic_style.colors['surface'])
+                ("selected", self.glassmorphic_style.ACCENT),
+                ("active", self.glassmorphic_style.GLASS_BG)
             ],
             foreground=[
-                ("selected", self.glassmorphic_style.colors['text_primary']),
-                ("active", self.glassmorphic_style.colors['text_primary'])
+                ("selected", self.glassmorphic_style.TEXT_PRIMARY),
+                ("active", self.glassmorphic_style.TEXT_PRIMARY)
             ]
         )
 
@@ -219,6 +222,43 @@ class WeatherDashboardGUI(IUserInterface):
         self.weather_dashboard = dashboard
         if self.main_dashboard:
             self.main_dashboard.set_weather_dashboard(dashboard)
+    
+    def set_callback(self, name: str, callback: Callable) -> None:
+        """Set a callback function for the specified name.
+        
+        Args:
+            name: Name of the callback
+            callback: Callback function to set
+        """
+        self.callbacks[name] = callback
+    
+    def get_callback(self, name: str) -> Optional[Callable]:
+        """Get a callback function by name.
+        
+        Args:
+            name: Name of the callback
+            
+        Returns:
+            The callback function if found, None otherwise
+        """
+        return self.callbacks.get(name)
+    
+    def update_status(self, message: str) -> None:
+        """Update the status message in the UI.
+        
+        Args:
+            message: Status message to display
+        """
+        if self.header:
+            # Update header status if available
+            try:
+                self.header.update_status(message)
+            except AttributeError:
+                # Header doesn't have update_status method, log the message instead
+                self.logger.info(f"Status: {message}")
+        else:
+            # Log the status message if no header available
+            self.logger.info(f"Status: {message}")
 
     # Weather-related methods
     def search_weather(self, city: str) -> None:
@@ -296,14 +336,14 @@ class WeatherDashboardGUI(IUserInterface):
         # Show notification
         if self.header:
             self.header.show_notification(
-                f"Weather updated for {weather_data.city}",
+                f"Weather updated for {weather_data.location.name}",
                 "success"
             )
 
     def refresh_weather(self) -> None:
         """Refresh current weather data."""
         if self.current_weather:
-            self.search_weather(self.current_weather.city)
+            self.search_weather(self.current_weather.location.name)
         else:
             self.show_info("No current weather data to refresh")
 
@@ -317,12 +357,17 @@ class WeatherDashboardGUI(IUserInterface):
             return
         
         # Check if already in favorites
-        if any(fav.name.lower() == city.lower() for fav in self.favorite_cities):
+        if any(fav.location.name.lower() == city.lower() for fav in self.favorite_cities):
             self.show_warning(f"{city} is already in your favorites")
             return
         
+        # Create a basic location object for the city
+        # Note: This creates a minimal location without coordinates
+        # In a real implementation, you might want to geocode the city name
+        location = Location(name=city, country="", latitude=0.0, longitude=0.0)
+        
         # Add to favorites
-        favorite = FavoriteCity(name=city, added_date=datetime.now())
+        favorite = FavoriteCity(location=location, added_date=datetime.now())
         self.favorite_cities.append(favorite)
         
         # Update main dashboard
@@ -368,7 +413,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.logger.info(f"Tab changed to: {tab_name}")
         
         # Play tab change sound
-        play_sound(SoundType.CLICK)
+        play_sound(SoundType.BUTTON_CLICK)
         
         # Update header tagline based on tab
         taglines = {
@@ -414,7 +459,7 @@ class WeatherDashboardGUI(IUserInterface):
         settings_window = tk.Toplevel(self.root)
         settings_window.title("Settings")
         settings_window.geometry("600x400")
-        settings_window.configure(bg=self.glassmorphic_style.colors['background'])
+        settings_window.configure(bg=self.glassmorphic_style.BACKGROUND)
         
         # Center dialog
         settings_window.transient(self.root)
@@ -424,13 +469,13 @@ class WeatherDashboardGUI(IUserInterface):
         label = tk.Label(
             settings_window,
             text="Settings Dialog\n(To be implemented)",
-            font=self.glassmorphic_style.fonts['title'],
-            bg=self.glassmorphic_style.colors['background'],
-            fg=self.glassmorphic_style.colors['text_primary']
+            font=(self.glassmorphic_style.FONT_FAMILY, self.glassmorphic_style.FONT_SIZE_LARGE, "bold"),
+            bg=self.glassmorphic_style.BACKGROUND,
+            fg=self.glassmorphic_style.TEXT_PRIMARY
         )
         label.pack(expand=True)
         
-        play_sound(SoundType.CLICK)
+        play_sound(SoundType.BUTTON_CLICK)
 
     def show_help(self) -> None:
         """Show help dialog."""
@@ -492,13 +537,20 @@ Tips:
         try:
             # Load favorite cities
             favorites_data = self.config.get('favorite_cities', [])
-            self.favorite_cities = [
-                FavoriteCity(
+            self.favorite_cities = []
+            for fav in favorites_data:
+                # Create a basic location object
+                location = Location(
                     name=fav.get('name', ''),
+                    country="",
+                    latitude=0.0,
+                    longitude=0.0
+                )
+                favorite = FavoriteCity(
+                    location=location,
                     added_date=datetime.fromisoformat(fav.get('added_date', datetime.now().isoformat()))
                 )
-                for fav in favorites_data
-            ]
+                self.favorite_cities.append(favorite)
             
             # Load temperature unit preference
             unit_str = self.config.get('temperature_unit', 'F')
@@ -517,8 +569,8 @@ Tips:
         try:
             favorites_data = [
                 {
-                    'name': fav.name,
-                    'added_date': fav.added_date.isoformat()
+                    'name': fav.location.name,
+                    'added_date': fav.added_date.isoformat() if fav.added_date else datetime.now().isoformat()
                 }
                 for fav in self.favorite_cities
             ]
@@ -616,7 +668,63 @@ Tips:
         Returns:
             User input string
         """
-        return tk.simpledialog.askstring("Input", prompt) or ""
+        return simpledialog.askstring("Input", prompt) or ""
+
+    def show_message(self, message: str) -> None:
+        """Show message to user (IUserInterface implementation).
+        
+        Args:
+            message: Message to display
+        """
+        self.show_info(message)
+
+    def display_weather_poem(self, poem) -> None:
+        """Display weather poem (IUserInterface implementation).
+        
+        Args:
+            poem: Weather poem to display
+        """
+        try:
+            from ..models.capstone_models import WeatherPoem
+            from ..services.poetry_service import WeatherPoetryService
+            
+            if isinstance(poem, WeatherPoem):
+                # Format the poem for display
+                poetry_service = WeatherPoetryService()
+                formatted_poem = poetry_service.format_poetry_display(poem)
+                
+                # Show in a message dialog with custom title
+                title = f"🎭 Weather Poetry - {poem.poem_type.title()}"
+                messagebox.showinfo(title, formatted_poem)
+                
+                # Also update the poetry tab if available
+                if self.main_dashboard and hasattr(self.main_dashboard, 'poetry_tab'):
+                    self._update_poetry_tab(formatted_poem)
+            else:
+                # Handle string poems or other formats
+                messagebox.showinfo("🎭 Weather Poetry", str(poem))
+                
+        except Exception as e:
+            self.logger.error(f"Error displaying weather poem: {e}")
+            messagebox.showinfo("🎭 Weather Poetry", str(poem))
+
+    def _update_poetry_tab(self, formatted_poem: str) -> None:
+        """Update the poetry tab with new poem content.
+        
+        Args:
+            formatted_poem: Formatted poem text
+        """
+        try:
+            if self.main_dashboard and hasattr(self.main_dashboard, 'poetry_tab'):
+                # Clear existing content and add new poem
+                for widget in self.main_dashboard.poetry_tab.winfo_children():
+                    if hasattr(widget, 'winfo_children'):
+                        for child in widget.winfo_children():
+                            if isinstance(child, tk.Label) and "poetry" in str(child.cget('text')).lower():
+                                child.config(text=formatted_poem)
+                                break
+        except Exception as e:
+            self.logger.error(f"Error updating poetry tab: {e}")
 
     def run(self) -> None:
         """Run the GUI application."""

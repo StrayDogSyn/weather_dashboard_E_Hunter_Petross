@@ -61,6 +61,45 @@ class GlassmorphicStyle:
     FONT_SIZE_SMALL = 12
     FONT_SIZE_TINY = 10
 
+    def __init__(self):
+        """Initialize GlassmorphicStyle instance."""
+        # Create colors dictionary for backward compatibility
+        self.colors = {
+            'background': self.BACKGROUND,
+            'surface': self.GLASS_BG,
+            'surface_secondary': self.GLASS_BG_LIGHT,
+            'surface_hover': self.GLASS_BG_LIGHT,
+            'surface_disabled': self.GLASS_BORDER,
+            'accent': self.ACCENT,
+            'accent_hover': self.ACCENT_LIGHT,
+            'secondary': self.ACCENT_SECONDARY,
+            'secondary_hover': self.ACCENT_SECONDARY_LIGHT,
+            'text_primary': self.TEXT_PRIMARY,
+            'text_secondary': self.TEXT_SECONDARY,
+            'text_disabled': self.TEXT_TERTIARY,
+            'success': self.SUCCESS,
+            'warning': self.WARNING,
+            'error': self.ERROR,
+            'border': self.GLASS_BORDER,
+            'input_bg': self.GLASS_BG_LIGHT
+        }
+        
+        # Create fonts dictionary for backward compatibility
+        self.fonts = {
+            'title': (self.FONT_FAMILY, self.FONT_SIZE_LARGE, 'bold'),
+            'heading': (self.FONT_FAMILY, self.FONT_SIZE_MEDIUM, 'bold'),
+            'subheading': (self.FONT_FAMILY, self.FONT_SIZE_SMALL, 'bold'),
+            'body': (self.FONT_FAMILY, self.FONT_SIZE_SMALL),
+            'body_bold': (self.FONT_FAMILY, self.FONT_SIZE_SMALL, 'bold'),
+            'small': (self.FONT_FAMILY, self.FONT_SIZE_TINY),
+            'caption': (self.FONT_FAMILY, self.FONT_SIZE_TINY),
+            'button': (self.FONT_FAMILY, self.FONT_SIZE_SMALL, 'bold'),
+            'temperature': (self.FONT_FAMILY, 24, 'bold'),
+            'icon_small': (self.FONT_FAMILY, self.FONT_SIZE_TINY),
+            'icon_medium': (self.FONT_FAMILY, self.FONT_SIZE_SMALL),
+            'icon_large': (self.FONT_FAMILY, self.FONT_SIZE_MEDIUM)
+        }
+
     @classmethod
     def get_temperature_color(cls, temperature: float) -> str:
         """Get color based on temperature value.
@@ -94,6 +133,7 @@ class GlassmorphicFrame(tk.Frame):
         elevated: bool = False,
         gradient: bool = False,
         blur_intensity: Optional[int] = None,
+        padding: Optional[int] = None,
         **kwargs,
     ):
         """Initialize glassmorphic frame.
@@ -105,13 +145,19 @@ class GlassmorphicFrame(tk.Frame):
             elevated: Whether to show elevated appearance
             gradient: Whether to use gradient background
             blur_intensity: Blur effect intensity (0-10)
+            padding: Internal padding (handled via grid/pack configuration)
             **kwargs: Additional tkinter Frame arguments
         """
-        # Remove blur_intensity from kwargs if it exists to avoid passing it to tkinter
+        # Remove custom parameters from kwargs to avoid passing them to tkinter
         if "blur_intensity" in kwargs:
             blur_intensity = kwargs.pop("blur_intensity")
+        if "padding" in kwargs:
+            padding = kwargs.pop("padding")
 
         super().__init__(parent, **kwargs)
+        
+        # Store padding for potential use in layout
+        self.padding = padding or 0
 
         self.bg_color = bg_color or GlassmorphicStyle.GLASS_BG
         self.border_color = border_color or GlassmorphicStyle.GLASS_BORDER

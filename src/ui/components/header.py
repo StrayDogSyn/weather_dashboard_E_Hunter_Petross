@@ -345,17 +345,20 @@ class ApplicationHeader(GlassmorphicFrame):
         root.quit()
         root.destroy()
 
-    def update_weather_display(self, temperature: float, condition: str, 
+    def update_weather_display(self, temperature, condition: str, 
                               unit: str = "F") -> None:
         """Update weather display in header.
         
         Args:
-            temperature: Current temperature
+            temperature: Current temperature (float or Temperature object)
             condition: Weather condition
             unit: Temperature unit
         """
         self.current_temperature = temperature
         self.current_condition = condition
+        
+        # Extract temperature value if it's a Temperature object
+        temp_value = temperature.value if hasattr(temperature, 'value') else temperature
         
         # Update weather icon
         weather_icon = self.icons.get_icon(condition, temperature)
@@ -364,8 +367,8 @@ class ApplicationHeader(GlassmorphicFrame):
             self.animation.pulse(self.weather_icon_label)
         
         # Update temperature display
-        temp_text = f"{temperature:.0f}°{unit}"
-        temp_color = self.style.get_temperature_color(temperature)
+        temp_text = f"{temp_value:.0f}°{unit}"
+        temp_color = self.style.get_temperature_color(temp_value)
         if self.temp_display_label:
             self.temp_display_label.config(text=temp_text, fg=temp_color)
             self.animation.text_glow(self.temp_display_label, temp_color)

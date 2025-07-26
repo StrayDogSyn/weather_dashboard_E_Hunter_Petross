@@ -15,30 +15,42 @@ class AnimationHelper:
 
     @staticmethod
     def fade_in(widget: tk.Widget, duration: int = 500) -> None:
-        """Fade in animation for widget.
+        """Create a fade-in effect for widget.
         
         Args:
             widget: Widget to animate
             duration: Animation duration in milliseconds
         """
-        widget.configure(fg=GlassmorphicStyle.TEXT_SECONDARY)
-        steps = 20
-        step_time = duration // steps
+        try:
+            widget.configure(fg=GlassmorphicStyle.TEXT_SECONDARY)
+            steps = 20
+            step_time = duration // steps
 
-        def animate_step(step: int) -> None:
-            if step <= steps:
-                # Calculate alpha value (simulated with color intensity)
-                alpha = step / steps
-                color_intensity = int(176 + (255 - 176) * alpha)  # From gray to white
-                color = (
-                    f"#{color_intensity:02x}{color_intensity:02x}{color_intensity:02x}"
-                )
-                widget.configure(fg=color)
-                widget.after(step_time, lambda: animate_step(step + 1))
-            else:
-                widget.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
+            def animate_step(step: int) -> None:
+                if step <= steps:
+                    # Calculate alpha value (simulated with color intensity)
+                    alpha = step / steps
+                    color_intensity = int(176 + (255 - 176) * alpha)  # From gray to white
+                    color = (
+                        f"#{color_intensity:02x}{color_intensity:02x}{color_intensity:02x}"
+                    )
+                    try:
+                        widget.configure(fg=color)
+                    except tk.TclError:
+                        # Widget doesn't support fg option, skip color animation
+                        pass
+                    widget.after(step_time, lambda: animate_step(step + 1))
+                else:
+                    try:
+                        widget.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
+                    except tk.TclError:
+                        # Widget doesn't support fg option
+                        pass
 
-        animate_step(0)
+            animate_step(0)
+        except tk.TclError:
+            # Widget doesn't support fg option, skip animation
+            pass
 
     @staticmethod
     def pulse_effect(
@@ -209,3 +221,35 @@ class AnimationHelper:
         except (tk.TclError, IndexError, TypeError):
             # Fallback for widgets that don't support font changes
             pass
+
+    @staticmethod
+    def pulse(widget: tk.Widget, duration: int = 1000) -> None:
+        """Create a pulse animation on widget (alias for pulse_effect).
+        
+        Args:
+            widget: Widget to animate
+            duration: Animation duration in milliseconds
+        """
+        AnimationHelper.pulse_effect(widget, duration=duration)
+
+    @staticmethod
+    def glow_effect(widget: tk.Widget, color: Optional[str] = None, duration: int = 2000) -> None:
+        """Create a glow effect on widget (alias for text_glow_effect).
+        
+        Args:
+            widget: Widget to animate
+            color: Glow color (defaults to accent color)
+            duration: Animation duration in milliseconds
+        """
+        AnimationHelper.text_glow_effect(widget, color, duration)
+
+    @staticmethod
+    def text_glow(widget: tk.Widget, color: Optional[str] = None, duration: int = 2000) -> None:
+        """Create a text glow effect on widget (alias for text_glow_effect).
+        
+        Args:
+            widget: Widget to animate
+            color: Glow color (defaults to accent color)
+            duration: Animation duration in milliseconds
+        """
+        AnimationHelper.text_glow_effect(widget, color, duration)

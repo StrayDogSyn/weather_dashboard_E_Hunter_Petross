@@ -310,7 +310,7 @@ class CortanaVoiceService:
         personality = self.get_personality_traits()
         
         # Base response
-        response = (f"The weather in {weather.city} is {weather.description}. "
+        response = (f"The weather in {weather.location.name} is {weather.description}. "
                    f"The temperature is {weather.temperature}°C, feeling like {weather.feels_like}°C. "
                    f"Humidity is {weather.humidity}%, and wind speed is {weather.wind_speed} m/s.")
         
@@ -346,7 +346,7 @@ class CortanaVoiceService:
         # Get first few days of forecast
         days = forecast.daily_forecasts[:3]  # First 3 days
         
-        response = f"Here's the forecast for {forecast.city}: "
+        response = f"Here's the forecast for {forecast.location.name}: "
         
         for i, day in enumerate(days):
             day_name = ["Today", "Tomorrow", "Day after tomorrow"][i] if i < 3 else f"Day {i+1}"

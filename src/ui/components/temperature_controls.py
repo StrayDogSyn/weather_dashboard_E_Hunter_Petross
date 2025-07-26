@@ -277,42 +277,59 @@ class TemperatureControls(GlassmorphicFrame):
         if self.on_unit_change:
             self.on_unit_change(new_unit)
 
-    def _convert_temperature(self, temp: float, from_unit: TemperatureUnit, 
-                           to_unit: TemperatureUnit) -> float:
+    def _convert_temperature(self, temp, from_unit: TemperatureUnit, 
+                           to_unit: TemperatureUnit):
         """Convert temperature between units.
         
         Args:
-            temp: Temperature value
+            temp: Temperature value (float or Temperature object)
             from_unit: Source unit
             to_unit: Target unit
             
         Returns:
-            Converted temperature
+            Converted temperature (same type as input)
         """
         if from_unit == to_unit:
             return temp
         
+        # Extract temperature value if it's a Temperature object
+        temp_value = temp.value if hasattr(temp, 'value') else temp
+        
         # Convert to Celsius first
         if from_unit == TemperatureUnit.FAHRENHEIT:
-            celsius = (temp - 32) * 5/9
+            celsius = (temp_value - 32) * 5/9
         elif from_unit == TemperatureUnit.KELVIN:
-            celsius = temp - 273.15
+            celsius = temp_value - 273.15
         else:  # Already Celsius
-            celsius = temp
+            celsius = temp_value
         
         # Convert from Celsius to target
         if to_unit == TemperatureUnit.FAHRENHEIT:
-            return celsius * 9/5 + 32
+            converted_value = celsius * 9/5 + 32
         elif to_unit == TemperatureUnit.KELVIN:
-            return celsius + 273.15
+            converted_value = celsius + 273.15
         else:  # Target is Celsius
-            return celsius
+            converted_value = celsius
+        
+        # Return same type as input
+        if hasattr(temp, 'value'):
+            # Create new Temperature object with converted value
+            from src.models.weather_models import Temperature, TemperatureUnit as ModelTempUnit
+            # Map UI enum to model enum
+            unit_map = {
+                TemperatureUnit.CELSIUS: ModelTempUnit.CELSIUS,
+                TemperatureUnit.FAHRENHEIT: ModelTempUnit.FAHRENHEIT,
+                TemperatureUnit.KELVIN: ModelTempUnit.KELVIN
+            }
+            return Temperature(value=converted_value, unit=unit_map[to_unit])
+        else:
+            return converted_value
 
-    def _format_temperature(self, temp: Optional[float]) -> str:
+    def _format_temperature(self, temp) -> str:
         """Format temperature for display.
         
         Args:
-            temp: Temperature value
+            temp: Temperature value (float or Temperature object)
             
         Returns:
             Formatted temperature string
@@ -320,8 +337,11 @@ class TemperatureControls(GlassmorphicFrame):
         if temp is None:
             return "--°" if self.show_symbol_var.get() else "--"
         
+        # Extract temperature value if it's a Temperature object
+        temp_value = temp.value if hasattr(temp, 'value') else temp
+        
         precision = self.precision_var.get()
-        temp_str = f"{temp:.{precision}f}"
+        temp_str = f"{temp_value:.{precision}f}"
         
         if self.show_symbol_var.get():
             temp_str += f"°{self.current_unit.value}"
@@ -333,7 +353,8 @@ class TemperatureControls(GlassmorphicFrame):
         # Main temperature
         if self.temp_display:
             temp_text = self._format_temperature(self.current_temp)
-            temp_color = self.style.get_temperature_color(self.current_temp or 0)
+            temp_value = self.current_temp.value if hasattr(self.current_temp, 'value') else self.current_temp
+            temp_color = self.style.get_temperature_color(temp_value or 0)
             self.temp_display.config(text=temp_text, fg=temp_color)
         
         # Feels like temperature
@@ -378,8 +399,9 @@ class TemperatureControls(GlassmorphicFrame):
         
         # Apply animation to main display
         if self.temp_display:
+            temp_value = temp.value if hasattr(temp, 'value') else temp
             self.animation.text_glow(self.temp_display, 
-                                   self.style.get_temperature_color(temp))
+                                   self.style.get_temperature_color(temp_value))
 
     def get_current_unit(self) -> TemperatureUnit:
         """Get current temperature unit.

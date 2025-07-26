@@ -21,12 +21,19 @@ from ...core.weather_service import WeatherService
 class MainDashboard(GlassmorphicFrame):
     """Main dashboard with tabbed interface for weather information."""
 
-    def __init__(self, parent, weather_service: Optional[WeatherService] = None, **kwargs):
+    def __init__(self, parent, weather_service: Optional[WeatherService] = None, 
+                 on_search: Optional[Callable[[str], None]] = None,
+                 on_add_favorite: Optional[Callable[[str], None]] = None,
+                 on_tab_change: Optional[Callable[[str], None]] = None,
+                 **kwargs):
         """Initialize main dashboard.
         
         Args:
             parent: Parent widget
             weather_service: Weather service instance
+            on_search: Callback for search actions
+            on_add_favorite: Callback for adding favorites
+            on_tab_change: Callback for tab changes
             **kwargs: Additional frame configuration
         """
         super().__init__(parent, **kwargs)
@@ -60,6 +67,9 @@ class MainDashboard(GlassmorphicFrame):
         # Callbacks
         self.on_weather_update: Optional[Callable[[WeatherData], None]] = None
         self.on_location_change: Optional[Callable[[str], None]] = None
+        self.on_search_callback = on_search
+        self.on_add_favorite_callback = on_add_favorite
+        self.on_tab_change_callback = on_tab_change
         
         self._setup_ui()
 
@@ -455,21 +465,24 @@ class MainDashboard(GlassmorphicFrame):
         """
         self.logger.info(f"Searching weather for: {city}")
         
-        if not self.weather_service:
+        # Call the search callback if provided
+        if self.on_search_callback:
+            self.on_search_callback(city)
+        elif not self.weather_service:
             self.logger.error("Weather service not available")
             return
-        
-        # Set loading state
-        self.set_loading_state(True)
-        
-        try:
-            # Get weather data (this would be async in a real implementation)
-            # For now, we'll create a placeholder
-            self._simulate_weather_fetch(city)
+        else:
+            # Set loading state
+            self.set_loading_state(True)
             
-        except Exception as e:
-            self.logger.error(f"Error fetching weather: {e}")
-            self.set_loading_state(False)
+            try:
+                # Get weather data (this would be async in a real implementation)
+                # For now, we'll create a placeholder
+                self._simulate_weather_fetch(city)
+                
+            except Exception as e:
+                self.logger.error(f"Error fetching weather: {e}")
+                self.set_loading_state(False)
 
     def _simulate_weather_fetch(self, city: str) -> None:
         """Simulate weather data fetching.
@@ -505,6 +518,10 @@ class MainDashboard(GlassmorphicFrame):
         """
         self.logger.info(f"Added to favorites: {city}")
         
+        # Call the add favorite callback if provided
+        if self.on_add_favorite_callback:
+            self.on_add_favorite_callback(city)
+        
         # Update favorites tab if needed
         # This would refresh the favorites display
 
@@ -517,6 +534,12 @@ class MainDashboard(GlassmorphicFrame):
         selected_tab = self.notebook.select()
         tab_text = self.notebook.tab(selected_tab, "text")
         self.logger.debug(f"Tab changed to: {tab_text}")
+        
+        # Call the tab change callback if provided
+        if self.on_tab_change_callback:
+            # Extract just the tab name without emoji
+            tab_name = tab_text.split()[-1].lower() if tab_text else ""
+            self.on_tab_change_callback(tab_name)
         
         # Apply tab change animation
         current_frame = self.notebook.nametowidget(selected_tab)
@@ -538,7 +561,7 @@ class MainDashboard(GlassmorphicFrame):
         if self.on_weather_update:
             self.on_weather_update(weather_data)
         
-        self.logger.info(f"Updated weather data for {weather_data.location.city}")
+        self.logger.info(f"Updated weather data for {weather_data.location.name}")
 
     def set_loading_state(self, loading: bool) -> None:
         """Set dashboard loading state.
@@ -566,6 +589,32 @@ class MainDashboard(GlassmorphicFrame):
         
         if self.weather_card:
             self.weather_card.clear_weather()
+    
+    def update_forecast_data(self, forecast):
+        """Update dashboard with new forecast data.
+        
+        Args:
+            forecast: Weather forecast data
+        """
+        self.logger.info("Updating forecast data in main dashboard")
+        # Store forecast data for future use
+        # This method can be expanded to update forecast-related UI components
+    
+    def on_temperature_unit_change(self, new_unit):
+        """Handle temperature unit change.
+        
+        Args:
+            new_unit: New temperature unit
+        """
+        self.logger.info(f"Temperature unit changed to: {new_unit.value}")
+        
+        # Update weather card if it exists and has weather data
+        if self.weather_card and self.current_weather:
+            # Refresh the weather card display with new unit
+            self.weather_card.update_weather(self.current_weather)
+        
+        # Update any other components that display temperature
+        # This can be expanded as more temperature-displaying components are added
 
     def get_current_tab(self) -> str:
         """Get currently selected tab name.

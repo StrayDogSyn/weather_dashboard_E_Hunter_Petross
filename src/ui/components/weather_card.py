@@ -255,23 +255,24 @@ class WeatherCard(GlassmorphicFrame):
             weather_data: Weather data to display
         """
         # Update location
-        location_text = f"{weather_data.location.city}"
+        location_text = f"{weather_data.location.name}"
         if weather_data.location.country:
             location_text += f", {weather_data.location.country}"
         self.location_label.config(text=location_text)
         
         # Update temperature with color coding
-        temp_text = f"{weather_data.current.temperature:.0f}°{weather_data.current.unit}"
-        temp_color = self.style.get_temperature_color(weather_data.current.temperature)
+        temp_value = weather_data.temperature.value if hasattr(weather_data.temperature, 'value') else weather_data.temperature
+        temp_text = f"{temp_value:.0f}°"
+        temp_color = self.style.get_temperature_color(temp_value)
         self.main_temp_label.config(text=temp_text, fg=temp_color)
         
         # Update condition
-        self.condition_label.config(text=weather_data.current.condition)
+        self.condition_label.config(text=weather_data.condition)
         
         # Update weather icon
         weather_icon = self.icons.get_icon(
-            weather_data.current.condition,
-            weather_data.current.temperature
+            weather_data.condition,
+            weather_data.temperature
         )
         self.icon_label.config(text=weather_icon)
         
@@ -289,26 +290,26 @@ class WeatherCard(GlassmorphicFrame):
         
         # Update humidity
         if 'left_0' in self.detail_labels:
-            humidity_text = f"{weather_data.current.humidity}%" if weather_data.current.humidity else "--"
+            humidity_text = f"{weather_data.humidity}%" if weather_data.humidity else "--"
             self.detail_labels['left_0']['value'].config(text=humidity_text)
         
         # Update wind
         if 'left_1' in self.detail_labels:
             wind_text = "--"
-            if weather_data.current.wind_speed:
-                wind_text = f"{weather_data.current.wind_speed} mph"
-                if weather_data.current.wind_direction:
-                    wind_text += f" {weather_data.current.wind_direction}"
+            if weather_data.wind and weather_data.wind.speed:
+                wind_text = f"{weather_data.wind.speed} mph"
+                if weather_data.wind.direction:
+                    wind_text += f" {weather_data.wind.direction_name}"
             self.detail_labels['left_1']['value'].config(text=wind_text)
         
         # Update pressure
         if 'right_0' in self.detail_labels:
-            pressure_text = f"{weather_data.current.pressure} hPa" if weather_data.current.pressure else "--"
+            pressure_text = f"{weather_data.pressure.value} hPa" if weather_data.pressure else "--"
             self.detail_labels['right_0']['value'].config(text=pressure_text)
         
         # Update visibility
         if 'right_1' in self.detail_labels:
-            visibility_text = f"{weather_data.current.visibility} mi" if weather_data.current.visibility else "--"
+            visibility_text = f"{weather_data.visibility} mi" if weather_data.visibility else "--"
             self.detail_labels['right_1']['value'].config(text=visibility_text)
 
     def _update_timestamp(self) -> None:
@@ -364,19 +365,20 @@ class WeatherCard(GlassmorphicFrame):
             return "No weather data available"
         
         weather = self.current_weather
+        temp_value = weather.temperature.value if hasattr(weather.temperature, 'value') else weather.temperature
         summary_parts = [
-            f"Current weather in {weather.location.city}:",
-            f"Temperature: {weather.current.temperature:.0f}°{weather.current.unit}",
-            f"Condition: {weather.current.condition}"
+            f"Current weather in {weather.location.name}:",
+            f"Temperature: {temp_value:.0f}°",
+            f"Condition: {weather.condition}"
         ]
         
-        if weather.current.humidity:
-            summary_parts.append(f"Humidity: {weather.current.humidity}%")
+        if weather.humidity:
+            summary_parts.append(f"Humidity: {weather.humidity}%")
         
-        if weather.current.wind_speed:
-            wind_info = f"Wind: {weather.current.wind_speed} mph"
-            if weather.current.wind_direction:
-                wind_info += f" {weather.current.wind_direction}"
+        if weather.wind and weather.wind.speed:
+            wind_info = f"Wind: {weather.wind.speed} mph"
+            if weather.wind.direction:
+                wind_info += f" {weather.wind.direction_name}"
             summary_parts.append(wind_info)
         
         return "\n".join(summary_parts)
@@ -390,22 +392,22 @@ class WeatherCard(GlassmorphicFrame):
         if not self.current_weather:
             return None
         
+        temp_value = self.current_weather.temperature.value if hasattr(self.current_weather.temperature, 'value') else self.current_weather.temperature
         return {
             'location': {
-                'city': self.current_weather.location.city,
+                'city': self.current_weather.location.name,
                 'country': self.current_weather.location.country,
                 'latitude': self.current_weather.location.latitude,
                 'longitude': self.current_weather.location.longitude
             },
             'current': {
-                'temperature': self.current_weather.current.temperature,
-                'unit': self.current_weather.current.unit,
-                'condition': self.current_weather.current.condition,
-                'humidity': self.current_weather.current.humidity,
-                'wind_speed': self.current_weather.current.wind_speed,
-                'wind_direction': self.current_weather.current.wind_direction,
-                'pressure': self.current_weather.current.pressure,
-                'visibility': self.current_weather.current.visibility
+                'temperature': temp_value,
+                'condition': self.current_weather.condition,
+                'humidity': self.current_weather.humidity,
+                'wind_speed': self.current_weather.wind.speed if self.current_weather.wind else None,
+                'wind_direction': self.current_weather.wind.direction if self.current_weather.wind else None,
+                'pressure': self.current_weather.pressure.value if self.current_weather.pressure else None,
+                'visibility': self.current_weather.visibility
             },
             'timestamp': datetime.now().isoformat()
         }

@@ -26,13 +26,19 @@ class GlassmorphicFrame(tk.Frame):
         elevated=False,
         gradient=False,
         blur_intensity=None,
+        padding=None,
         **kwargs,
     ):
-        # Remove blur_intensity from kwargs if it exists to avoid passing it to tkinter
+        # Remove custom parameters from kwargs to avoid passing them to tkinter
         if "blur_intensity" in kwargs:
             blur_intensity = kwargs.pop("blur_intensity")
+        if "padding" in kwargs:
+            padding = kwargs.pop("padding")
 
         super().__init__(parent, **kwargs)
+        
+        # Store padding for potential use in layout
+        self.padding = padding or 0
 
         self.bg_color = bg_color or GlassmorphicStyle.GLASS_BG
         self.border_color = border_color or GlassmorphicStyle.GLASS_BORDER
