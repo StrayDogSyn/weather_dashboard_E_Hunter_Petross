@@ -149,12 +149,8 @@ class WeatherPredictor:
         self.model_path = Path("data/models")
         self.model_path.mkdir(exist_ok=True)
 
-<<<<<<< HEAD
         logger = logging.getLogger(__name__)
         self._check_sklearn()
-=======
-        self.logger = logging.getLogger(__name__)
->>>>>>> origin/week15_advanced_implementations
 
     def prepare_features(self, weather_data: List[Dict[str, Any]]) -> pd.DataFrame:
         """Prepare features for model training from weather data.

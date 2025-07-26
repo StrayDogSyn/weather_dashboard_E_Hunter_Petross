@@ -210,6 +210,56 @@ class BootstrapFrame(ttk_bs.Frame):
         super().__init__(parent, **kwargs)
 
 
+class ModernEntry(tk.Entry):
+    """Modern styled entry with glassmorphic design and placeholder support."""
+
+    def __init__(self, parent, placeholder="", **kwargs):
+        self.placeholder = placeholder
+        self.placeholder_color = GlassmorphicStyle.TEXT_SECONDARY
+        self.normal_color = GlassmorphicStyle.TEXT_PRIMARY
+        self.has_placeholder = True
+
+        super().__init__(
+            parent,
+            bg=GlassmorphicStyle.GLASS_BG,
+            fg=self.placeholder_color,
+            font=("Segoe UI", 10),
+            relief="flat",
+            borderwidth=0,
+            highlightbackground=GlassmorphicStyle.GLASS_BORDER,
+            highlightcolor=GlassmorphicStyle.ACCENT,
+            highlightthickness=2,
+            insertbackground=GlassmorphicStyle.TEXT_PRIMARY,
+            **kwargs
+        )
+
+        if self.placeholder:
+            self.insert(0, self.placeholder)
+            self.bind("<FocusIn>", self._on_focus_in)
+            self.bind("<FocusOut>", self._on_focus_out)
+
+    def _on_focus_in(self, event):
+        """Handle focus in event to clear placeholder."""
+        if self.has_placeholder and self.get() == self.placeholder:
+            self.delete(0, tk.END)
+            self.configure(fg=self.normal_color)
+            self.has_placeholder = False
+
+    def _on_focus_out(self, event):
+        """Handle focus out event to restore placeholder if empty."""
+        if not self.get():
+            self.insert(0, self.placeholder)
+            self.configure(fg=self.placeholder_color)
+            self.has_placeholder = True
+
+    def get(self):
+        """Override get to return empty string if placeholder is shown."""
+        value = super().get()
+        if self.has_placeholder and value == self.placeholder:
+            return ""
+        return value
+
+
 class BootstrapEntry(ttk_bs.Entry):
     """Modern Bootstrap-style entry using ttkbootstrap."""
 

@@ -1,25 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)",
-      "Bash(rm:*)",
-      "Bash(ls:*)",
-      "Bash(sed:*)",
-      "Bash(find:*)",
-      "Bash(flake8:*)",
-<<<<<<< HEAD
-      "Bash(git pull:*)",
-      "Bash(git checkout:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git merge:*)",
-      "Bash(git fetch:*)"
-=======
-      "Bash(git merge:*)",
-      "Bash(git rebase:*)",
-      "Bash(git checkout:*)",
-      "Bash(git stash:*)"
->>>>>>> origin/week15_advanced_implementations
+      "Bash(dir:*)"
     ],
     "deny": []
   }
