@@ -35,6 +35,7 @@ from src.services.sound_service import (
     play_sound,
     play_weather_sound,
 )
+from .components import ModernEntry
 
 # Note: WeatherDashboard import will be added after class definition to avoid circular import
 
@@ -1691,7 +1692,7 @@ class WeatherDashboardGUI(IUserInterface):
         self.process_command_btn = ModernButton(
             command_input_frame,
             text="🎤 Process",
-            command=self.process_voice_command_gui,
+            command=lambda: self.process_voice_command_gui(),
         )
         self.process_command_btn.pack(side=tk.RIGHT)
 
@@ -1715,7 +1716,7 @@ class WeatherDashboardGUI(IUserInterface):
             config_content,
             text="🔄 Reload Config",
             style="secondary",
-            command=self.reload_voice_config_gui,
+            command=lambda: self.reload_voice_config_gui(),
         )
         self.config_reload_btn.pack(side=tk.LEFT, padx=(0, 10))
 
@@ -1723,7 +1724,7 @@ class WeatherDashboardGUI(IUserInterface):
             config_content,
             text="❓ Help",
             style="secondary",
-            command=self.show_voice_help_gui,
+            command=lambda: self.show_voice_help_gui(),
         )
         self.voice_help_btn.pack(side=tk.LEFT)
 
@@ -1731,8 +1732,11 @@ class WeatherDashboardGUI(IUserInterface):
         self.voice_content = ModernScrollableFrame(voice_frame)
         self.voice_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
 
-        # Initialize voice status
-        self.update_voice_status()
+        # Initialize voice status (will be updated after callbacks are set)
+        self.voice_status_label.configure(
+            text="Voice Assistant: Initializing...",
+            fg=GlassmorphicStyle.TEXT_SECONDARY
+        )
 
     def create_status_bar(self):
         """Create status bar."""

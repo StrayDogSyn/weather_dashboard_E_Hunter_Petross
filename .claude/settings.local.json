@@ -1,18 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)",
-      "Bash(rm:*)",
-      "Bash(ls:*)",
-      "Bash(sed:*)",
-      "Bash(find:*)",
-      "Bash(flake8:*)",
-      "Bash(git pull:*)",
-      "Bash(git checkout:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git merge:*)",
-      "Bash(git fetch:*)"
+      "Bash(dir:*)"
     ],
     "deny": []
   }
