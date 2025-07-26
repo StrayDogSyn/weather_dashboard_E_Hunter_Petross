@@ -29,7 +29,7 @@ class TeamDataService:
         self.team_data_cache: Optional[pd.DataFrame] = None
         self.cities_analysis_cache: Optional[Dict[str, Any]] = None
         self.team_summary_cache: Optional[Dict[str, Any]] = None
-        
+
         # GitHub repository URLs for team data
         self.github_repo_base = "https://raw.githubusercontent.com/StrayDogSyn/New_Team_Dashboard/main/exports"
         self.csv_filename = "team_weather_data_20250717_204218.csv"
@@ -38,33 +38,33 @@ class TeamDataService:
     def load_team_data(self) -> bool:
         """
         Load team weather data from GitHub repository exports.
-        
+
         Returns:
             True if data was loaded successfully, False otherwise
         """
         try:
             # Create exports directory if it doesn't exist
             os.makedirs(self.exports_dir, exist_ok=True)
-            
+
             # Download and load CSV data from GitHub
             csv_url = f"{self.github_repo_base}/{self.csv_filename}"
             csv_local_path = os.path.join(self.exports_dir, self.csv_filename)
-            
+
             self.logger.info(f"Downloading team data from: {csv_url}")
-            
+
             try:
                 urllib.request.urlretrieve(csv_url, csv_local_path)
                 self.logger.info(f"Successfully downloaded CSV to: {csv_local_path}")
-                
+
                 # Load the CSV data
                 self.team_data_cache = pd.read_csv(csv_local_path)
-                
+
                 # Convert timestamp column to datetime with flexible parsing
                 if 'timestamp' in self.team_data_cache.columns:
                     try:
                         # Try multiple timestamp formats
                         self.team_data_cache['timestamp'] = pd.to_datetime(
-                            self.team_data_cache['timestamp'], 
+                            self.team_data_cache['timestamp'],
                             format='mixed',
                             errors='coerce'
                         )
@@ -72,7 +72,7 @@ class TeamDataService:
                         self.logger.warning(f"Could not parse timestamps: {e}")
                         # Create a default timestamp for all entries
                         self.team_data_cache['timestamp'] = pd.to_datetime(datetime.now())
-                    
+
             except urllib.error.URLError as e:
                 self.logger.error(f"Failed to download CSV from GitHub: {e}")
                 # Try to load local file if download fails
@@ -88,16 +88,16 @@ class TeamDataService:
             # Download and load JSON analysis data from GitHub
             json_url = f"{self.github_repo_base}/{self.json_filename}"
             json_local_path = os.path.join(self.exports_dir, self.json_filename)
-            
+
             try:
                 urllib.request.urlretrieve(json_url, json_local_path)
                 self.logger.info(f"Successfully downloaded JSON to: {json_local_path}")
-                
+
                 with open(json_local_path, 'r') as f:
                     analysis_data = json.load(f)
                     self.cities_analysis_cache = analysis_data.get('cities_analysis', {})
                     self.team_summary_cache = analysis_data.get('team_summary', {})
-                    
+
             except urllib.error.URLError as e:
                 self.logger.error(f"Failed to download JSON from GitHub: {e}")
                 # Try to load local JSON file if download fails
@@ -105,7 +105,7 @@ class TeamDataService:
                 if local_json_files:
                     latest_json = max(local_json_files, key=os.path.getctime)
                     self.logger.info(f"Using local JSON file: {latest_json}")
-                    
+
                     with open(latest_json, 'r') as f:
                         analysis_data = json.load(f)
                         self.cities_analysis_cache = analysis_data.get('cities_analysis', {})
@@ -122,10 +122,10 @@ class TeamDataService:
     def get_city_weather_from_team_data(self, city_name: str) -> Optional[CurrentWeather]:
         """
         Get weather data for a city from team data instead of API.
-        
+
         Args:
             city_name: Name of the city to get weather for
-            
+
         Returns:
             CurrentWeather object or None if city not found
         """
@@ -137,7 +137,7 @@ class TeamDataService:
             # Ensure team_data_cache is not None
             if self.team_data_cache is None:
                 return None
-                
+
             # Search for city in team data (case-insensitive)
             city_data = self.team_data_cache[
                 self.team_data_cache['city'].str.lower() == city_name.lower()
@@ -210,10 +210,10 @@ class TeamDataService:
     def _map_condition_string(self, condition_str: str) -> WeatherCondition:
         """
         Map condition string to WeatherCondition enum.
-        
+
         Args:
             condition_str: Weather condition as string
-            
+
         Returns:
             Corresponding WeatherCondition enum value
         """
@@ -241,7 +241,7 @@ class TeamDataService:
     def get_available_cities(self) -> List[str]:
         """
         Get list of cities available in team data.
-        
+
         Returns:
             List of city names
         """
@@ -260,7 +260,7 @@ class TeamDataService:
     def get_team_summary(self) -> Dict[str, Any]:
         """
         Get team weather data summary.
-        
+
         Returns:
             Dictionary containing team summary data
         """
@@ -272,7 +272,7 @@ class TeamDataService:
     def get_cities_analysis(self) -> Dict[str, Any]:
         """
         Get cities analysis data.
-        
+
         Returns:
             Dictionary containing cities analysis data
         """
@@ -284,7 +284,7 @@ class TeamDataService:
     def refresh_team_data(self) -> bool:
         """
         Force refresh team data from GitHub repository.
-        
+
         Returns:
             True if data was refreshed successfully
         """
@@ -292,14 +292,14 @@ class TeamDataService:
         self.team_data_cache = None
         self.cities_analysis_cache = None
         self.team_summary_cache = None
-        
+
         # Reload data from GitHub
         return self.load_team_data()
 
     def get_github_repo_info(self) -> Dict[str, str]:
         """
         Get information about the GitHub repository data source.
-        
+
         Returns:
             Dictionary with repository information
         """
@@ -315,7 +315,7 @@ class TeamDataService:
     def create_sample_team_data(self) -> bool:
         """
         Create sample team data files for demonstration based on GitHub repository data.
-        
+
         Returns:
             True if sample data was created successfully
         """
@@ -324,10 +324,10 @@ class TeamDataService:
             if self.load_team_data():
                 self.logger.info("Team data already loaded from GitHub repository")
                 return True
-            
+
             # If GitHub data is not available, create sample data based on repository cities
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
+
             # Sample CSV data based on cities available in the GitHub repository
             sample_data = [
                 {
@@ -448,10 +448,10 @@ class TeamDataService:
             df = pd.DataFrame(sample_data)
             csv_filename = f'team_weather_data_{timestamp}.csv'
             csv_path = os.path.join(self.exports_dir, csv_filename)
-            
+
             # Ensure exports directory exists
             os.makedirs(self.exports_dir, exist_ok=True)
-            
+
             df.to_csv(csv_path, index=False)
             self.logger.info(f"Created sample CSV: {csv_path}")
 

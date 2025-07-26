@@ -7,7 +7,7 @@ from .activity_service import ActivitySuggestionService
 
 __all__ = [
     "WeatherService",
-    "EnhancedCityComparisonService", 
+    "EnhancedCityComparisonService",
     "WeatherJournalService",
     "ActivitySuggestionService"
 ]

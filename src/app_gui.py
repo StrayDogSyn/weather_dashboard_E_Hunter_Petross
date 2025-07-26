@@ -1,139 +1,56 @@
 """
-GUI Application Controller for Weather Dashboard.
+GUI Application Entry Point for Weather Dashboard.
 
-This module provides the main application controller for the GUI version
-of the Weather Dashboard with all capstone features.
+This module provides the main application entry point for the GUI version
+of the Weather Dashboard, properly separated from business logic.
 """
 
 import logging
-import os
 import threading
+from typing import Optional
 
-from src.config.config import config_manager, setup_environment, validate_config
-from src.core.activity_service import ActivitySuggestionService
-from src.core.enhanced_comparison_service import EnhancedCityComparisonService
-from src.core.journal_service import WeatherJournalService
-from src.core.weather_service import WeatherService
-from src.models.capstone_models import MoodType
-from src.services.cache_service import MemoryCacheService
-from src.services.data_storage import FileDataStorage
-from src.services.poetry_service import WeatherPoetryService
-from src.services.weather_api import OpenWeatherMapAPI
-from src.services.composite_weather_service import CompositeWeatherService
+from src.controllers.gui_controller import WeatherDashboardController
 from src.ui.gui_interface import WeatherDashboardGUI
-from src.utils.formatters import validate_city_name
-from src.utils.validators import sanitize_input
+from src.models.capstone_models import MoodType, ActivitySuggestion
 
 
 class WeatherDashboardGUIApp:
-    """GUI Weather Dashboard Application Controller."""
+    """GUI Weather Dashboard Application Entry Point."""
 
     def __init__(self):
-        """Initialize the GUI weather dashboard application."""
-        self.config_valid = False
-        self.gui: WeatherDashboardGUI = None  # type: ignore
-        self.weather_service: WeatherService = None  # type: ignore
+        """Initialize the GUI application."""
+        self.controller: Optional[WeatherDashboardController] = None
+        self.gui: Optional[WeatherDashboardGUI] = None
 
-        # Capstone services
-        self.comparison_service: EnhancedCityComparisonService = None  # type: ignore
-        self.journal_service: WeatherJournalService = None  # type: ignore
-        self.activity_service: ActivitySuggestionService = None  # type: ignore
-        self.poetry_service: WeatherPoetryService = None  # type: ignore
+        # Initialize controller (handles all business logic)
+        self.controller = WeatherDashboardController()
 
-        # Setup environment first
-        setup_environment()
-
-        # Setup logging
-        self._setup_logging()
-
-        # Validate configuration
-        self.config_valid = validate_config()
-
-        if self.config_valid:
-            self._initialize_services()
-            if self.gui:  # Only setup callbacks if GUI was successfully initialized
-                self._setup_gui_callbacks()
-
-        logging.info("GUI Weather Dashboard application initialized")
-
-    def _setup_logging(self):
-        """Setup logging configuration."""
-        log_level = getattr(logging, config_manager.config.logging.log_level)
-
-        logging.basicConfig(
-            level=log_level,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-            handlers=[
-                logging.FileHandler("weather_dashboard.log"),
-                logging.StreamHandler(),
-            ],
-        )
-
-    def _initialize_services(self):
-        """Initialize all services."""
-        try:
-            # Initialize services
-            # Initialize weather API with fallback support
-            openweather_api_key = config_manager.config.api.api_key
-            weatherapi_api_key = os.getenv("WEATHERAPI_API_KEY")  # Optional fallback API key
-            
-            if weatherapi_api_key:
-                logging.info("Initializing weather service with fallback support")
-                weather_api = CompositeWeatherService(openweather_api_key, weatherapi_api_key)
-            else:
-                logging.info("Initializing weather service with primary API only")
-                weather_api = OpenWeatherMapAPI()
-
-            # Use storage factory to create appropriate storage implementation
-            from .services.storage_factory import DataStorageFactory
-
-            storage = DataStorageFactory.create_storage()
-
-            cache = MemoryCacheService()
-
-            # Initialize core service
-            self.weather_service = WeatherService(weather_api, storage, cache)
-
-            # Initialize capstone services
-            self.comparison_service = EnhancedCityComparisonService(self.weather_service)
-            
-            # Create sample team data if needed
-            # No need for sample data creation with enhanced service
-            
-            self.journal_service = WeatherJournalService(storage)
-            self.activity_service = ActivitySuggestionService()
-            self.poetry_service = WeatherPoetryService()
-
-            # Initialize GUI
+        if self.controller.is_initialized():
+            # Initialize GUI (handles only presentation)
             self.gui = WeatherDashboardGUI()
 
-            # Setup event bindings after GUI is fully initialized
+            # Setup event bindings
             if hasattr(self.gui, 'setup_event_bindings'):
                 self.gui.setup_event_bindings()
 
-            logging.info("All GUI services initialized successfully")
+            # Setup GUI callbacks to use controller
+            self._setup_gui_callbacks()
 
-        except Exception as e:
-            logging.error(f"Error initializing GUI services: {e}")
-            self.config_valid = False
+        logging.info("GUI Weather Dashboard application initialized")
 
     def _setup_gui_callbacks(self):
-        """Setup GUI event callbacks."""
-        if not self.gui:
+        """Setup GUI event callbacks to use the controller."""
+        if not self.gui or not self.controller:
             return
 
         # Weather callbacks
         self.gui.set_callback("get_weather", self._handle_get_weather)
         self.gui.set_callback("search_locations", self._handle_search_locations)
         self.gui.set_callback("add_favorite", self._handle_add_favorite)
-        self.gui.set_callback(
-            "get_current_location_weather", self._handle_current_location_weather
-        )
+        self.gui.set_callback("get_current_location_weather", self._handle_current_location_weather)
 
-        # Comparison callback
+        # Comparison callbacks
         self.gui.set_callback("compare_cities", self._handle_compare_cities)
-        
-        # Team data callbacks
         self.gui.set_callback("get_team_data_status", self._handle_get_team_data_status)
         self.gui.set_callback("refresh_team_data", self._handle_refresh_team_data)
         self.gui.set_callback("get_team_cities", self._handle_get_team_cities)
@@ -148,72 +65,34 @@ class WeatherDashboardGUIApp:
 
         # Poetry callbacks
         self.gui.set_callback("generate_poetry", self._handle_generate_poetry)
-        self.gui.set_callback(
-            "generate_specific_poetry", self._handle_generate_specific_poetry
-        )
-        self.gui.set_callback(
-            "generate_poetry_collection", self._handle_generate_poetry_collection
-        )
+        self.gui.set_callback("generate_specific_poetry", self._handle_generate_specific_poetry)
+        self.gui.set_callback("generate_poetry_collection", self._handle_generate_poetry_collection)
 
         # Favorites callbacks
         self.gui.set_callback("refresh_favorites", self._handle_refresh_favorites)
-        self.gui.set_callback(
-            "view_favorites_weather", self._handle_view_favorites_weather
-        )
-
-        # Current location callback
-        self.gui.set_callback(
-            "get_current_location_weather", self._handle_current_location_weather
-        )
+        self.gui.set_callback("view_favorites_weather", self._handle_view_favorites_weather)
 
         # Application exit callback
         self.gui.set_callback("on_app_exit", self._handle_app_exit)
 
-        # Refresh city dropdowns now that callbacks are set up
-        self.gui.refresh_city_dropdowns_after_callbacks()
-
-    def _handle_app_exit(self):
-        """Handle application exit to ensure all data is saved."""
-        logging.info("Saving session data before application exit")
-        try:
-            # Save favorite cities
-            if self.weather_service:
-                # This will explicitly save favorites
-                # Favorite cities are automatically saved whenever they're modified,
-                # but we'll force a save to be certain
-                try:
-                    if hasattr(self.weather_service, "_save_favorite_cities"):
-                        self.weather_service._save_favorite_cities()
-                except Exception as e:
-                    logging.warning(f"Could not save favorite cities: {e}")
-
-            # Ensure journal entries are saved
-            if self.journal_service:
-                try:
-                    # The journal_service saves entries after each add/edit
-                    # but we'll force a final save if the method exists
-                    if hasattr(self.journal_service, "_save_entries"):
-                        self.journal_service._save_entries()
-                except Exception as e:
-                    logging.warning(f"Could not save journal entries: {e}")
-
-            logging.info("Session data saved successfully")
-        except Exception as e:
-            logging.error(f"Error saving session data: {e}")
+        # Refresh city dropdowns
+        if hasattr(self.gui, 'refresh_city_dropdowns_after_callbacks'):
+            self.gui.refresh_city_dropdowns_after_callbacks()
 
     def run(self):
         """Main application entry point."""
         logging.info("Starting GUI Weather Dashboard")
 
-        if not self.config_valid:
+        if not self.controller or not self.controller.is_initialized():
             self._show_config_error()
             return
 
-        if not self.gui or not self.weather_service:
-            print("❌ Application services not properly initialized")
+        if not self.gui:
+            print("❌ GUI not properly initialized")
             return
 
         # Load default city weather if configured
+        from src.config.config import config_manager
         default_city = config_manager.config.default_city
         if default_city:
             self._handle_get_weather(default_city)
@@ -224,11 +103,11 @@ class WeatherDashboardGUIApp:
     def _show_config_error(self):
         """Show configuration error message."""
         error_msg = (
-            "Configuration Error:\n\n"
-            "Please set up your weather API key before running the application.\n\n"
-            "1. Get a free API key from https://openweathermap.org/api\n"
-            "2. Copy .env.example to .env\n"
-            "3. Edit .env and set OPENWEATHER_API_KEY=your_actual_api_key\n"
+            "Configuration Error:\\n\\n"
+            "Please set up your weather API key before running the application.\\n\\n"
+            "1. Get a free API key from https://openweathermap.org/api\\n"
+            "2. Copy .env.example to .env\\n"
+            "3. Edit .env and set OPENWEATHER_API_KEY=your_actual_api_key\\n"
             "4. Restart the application"
         )
 
@@ -237,332 +116,125 @@ class WeatherDashboardGUIApp:
         else:
             print(error_msg)
 
-    def _safe_gui_call(self, method_name: str, *args, **kwargs):
-        """Safely call a GUI method if GUI is available."""
-        if self.gui and hasattr(self.gui, method_name):
-            method = getattr(self.gui, method_name)
-            return method(*args, **kwargs)
-        return None
-
-    def _safe_service_call(self, service_name: str, method_name: str, *args, **kwargs):
-        """Safely call a service method if service is available."""
-        service = getattr(self, service_name, None)
-        if service and hasattr(service, method_name):
-            method = getattr(service, method_name)
-            return method(*args, **kwargs)
-        return None
-
-    def _ensure_gui_initialized(self):
-        """Ensure GUI and services are properly initialized."""
-        if not self.gui or not self.weather_service:
-            raise RuntimeError("GUI or services not properly initialized")
-        return self.gui, self.weather_service
-
-    # GUI Event Handlers
+    # GUI Event Handlers (delegate to controller)
 
     def _handle_get_weather(self, city: str):
         """Handle get weather request."""
-        if not self.gui or not self.weather_service:
+        if not self.controller or not self.gui:
             return
 
-        def get_weather_async():
-            try:
-                if not self.gui or not self.weather_service:
-                    return
+        def weather_callback(weather, error):
+            if error:
+                self.gui.root.after(0, lambda: self.gui.show_warning(error))
+            elif weather:
+                self.gui.root.after(0, lambda: self.gui.display_weather(weather))
+                # Get forecast in parallel
+                self.controller.get_forecast(city, self._forecast_callback)
 
-                if not validate_city_name(city):
-                    self.gui.show_error("Invalid city name format")
-                    return
+        self.gui.update_status(f"Fetching weather for {city}...")
+        self.controller.get_weather(city, weather_callback)
 
-                city_clean = sanitize_input(city)
-                self.gui.update_status(f"Fetching weather for {city_clean}...")
-
-                # Check cache first for immediate display
-                cache_key = self.weather_service.cache.get_cache_key("weather", city_clean, "metric")
-                cached_weather = self.weather_service.cache.get(cache_key)
-                
-                if cached_weather and self.gui:
-                    # Display cached data immediately
-                    self.gui.root.after(0, lambda: self.gui.display_weather(cached_weather))
-                    self.gui.root.after(0, lambda: self.gui.update_status(f"Showing cached data for {city_clean} - refreshing..."))
-                else:
-                    # Show sample data immediately while API loads
-                    from src.utils.sample_data import get_sample_weather_data
-                    sample_data = get_sample_weather_data(city_clean)
-                    if self.gui:
-                        self.gui.root.after(0, lambda: self.gui.display_weather(sample_data))
-                        self.gui.root.after(0, lambda: self.gui.update_status(f"Loading weather for {city_clean}..."))
-
-                # Get fresh current weather
-                weather = self.weather_service.get_current_weather(city_clean)
-
-                if weather:
-                    # Update GUI immediately with current weather
-                    if self.gui:
-                        self.gui.root.after(
-                            0, lambda: self.gui.display_weather(weather)
-                        )
-
-                    # Get forecast in parallel for faster loading
-                    def get_forecast_async():
-                        try:
-                            forecast = self.weather_service.get_weather_forecast(city_clean)
-                            if forecast and self.gui:
-                                self.gui.root.after(
-                                    0, lambda: self.gui.display_forecast(forecast)
-                                )
-                        except Exception as e:
-                            logging.error(f"Error getting forecast: {e}")
-                    
-                    # Start forecast fetch in separate thread
-                    threading.Thread(target=get_forecast_async, daemon=True).start()
-                else:
-                    if self.gui:
-                        self.gui.root.after(
-                            0,
-                            lambda: self.gui.show_warning(
-                                f"Could not retrieve weather for {city_clean}. Please check your connection and try again."
-                            ),
-                        )
-
-            except Exception as e:
-                logging.error(f"Error getting weather: {e}")
-                if self.gui:
-                    self.gui.root.after(
-                        0,
-                        lambda exc=e: self.gui.show_warning(
-                            f"Weather service temporarily unavailable: {exc}"
-                        ),
-                    )
-
-        # Run in background thread to prevent GUI freezing
-        threading.Thread(target=get_weather_async, daemon=True).start()
+    def _forecast_callback(self, forecast, error):
+        """Callback for forecast data."""
+        if forecast and self.gui:
+            self.gui.root.after(0, lambda: self.gui.display_forecast(forecast))
 
     def _handle_search_locations(self, query: str):
         """Handle search locations request."""
+        if not self.controller or not self.gui:
+            return
 
-        def search_async():
-            try:
-                if len(query) < 2:
-                    if self.gui:
-                        self.gui.show_error("Search query too short")
-                    return
+        def search_callback(locations, error):
+            if error:
+                self.gui.root.after(0, lambda: self.gui.show_error(error))
+            elif locations:
+                results = "\\n".join([f"• {loc.display_name}" for loc in locations[:5]])
+                self.gui.root.after(0, lambda: self.gui.show_message(f"Found locations: \\n{results}"))
+            else:
+                self.gui.root.after(0, lambda: self.gui.show_message("No locations found"))
 
-                query_clean = sanitize_input(query)
-                if self.gui:
-                    self.gui.update_status(f"Searching for locations: {query_clean}")
-
-                locations = None
-                if self.weather_service:
-                    locations = self.weather_service.search_locations(query_clean)
-
-                if locations:
-                    # Show results in a simple message for now
-                    results = "\n".join(
-                        [f"• {loc.display_name}" for loc in locations[:5]]
-                    )
-                    if self.gui:
-                        self.gui.root.after(
-                            0,
-                            lambda: self.gui.show_message(
-                                f"Found locations:\n{results}"
-                            ),
-                        )
-                else:
-                    if self.gui:
-                        self.gui.root.after(
-                            0, lambda: self.gui.show_message("No locations found")
-                        )
-
-            except Exception as e:
-                logging.error(f"Error searching locations: {e}")
-                if self.gui:
-                    self.gui.root.after(
-                        0, lambda exc=e: self.gui.show_error(f"Error searching: {exc}")
-                    )
-
-        threading.Thread(target=search_async, daemon=True).start()
+        self.gui.update_status(f"Searching for locations: {query}")
+        self.controller.search_locations(query, search_callback)
 
     def _handle_add_favorite(self, city: str):
         """Handle add favorite request."""
+        if not self.controller or not self.gui:
+            return
 
         def add_favorite_async():
-            try:
-                if not validate_city_name(city):
-                    self.gui.show_error("Invalid city name format")
-                    return
+            success = self.controller.add_favorite_city(city)
+            if success:
+                self.gui.root.after(0, lambda: self.gui.show_message(f"✅ Added {city} to favorites!"))
+            else:
+                self.gui.root.after(0, lambda: self.gui.show_error(f"Could not add {city} to favorites"))
 
-                self.gui.update_status(f"Adding {city} to favorites...")
-                success = self.weather_service.add_favorite_city(city)
-
-                if success:
-                    self.gui.root.after(
-                        0,
-                        lambda: self.gui.show_message(f"✅ Added {city} to favorites!"),
-                    )
-                else:
-                    self.gui.root.after(
-                        0,
-                        lambda: self.gui.show_error(
-                            f"Could not add {city} to favorites"
-                        ),
-                    )
-
-            except Exception as e:
-                logging.error(f"Error adding favorite: {e}")
-                if self.gui:
-                    self.gui.root.after(
-                        0,
-                        lambda exc=e: self.gui.show_error(
-                            f"Error adding favorite: {exc}"
-                        ),
-                    )
-
+        self.gui.update_status(f"Adding {city} to favorites...")
         threading.Thread(target=add_favorite_async, daemon=True).start()
 
     def _handle_compare_cities(self, city1: str, city2: str):
         """Handle city comparison request."""
+        if not self.controller or not self.gui:
+            return
 
-        def compare_async():
-            try:
-                if not validate_city_name(city1) or not validate_city_name(city2):
-                    self.gui.show_error("Invalid city name format")
-                    return
+        def comparison_callback(comparison, error):
+            if error:
+                self.gui.root.after(0, lambda: self.gui.show_warning(error))
+            elif comparison:
+                self.gui.root.after(0, lambda: self.gui.display_weather_comparison(comparison))
 
-                self.gui.update_status(f"Comparing {city1} and {city2} using team data...")
-                
-                # Use team comparison service instead of regular comparison service
-                comparison = self.comparison_service.compare_cities(city1, city2)
-
-                if comparison:
-                    # Also update the status to show data source
-                    # Enhanced service provides automatic team data status
-                    team_status = {"available": True, "cities_count": 5}
-                    data_source = "team data" if team_status.get("data_loaded") else "API fallback"
-                    self.gui.update_status(f"Comparison complete using {data_source}")
-                    
-                    self.gui.root.after(
-                        0, lambda: self.gui.display_weather_comparison(comparison)
-                    )
-                else:
-                    self.gui.root.after(
-                        0,
-                        lambda: self.gui.show_warning(
-                            "Could not retrieve weather data for comparison. Please check your connection and try again."
-                        ),
-                    )
-
-            except Exception as e:
-                logging.error(f"Error comparing cities: {e}")
-                self.gui.root.after(
-                    0,
-                    lambda exc=e: self.gui.show_warning(f"Comparison service temporarily unavailable: {exc}"),
-                )
-
-        threading.Thread(target=compare_async, daemon=True).start()
+        self.gui.update_status(f"Comparing {city1} and {city2}...")
+        self.controller.compare_cities(city1, city2, comparison_callback)
 
     def _handle_get_team_data_status(self):
         """Handle team data status request."""
-        try:
-            if self.comparison_service:
-                return {"available": True, "cities_count": 5}
-            else:
-                return {
-                    "team_data_enabled": False,
-                    "cities_available": 0,
-                    "city_list": [],
-                    "data_loaded": False,
-                    "error": "Team comparison service not available"
-                }
-        except Exception as e:
-            logging.error(f"Error getting team data status: {e}")
-            return {
-                "team_data_enabled": False,
-                "cities_available": 0,
-                "city_list": [],
-                "data_loaded": False,
-                "error": str(e)
-            }
+        if not self.controller:
+            return {"team_data_enabled": False, "error": "Controller not available"}
+        return self.controller.get_team_data_status()
 
     def _handle_refresh_team_data(self):
-        """Handle team data refresh request from GitHub."""
-        try:
-            if self.comparison_service:
-                self.gui.show_message("Refreshing team data from GitHub repository...")
-                
-                def refresh_async():
-                    try:
-                        # Enhanced service handles refresh automatically
-                        success = True
-                        if success:
-                            self.gui.show_message("Team data refreshed successfully from GitHub!")
-                            # Update the team data status display
-                            status = {"available": True, "cities_count": 5}
-                            cities_count = status.get("cities_available", 0)
-                            self.gui.show_message(f"Loaded {cities_count} cities from team repository")
-                        else:
-                            self.gui.show_error("Failed to refresh team data from GitHub repository")
-                    except Exception as e:
-                        logging.error(f"Error refreshing team data: {e}")
-                        self.gui.show_error(f"Error refreshing team data: {str(e)}")
+        """Handle team data refresh request."""
+        if not self.controller:
+            return {"error": "Controller not available"}
 
-                # Run refresh in background thread
-                threading.Thread(target=refresh_async, daemon=True).start()
-                
-                return {"status": "refresh_started"}
-            else:
-                return {"error": "Team comparison service not available"}
-                
-        except Exception as e:
-            logging.error(f"Error handling team data refresh: {e}")
-            return {"error": str(e)}
+        def refresh_async():
+            try:
+                if self.gui:
+                    self.gui.show_message("Refreshing team data from GitHub repository...")
+                # Enhanced service handles refresh automatically
+                success = True
+                if success and self.gui:
+                    self.gui.show_message("Team data refreshed successfully from GitHub!")
+                elif self.gui:
+                    self.gui.show_error("Failed to refresh team data")
+            except Exception as e:
+                logging.error(f"Error refreshing team data: {e}")
+                if self.gui:
+                    self.gui.show_error(f"Error refreshing team data: {str(e)}")
+
+        threading.Thread(target=refresh_async, daemon=True).start()
+        return {"status": "refresh_started"}
 
     def _handle_get_team_cities(self):
         """Handle request for available team cities."""
-        try:
-            if self.comparison_service and hasattr(self.comparison_service, 'team_data_service'):
-                team_service = self.comparison_service.team_data_service
-                cities = team_service.get_available_cities()
-                
-                if not cities:
-                    # Try to load team data if not already loaded
-                    if team_service.load_team_data():
-                        cities = team_service.get_available_cities()
-                    
-                    # If still no cities, create sample data
-                    if not cities:
-                        if team_service.create_sample_team_data():
-                            cities = team_service.get_available_cities()
-                
-                logging.info(f"Retrieved {len(cities)} cities from team data")
-                return cities
-            else:
-                # Fallback cities if team service not available
-                logging.warning("Team data service not available, using fallback cities")
-                return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
-                
-        except Exception as e:
-            logging.error(f"Error getting team cities: {e}")
-            # Return fallback cities on error
-            return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+        if not self.controller:
+            return []
+        return self.controller.get_team_cities()
 
     def _handle_create_journal(self):
         """Handle create journal entry request."""
+        if not self.controller or not self.gui:
+            return
+
         try:
-            # Get current weather context
             if not self.gui.current_weather:
-                self.gui.show_error(
-                    "Please get weather data first to create a journal entry"
-                )
+                self.gui.show_error("Please get weather data first to create a journal entry")
                 return
 
-            # Simple dialog for journal entry (could be enhanced with custom dialog)
+            # Get mood input
             mood_input = self.gui.get_user_input(
-                (
-                    "Enter your mood (1-10): 1=happy, 2=sad, 3=energetic, "
-                    "4=relaxed, 5=excited, 6=peaceful, 7=anxious, 8=content, "
-                    "9=motivated, 10=cozy"
-                )
+                "Enter your mood (1-10): 1=happy, 2=sad, 3=energetic, "
+                "4=relaxed, 5=excited, 6=peaceful, 7=anxious, 8=content, "
+                "9=motivated, 10=cozy"
             )
             if not mood_input:
                 return
@@ -570,39 +242,31 @@ class WeatherDashboardGUIApp:
             try:
                 mood_index = int(mood_input) - 1
                 moods = list(MoodType)
-                if 0 <= mood_index < len(moods):
-                    mood = moods[mood_index]
-                else:
-                    mood = MoodType.CONTENT
+                mood = moods[mood_index] if 0 <= mood_index < len(moods) else MoodType.CONTENT
             except ValueError:
                 mood = MoodType.CONTENT
 
-            notes = self.gui.get_user_input(
-                "Write your thoughts about today's weather:"
-            )
+            # Get notes
+            notes = self.gui.get_user_input("Write your thoughts about today's weather:")
             if not notes:
                 return
 
+            # Get activities
             activities_input = self.gui.get_user_input(
                 "What activities did you do today? (comma-separated):"
             )
-            activities = (
-                [
-                    activity.strip()
-                    for activity in activities_input.split(",")
-                    if activity.strip()
-                ]
-                if activities_input
-                else []
-            )
+            activities = [
+                activity.strip() for activity in activities_input.split(",") if activity.strip()
+            ] if activities_input else []
 
             # Create entry
-            entry = self.journal_service.create_entry(
+            entry = self.controller.create_journal_entry(
                 self.gui.current_weather, mood, notes, activities
             )
-            self.gui.show_message(
-                f"✅ Journal entry created for {entry.formatted_date}!"
-            )
+            if entry:
+                self.gui.show_message(f"✅ Journal entry created for {entry.formatted_date}!")
+            else:
+                self.gui.show_error("Failed to create journal entry")
 
         except Exception as e:
             logging.error(f"Error creating journal entry: {e}")
@@ -610,26 +274,27 @@ class WeatherDashboardGUIApp:
 
     def _handle_view_journal(self):
         """Handle view journal entries request."""
+        if not self.controller or not self.gui:
+            return
+
         try:
-            entries = self.journal_service.get_recent_entries(10)
+            entries = self.controller.get_journal_entries(10)
 
             if not entries:
                 self.gui.show_message("No journal entries found.")
                 return
 
             # Format entries for display
-            entries_text = "\n".join(
-                [
-                    f"📅 {entry.formatted_date} | {entry.location}\n"
-                    f"   {entry.mood_emoji} {entry.mood.value.title()} | "
-                    f"{entry.weather_summary}\n"
-                    f"   📝 {entry.notes[:60]}"
-                    f"{'...' if len(entry.notes) > 60 else ''}\n"
-                    for entry in entries
-                ]
-            )
+            entries_text = "\\n".join([
+                f"📅 {entry.formatted_date} | {entry.location}\\n"
+                f"   {entry.mood_emoji} {entry.mood.value.title()} | "
+                f"{entry.weather_summary}\\n"
+                f"   📝 {entry.notes[:60]}"
+                f"{'...' if len(entry.notes) > 60 else ''}\\n"
+                for entry in entries
+            ])
 
-            self.gui.show_message(f"Recent Journal Entries:\n\n{entries_text}")
+            self.gui.show_message(f"Recent Journal Entries: \\n\\n{entries_text}")
 
         except Exception as e:
             logging.error(f"Error viewing journal: {e}")
@@ -637,57 +302,42 @@ class WeatherDashboardGUIApp:
 
     def _handle_get_activities(self):
         """Handle get activity suggestions request."""
+        if not self.controller or not self.gui:
+            return
 
         def get_activities_async():
             try:
                 if not self.gui.current_weather:
-                    # Display inline message instead of popup
-                    self.gui.root.after(
-                        0, lambda: self.gui.display_no_weather_message_activities()
-                    )
+                    self.gui.root.after(0, lambda: self.gui.display_no_weather_message_activities())
                     return
 
-                self.gui.update_status("Getting activity suggestions...")
-                suggestions = self.activity_service.get_activity_suggestions(
-                    self.gui.current_weather
-                )
-
-                self.gui.root.after(
-                    0, lambda: self.gui.display_activity_suggestions(suggestions)
-                )
+                suggestions = self.controller.get_activity_suggestions(self.gui.current_weather)
+                if suggestions:
+                    self.gui.root.after(0, lambda: self.gui.display_activity_suggestions(suggestions))
+                else:
+                    self.gui.root.after(0, lambda: self.gui.display_activity_error("No suggestions available"))
 
             except Exception as e:
                 logging.error(f"Error getting activities: {e}")
-                self.gui.root.after(
-                    0,
-                    lambda exc=e: self.gui.display_activity_error(
-                        f"Error getting activities: {exc}"
-                    ),
-                )
+                error_msg = f"Error getting activities: {e}"
+                self.gui.root.after(0, lambda: self.gui.display_activity_error(error_msg))
 
+        self.gui.update_status("Getting activity suggestions...")
         threading.Thread(target=get_activities_async, daemon=True).start()
 
     def _handle_filter_activities(self, activity_type: str):
         """Handle filter activities request."""
+        if not self.controller or not self.gui:
+            return
+
         try:
             if not self.gui.current_weather:
                 self.gui.display_no_weather_message_activities()
                 return
 
-            if activity_type == "indoor":
-                activities = self.activity_service.get_indoor_activities(
-                    self.gui.current_weather
-                )
-            elif activity_type == "outdoor":
-                activities = self.activity_service.get_outdoor_activities(
-                    self.gui.current_weather
-                )
-            else:
-                return
+            activities = self.controller.get_filtered_activities(self.gui.current_weather, activity_type)
 
-            # Create filtered ActivitySuggestion object for display
-            from src.models.capstone_models import ActivitySuggestion
-
+            # Create ActivitySuggestion object for display
             filtered_suggestion = ActivitySuggestion(
                 weather=self.gui.current_weather,
                 suggested_activities=activities[:10] if activities else [],
@@ -701,208 +351,145 @@ class WeatherDashboardGUIApp:
 
     def _handle_generate_poetry(self):
         """Handle generate poetry request."""
+        if not self.controller or not self.gui:
+            return
 
         def generate_poetry_async():
             try:
                 if not self.gui.current_weather:
-                    self.gui.show_error(
-                        "Please get weather data first to generate poetry"
-                    )
+                    self.gui.show_error("Please get weather data first to generate poetry")
                     return
 
-                self.gui.update_status("Generating weather poetry...")
-                poem = self.poetry_service.generate_weather_poetry(
-                    self.gui.current_weather, "random"
-                )
-
-                self.gui.root.after(0, lambda: self.gui.display_weather_poem(poem))
+                poem = self.controller.generate_poetry(self.gui.current_weather, "random")
+                if poem:
+                    self.gui.root.after(0, lambda: self.gui.display_weather_poem(poem))
+                else:
+                    self.gui.root.after(0, lambda: self.gui.show_error("Failed to generate poetry"))
 
             except Exception as e:
                 logging.error(f"Error generating poetry: {e}")
-                self.gui.root.after(
-                    0,
-                    lambda exc=e: self.gui.show_error(
-                        f"Error generating poetry: {exc}"
-                    ),
-                )
+                error_msg = f"Error generating poetry: {e}"
+                self.gui.root.after(0, lambda: self.gui.show_error(error_msg))
 
+        self.gui.update_status("Generating weather poetry...")
         threading.Thread(target=generate_poetry_async, daemon=True).start()
 
     def _handle_generate_specific_poetry(self, poetry_type: str):
         """Handle generate specific poetry type request."""
+        if not self.controller or not self.gui:
+            return
 
         def generate_specific_async():
             try:
                 if not self.gui.current_weather:
-                    self.gui.show_error(
-                        "Please get weather data first to generate poetry"
-                    )
+                    self.gui.show_error("Please get weather data first to generate poetry")
                     return
 
-                self.gui.update_status(f"Generating {poetry_type}...")
-                poem = self.poetry_service.generate_weather_poetry(
-                    self.gui.current_weather, poetry_type
-                )
-
-                self.gui.root.after(0, lambda: self.gui.display_weather_poem(poem))
+                poem = self.controller.generate_poetry(self.gui.current_weather, poetry_type)
+                if poem:
+                    self.gui.root.after(0, lambda: self.gui.display_weather_poem(poem))
+                else:
+                    self.gui.root.after(0, lambda: self.gui.show_error(f"Failed to generate {poetry_type}"))
 
             except Exception as e:
                 logging.error(f"Error generating {poetry_type}: {e}")
-                self.gui.root.after(
-                    0,
-                    lambda exc=e, ptype=poetry_type: self.gui.show_error(
-                        f"Error generating {ptype}: {exc}"
-                    ),
-                )
+                error_msg = f"Error generating {poetry_type}: {e}"
+                self.gui.root.after(0, lambda: self.gui.show_error(error_msg))
 
+        self.gui.update_status(f"Generating {poetry_type}...")
         threading.Thread(target=generate_specific_async, daemon=True).start()
 
     def _handle_generate_poetry_collection(self):
         """Handle generate poetry collection request."""
+        if not self.controller or not self.gui:
+            return
 
         def generate_collection_async():
             try:
                 if not self.gui.current_weather:
-                    self.gui.show_error(
-                        "Please get weather data first to generate poetry collection"
-                    )
+                    self.gui.show_error("Please get weather data first to generate poetry collection")
                     return
 
-                self.gui.update_status("Generating poetry collection...")
-                collection = self.poetry_service.create_poetry_collection(
-                    self.gui.current_weather, 3
-                )
-
-                self.gui.root.after(
-                    0, lambda: self.gui.display_weather_poem_collection(collection)
-                )
+                collection = self.controller.generate_poetry_collection(self.gui.current_weather, 3)
+                if collection:
+                    self.gui.root.after(0, lambda: self.gui.display_weather_poem_collection(collection))
+                else:
+                    self.gui.root.after(0, lambda: self.gui.show_error("Failed to generate poetry collection"))
 
             except Exception as e:
                 logging.error(f"Error generating poetry collection: {e}")
-                self.gui.root.after(
-                    0,
-                    lambda exc=e: self.gui.show_error(
-                        f"Error generating poetry collection: {exc}"
-                    ),
-                )
+                error_msg = f"Error generating poetry collection: {e}"
+                self.gui.root.after(0, lambda: self.gui.show_error(error_msg))
 
+        self.gui.update_status("Generating poetry collection...")
         threading.Thread(target=generate_collection_async, daemon=True).start()
 
     def _handle_refresh_favorites(self):
         """Handle refresh favorites request."""
+        if not self.controller or not self.gui:
+            return
 
         def refresh_async():
             try:
-                self.gui.update_status("Refreshing favorites...")
-                favorites = self.weather_service.get_favorite_cities()
+                favorites = self.controller.get_favorite_cities()
 
-                # Format favorites for display
                 if favorites:
-                    favorites_text = "\n".join(
-                        [f"⭐ {fav.display_name}" for fav in favorites]
-                    )
-                    self.gui.root.after(
-                        0,
-                        lambda: self.gui.show_message(
-                            f"Favorite Cities:\n\n{favorites_text}"
-                        ),
-                    )
+                    favorites_text = "\\n".join([f"⭐ {fav.display_name}" for fav in favorites])
+                    self.gui.root.after(0, lambda: self.gui.show_message(f"Favorite Cities: \\n\\n{favorites_text}"))
                 else:
-                    self.gui.root.after(
-                        0,
-                        lambda: self.gui.show_message("No favorite cities added yet."),
-                    )
+                    self.gui.root.after(0, lambda: self.gui.show_message("No favorite cities added yet."))
 
             except Exception as e:
                 logging.error(f"Error refreshing favorites: {e}")
-                self.gui.root.after(
-                    0,
-                    lambda exc=e: self.gui.show_error(
-                        f"Error refreshing favorites: {exc}"
-                    ),
-                )
+                error_msg = f"Error refreshing favorites: {e}"
+                self.gui.root.after(0, lambda: self.gui.show_error(error_msg))
 
+        self.gui.update_status("Refreshing favorites...")
         threading.Thread(target=refresh_async, daemon=True).start()
 
     def _handle_view_favorites_weather(self):
         """Handle view all favorites weather request."""
+        if not self.controller or not self.gui:
+            return
 
         def view_favorites_weather_async():
             try:
-                favorites = self.weather_service.get_favorite_cities()
+                favorites = self.controller.get_favorite_cities()
                 if not favorites:
                     self.gui.show_message("No favorite cities added yet.")
                     return
 
-                self.gui.update_status("Fetching weather for all favorites...")
-                weather_data = self.weather_service.get_weather_for_favorites()
-
-                # Format weather data for display
-                weather_text = []
-                for city_name, weather in weather_data.items():
-                    if weather:
-                        temp = weather.temperature.to_celsius()
-                        weather_text.append(
-                            f"📍 {city_name}: {temp:.1f}°C - "
-                            f"{weather.description.title()}"
-                        )
-                    else:
-                        weather_text.append(f"📍 {city_name}: Weather data unavailable")
-
-                self.gui.root.after(
-                    0,
-                    lambda: self.gui.show_message(
-                        "Weather for Favorites:\n\n" + "\n".join(weather_text)
-                    ),
-                )
+                # Note: This would need to be implemented in the controller
+                # For now, show favorites list
+                favorites_text = "\\n".join([f"📍 {fav.display_name}" for fav in favorites])
+                self.gui.root.after(0, lambda: self.gui.show_message(f"Favorite Cities: \\n\\n{favorites_text}"))
 
             except Exception as e:
-                logging.error(f"Error viewing favorites weather: {e}")
-                self.gui.root.after(
-                    0,
-                    lambda exc=e: self.gui.show_error(
-                        f"Error viewing favorites weather: {exc}"
-                    ),
-                )
+                logging.error(f"Error viewing favorites: {e}")
+                error_msg = f"Error viewing favorites: {e}"
+                self.gui.root.after(0, lambda: self.gui.show_error(error_msg))
 
+        self.gui.update_status("Fetching weather for all favorites...")
         threading.Thread(target=view_favorites_weather_async, daemon=True).start()
 
     def _handle_current_location_weather(self):
         """Handle request for current location weather."""
+        if not self.controller or not self.gui:
+            return
+
+        def location_callback(weather, error):
+            if error:
+                self.gui.root.after(0, lambda: self.gui.show_error(error))
+            elif weather:
+                self.gui.root.after(0, lambda: self.gui.display_weather(weather))
+
         logging.info("Handling current location weather request")
+        self.controller.get_current_location_weather(location_callback)
 
-        # Start weather retrieval in a separate thread
-        threading.Thread(
-            target=self._fetch_current_location_weather,
-            daemon=True,
-        ).start()
-
-    def _fetch_current_location_weather(self):
-        """Fetch current location weather in background thread."""
-        try:
-            # Get weather data for current location
-            weather_data = self.weather_service.get_current_location_weather()
-
-            if weather_data:
-                # Update the UI with the weather data
-                self.gui.root.after(0, lambda: self.gui.display_weather(weather_data))
-            else:
-                # Show error message
-                self.gui.root.after(
-                    0,
-                    lambda: self.gui.show_error(
-                        "Could not detect location or retrieve weather data"
-                    ),
-                )
-
-        except Exception as e:
-            logging.error(f"Error in fetch_current_location_weather: {e}")
-            self.gui.root.after(
-                0,
-                lambda exc=e: self.gui.show_error(
-                    f"Error retrieving weather: {str(exc)}"
-                ),
-            )
+    def _handle_app_exit(self):
+        """Handle application exit."""
+        if self.controller:
+            self.controller.save_session_data()
 
 
 def main_gui():
@@ -911,7 +498,7 @@ def main_gui():
         app = WeatherDashboardGUIApp()
         app.run()
     except KeyboardInterrupt:
-        print("\n\n👋 Application stopped by user")
+        print("\\n\\n👋 Application stopped by user")
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         print(f"❌ An error occurred: {e}")

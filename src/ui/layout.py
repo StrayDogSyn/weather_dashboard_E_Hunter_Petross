@@ -106,7 +106,7 @@ class ModernLayoutMixin:
             callbacks = getattr(self, 'callbacks', {})
             if 'get_team_data_status' in callbacks:
                 team_status = callbacks['get_team_data_status']()
-                
+
                 # Create team data info frame
                 team_info_frame = GlassmorphicFrame(
                     parent_frame,
@@ -134,14 +134,14 @@ class ModernLayoutMixin:
                     cities_count = team_status.get('cities_available', 0)
                     status_text = f"✅ Team data loaded with {cities_count} cities available"
                     status_color = GlassmorphicStyle.SUCCESS
-                    
+
                     # Show available cities
                     city_list = team_status.get('city_list', [])
                     if city_list:
                         cities_text = f"Available cities: {', '.join(city_list[:5])}"
                         if len(city_list) > 5:
                             cities_text += f" (+{len(city_list) - 5} more)"
-                        
+
                         cities_label = tk.Label(
                             team_info_frame,
                             text=cities_text,

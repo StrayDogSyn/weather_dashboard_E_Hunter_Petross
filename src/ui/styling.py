@@ -11,7 +11,7 @@ from typing import Optional
 
 class WeatherIcons:
     """Weather condition icons using Unicode characters."""
-    
+
     CLEAR = "☀️"
     PARTLY_CLOUDY = "⛅"
     CLOUDY = "☁️"

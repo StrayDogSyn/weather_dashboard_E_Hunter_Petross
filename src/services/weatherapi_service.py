@@ -32,7 +32,7 @@ class WeatherAPIService(IWeatherAPI):
     def __init__(self, api_key: Optional[str] = None):
         """
         Initialize WeatherAPI service.
-        
+
         Args:
             api_key: WeatherAPI.com API key (optional, will try to get from env)
         """
@@ -42,7 +42,7 @@ class WeatherAPIService(IWeatherAPI):
         self.session.headers.update({
             'User-Agent': 'Weather-Dashboard/1.0'
         })
-        
+
         # Condition mapping from WeatherAPI to our enum
         self._condition_map = {
             1000: WeatherCondition.CLEAR,      # Sunny/Clear
@@ -103,28 +103,28 @@ class WeatherAPIService(IWeatherAPI):
     def _make_request(self, endpoint: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
         Make an API request with error handling.
-        
+
         Args:
             endpoint: API endpoint
             params: Request parameters
-            
+
         Returns:
             API response data or None if error
         """
         if not self.api_key:
             logging.error("WeatherAPI.com API key not configured")
             return None
-            
+
         # Add API key to parameters
         params["key"] = self.api_key
-        
+
         url = f"{self.base_url}/{endpoint}"
-        
+
         try:
             response = self.session.get(url, params=params, timeout=5)
             response.raise_for_status()
             return response.json()
-            
+
         except requests.exceptions.Timeout:
             logging.error("WeatherAPI request timeout")
             return None
@@ -165,37 +165,37 @@ class WeatherAPIService(IWeatherAPI):
         try:
             current = data.get("current", {})
             condition = current.get("condition", {})
-            
+
             location = self._parse_location(data)
-            
+
             # Temperature data
             temp_c = current.get("temp_c", 0.0)
             feels_like_c = current.get("feelslike_c", temp_c)
-            
+
             temperature = Temperature(
                 value=temp_c,
                 unit=TemperatureUnit.CELSIUS,
                 feels_like=feels_like_c
             )
-            
+
             # Weather condition
             condition_code = condition.get("code", 1000)
             weather_condition = self._parse_condition(condition_code)
-            
+
             # Wind data
             wind = Wind(
                 speed=current.get("wind_kph", 0.0) / 3.6,  # Convert kph to m/s
                 direction=current.get("wind_degree", 0),
                 gust=current.get("gust_kph", 0.0) / 3.6 if current.get("gust_kph") else None
             )
-            
+
             # Atmospheric pressure
             pressure = AtmosphericPressure(
                 value=current.get("pressure_mb", 1013.25),
                 sea_level=current.get("pressure_mb", 1013.25),
                 ground_level=current.get("pressure_mb", 1013.25)
             )
-            
+
             # Precipitation (if available)
             precipitation = None
             precip_mm = current.get("precip_mm", 0.0)
@@ -204,7 +204,7 @@ class WeatherAPIService(IWeatherAPI):
                     rain_1h=precip_mm,
                     rain_3h=precip_mm
                 )
-            
+
             return CurrentWeather(
                 location=location,
                 temperature=temperature,
@@ -218,7 +218,7 @@ class WeatherAPIService(IWeatherAPI):
                 uv_index=current.get("uv", 0.0),
                 timestamp=datetime.now()
             )
-            
+
         except Exception as e:
             logging.error(f"Error parsing WeatherAPI current weather: {e}")
             return None
@@ -226,11 +226,11 @@ class WeatherAPIService(IWeatherAPI):
     def get_current_weather(self, city: str, units: str = "metric") -> Optional[CurrentWeather]:
         """
         Get current weather for a city from WeatherAPI.com.
-        
+
         Args:
             city: City name
             units: Temperature units (metric, imperial, standard)
-            
+
         Returns:
             CurrentWeather or None if error
         """
@@ -238,83 +238,83 @@ class WeatherAPIService(IWeatherAPI):
             "q": city,
             "aqi": "no"  # We don't need air quality data
         }
-        
+
         data = self._make_request("current.json", params)
         if not data:
             return None
-            
+
         return self._parse_current_weather(data)
 
     def get_forecast(self, city: str, days: int = 5, units: str = "metric") -> Optional[WeatherForecast]:
         """
         Get weather forecast for a city from WeatherAPI.com.
-        
+
         Args:
             city: City name
             days: Number of days for forecast (max 10 for free tier)
             units: Temperature units
-            
+
         Returns:
             WeatherForecast or None if error
         """
         # WeatherAPI free tier allows up to 3 days, paid allows up to 10
         days = min(days, 3)  # Limit to 3 days for free tier compatibility
-        
+
         params = {
             "q": city,
             "days": days,
             "aqi": "no",
             "alerts": "no"
         }
-        
+
         data = self._make_request("forecast.json", params)
         if not data:
             return None
-            
+
         try:
             location = self._parse_location(data)
             forecast_data = data.get("forecast", {}).get("forecastday", [])
-            
+
             daily_forecasts = []
             for day_data in forecast_data:
                 day = day_data.get("day", {})
-                
+
                 # Parse date
                 date_str = day_data.get("date", "")
                 try:
                     forecast_date = datetime.strptime(date_str, "%Y-%m-%d")
                 except ValueError:
                     continue
-                
+
                 # Temperature data
                 min_temp = day.get("mintemp_c", 0.0)
                 max_temp = day.get("maxtemp_c", 0.0)
                 avg_temp = day.get("avgtemp_c", (min_temp + max_temp) / 2)
-                
+
                 high_temp = Temperature(
                     value=max_temp,
                     unit=TemperatureUnit.CELSIUS,
                     feels_like=max_temp
                 )
-                
+
                 low_temp = Temperature(
                     value=min_temp,
                     unit=TemperatureUnit.CELSIUS,
                     feels_like=min_temp
                 )
-                
+
                 # Weather condition
                 condition = day.get("condition", {})
                 condition_code = condition.get("code", 1000)
                 weather_condition = self._parse_condition(condition_code)
-                
+
                 # Wind data
                 wind = Wind(
                     speed=day.get("maxwind_kph", 0.0) / 3.6,  # Convert kph to m/s
                     direction=0,  # WeatherAPI doesn't provide forecast wind direction
                     gust=None
                 )
-                
+
                 # Precipitation
                 precipitation = None
                 precip_mm = day.get("totalprecip_mm", 0.0)
@@ -323,7 +323,7 @@ class WeatherAPIService(IWeatherAPI):
                         rain_1h=precip_mm,
                         rain_3h=precip_mm
                     )
-                
+
                 # Create forecast day
                 forecast_day = WeatherForecastDay(
                     date=forecast_date,
@@ -336,16 +336,16 @@ class WeatherAPIService(IWeatherAPI):
                     precipitation_chance=int(day.get("daily_chance_of_rain", 0)),
                     precipitation=precipitation
                 )
-                
+
                 daily_forecasts.append(forecast_day)
-            
+
             # Create WeatherForecast object
             return WeatherForecast(
                 location=location,
                 forecast_days=daily_forecasts,
                 timestamp=datetime.now()
             )
-            
+
         except Exception as e:
             logging.error(f"Error parsing WeatherAPI forecast: {e}")
             return None
@@ -353,22 +353,22 @@ class WeatherAPIService(IWeatherAPI):
     def search_locations(self, query: str, limit: int = 5) -> List[Location]:
         """
         Search for locations by name using WeatherAPI.com.
-        
+
         Args:
             query: Search query
             limit: Maximum number of results
-            
+
         Returns:
             List of Location objects
         """
         params = {
             "q": query
         }
-        
+
         data = self._make_request("search.json", params)
         if not data or not isinstance(data, list):
             return []
-        
+
         locations = []
         for i, item in enumerate(data):
             if i >= limit:
@@ -385,7 +385,7 @@ class WeatherAPIService(IWeatherAPI):
             except Exception as e:
                 logging.error(f"Error parsing location from WeatherAPI: {e}")
                 continue
-        
+
         return locations
 
     def get_current_weather_by_coordinates(
@@ -393,12 +393,12 @@ class WeatherAPIService(IWeatherAPI):
     ) -> Optional[CurrentWeather]:
         """
         Get current weather for specific coordinates from WeatherAPI.com.
-        
+
         Args:
             latitude: Latitude coordinate
             longitude: Longitude coordinate
             units: Temperature units
-            
+
         Returns:
             CurrentWeather or None if error
         """
@@ -411,13 +411,13 @@ class WeatherAPIService(IWeatherAPI):
     ) -> Optional[WeatherForecast]:
         """
         Get weather forecast for specific coordinates from WeatherAPI.com.
-        
+
         Args:
             latitude: Latitude coordinate
             longitude: Longitude coordinate
             days: Number of days for forecast
             units: Temperature units
-            
+
         Returns:
             WeatherForecast or None if error
         """

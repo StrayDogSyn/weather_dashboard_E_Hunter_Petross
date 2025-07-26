@@ -1,7 +1,7 @@
 """
 Enhanced City Comparison Service for Weather Dashboard.
 
-This service provides comprehensive functionality to compare weather conditions 
+This service provides comprehensive functionality to compare weather conditions
 between cities using both API data and team data sources with intelligent fallback.
 """
 
@@ -56,10 +56,10 @@ class EnhancedCityComparisonService:
 
             # Create and return comparison
             comparison = WeatherComparison(
-                city1_weather=weather1, 
+                city1_weather=weather1,
                 city2_weather=weather2
             )
-            
+
             self.logger.info(f"Successfully created comparison between {city1} and {city2}")
             return comparison
 
@@ -70,10 +70,10 @@ class EnhancedCityComparisonService:
     def _get_weather_data(self, city: str) -> Optional[CurrentWeather]:
         """
         Get weather data for a city using the best available source.
-        
+
         Args:
             city: Name of the city
-            
+
         Returns:
             CurrentWeather object or None if failed
         """
@@ -180,28 +180,28 @@ class EnhancedCityComparisonService:
                 return None
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            
+
             if format.lower() == "json":
                 import json
                 import os
-                
+
                 exports_dir = os.path.join(os.path.dirname(__file__), '..', '..', 'exports')
                 os.makedirs(exports_dir, exist_ok=True)
-                
+
                 filename = f"comparison_{city1}_{city2}_{timestamp}.json"
                 filepath = os.path.join(exports_dir, filename)
-                
+
                 with open(filepath, 'w') as f:
                     json.dump(analysis, f, indent=2)
-                
+
                 self.logger.info(f"Exported comparison to {filepath}")
                 return filepath
-            
+
             # Add CSV export if needed
             elif format.lower() == "csv":
                 # Implementation for CSV export can be added here
                 pass
-                
+
         except Exception as e:
             self.logger.error(f"Error exporting comparison: {e}")
             return None
@@ -234,7 +234,7 @@ class EnhancedCityComparisonService:
 
         # For API, we could maintain a list of popular cities or let users try any city
         result["api"] = [
-            "New York", "London", "Paris", "Tokyo", "Sydney", "Toronto", 
+            "New York", "London", "Paris", "Tokyo", "Sydney", "Toronto",
             "Berlin", "Mumbai", "Beijing", "Los Angeles", "Chicago", "Miami"
         ]
 

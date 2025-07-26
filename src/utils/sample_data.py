@@ -15,10 +15,10 @@ from src.models.weather_models import (
 def get_sample_weather_data(city_name: str = "New York") -> CurrentWeather:
     """
     Generate sample weather data for immediate display while API loads.
-    
+
     Args:
         city_name: Name of the city for the sample data
-        
+
     Returns:
         Sample CurrentWeather object
     """

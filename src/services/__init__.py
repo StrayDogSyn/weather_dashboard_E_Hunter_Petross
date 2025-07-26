@@ -20,11 +20,11 @@ except ImportError:
 
 __all__ = [
     "OpenWeatherMapAPI",
-    "FileDataStorage", 
+    "FileDataStorage",
     "MemoryCacheService",
     "DataStorageFactory",
     "LocationDetectionService",
-    "WeatherVisualizationService", 
+    "WeatherVisualizationService",
     "WeatherPoetryService",
     "SoundService",
     "SoundType",

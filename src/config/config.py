@@ -358,9 +358,9 @@ class ConfigurationManager:
 
         # Show errors
         if errors:
-            print(f"❌ Configuration validation errors:")
+            print("❌ Configuration validation errors: ")
             for error in errors:
-                print(f"   - {error}")
+                print(f" - {error}")
 
     def get_masked_api_key(self) -> str:
         """Get masked API key for logging purposes."""

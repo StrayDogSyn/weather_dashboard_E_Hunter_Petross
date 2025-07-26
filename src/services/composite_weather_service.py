@@ -20,16 +20,16 @@ class CompositeWeatherService(IWeatherAPI):
     def __init__(self, openweather_api_key: str, weatherapi_api_key: Optional[str] = None):
         """
         Initialize composite weather service.
-        
+
         Args:
             openweather_api_key: OpenWeatherMap API key
             weatherapi_api_key: WeatherAPI.com API key (optional)
         """
         self.logger = logging.getLogger(__name__)
-        
+
         # Primary service (OpenWeatherMap)
         self.primary_service = OpenWeatherMapAPI(openweather_api_key)
-        
+
         # Fallback service (WeatherAPI.com)
         self.fallback_service = None
         if weatherapi_api_key:
@@ -44,11 +44,11 @@ class CompositeWeatherService(IWeatherAPI):
     def get_current_weather(self, city: str, units: str = "metric") -> Optional[CurrentWeather]:
         """
         Get current weather with fallback support.
-        
+
         Args:
             city: City name
             units: Temperature units
-            
+
         Returns:
             CurrentWeather or None if both services fail
         """
@@ -85,12 +85,12 @@ class CompositeWeatherService(IWeatherAPI):
     def get_forecast(self, city: str, days: int = 5, units: str = "metric") -> Optional[WeatherForecast]:
         """
         Get weather forecast with fallback support.
-        
+
         Args:
             city: City name
             days: Number of forecast days
             units: Temperature units
-            
+
         Returns:
             WeatherForecast or None if both services fail
         """
@@ -129,11 +129,11 @@ class CompositeWeatherService(IWeatherAPI):
     def search_locations(self, query: str, limit: int = 5) -> List[Location]:
         """
         Search for locations with fallback support.
-        
+
         Args:
             query: Search query
             limit: Maximum number of results
-            
+
         Returns:
             List of Location objects
         """
@@ -165,12 +165,12 @@ class CompositeWeatherService(IWeatherAPI):
     ) -> Optional[CurrentWeather]:
         """
         Get current weather by coordinates with fallback support.
-        
+
         Args:
             latitude: Latitude coordinate
             longitude: Longitude coordinate
             units: Temperature units
-            
+
         Returns:
             CurrentWeather or None if both services fail
         """
@@ -202,13 +202,13 @@ class CompositeWeatherService(IWeatherAPI):
     ) -> Optional[WeatherForecast]:
         """
         Get weather forecast by coordinates with fallback support.
-        
+
         Args:
             latitude: Latitude coordinate
             longitude: Longitude coordinate
             days: Number of forecast days
             units: Temperature units
-            
+
         Returns:
             WeatherForecast or None if both services fail
         """
@@ -239,7 +239,7 @@ class CompositeWeatherService(IWeatherAPI):
     def get_service_status(self) -> dict:
         """
         Get status of all weather services.
-        
+
         Returns:
             Dictionary with service status information
         """

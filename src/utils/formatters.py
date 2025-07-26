@@ -92,7 +92,7 @@ def format_temperature(temp: float, unit: str = "C", decimal_places: int = 1) ->
     unit_symbols = {"C": "°C", "F": "°F", "K": "K"}
 
     symbol = unit_symbols.get(unit.upper(), "°C")
-    return f"{temp:.{decimal_places}f}{symbol}"
+    return f"{temp: .{decimal_places}f}{symbol}"
 
 
 def format_percentage(value: float, decimal_places: int = 0) -> str:
@@ -106,7 +106,7 @@ def format_percentage(value: float, decimal_places: int = 0) -> str:
     Returns:
         Formatted percentage string
     """
-    return f"{value:.{decimal_places}f}%"
+    return f"{value: .{decimal_places}f}%"
 
 
 def format_wind_speed(speed: float, unit: str = "km/h") -> str:
@@ -120,7 +120,7 @@ def format_wind_speed(speed: float, unit: str = "km/h") -> str:
     Returns:
         Formatted wind speed string
     """
-    return f"{speed:.1f} {unit}"
+    return f"{speed: .1f} {unit}"
 
 
 def format_pressure(pressure: float, unit: str = "hPa") -> str:
@@ -136,10 +136,10 @@ def format_pressure(pressure: float, unit: str = "hPa") -> str:
     """
     # Format to preserve decimal places as given
     if pressure == int(pressure):
-        return f"{pressure:.1f} {unit}"
+        return f"{pressure: .1f} {unit}"
     else:
         # Use the original precision
-        return f"{pressure:g} {unit}"
+        return f"{pressure: g} {unit}"
 
 
 def format_visibility(visibility: float, unit: str = "km") -> str:
@@ -153,7 +153,7 @@ def format_visibility(visibility: float, unit: str = "km") -> str:
     Returns:
         Formatted visibility string
     """
-    return f"{visibility:.1f} {unit}"
+    return f"{visibility: .1f} {unit}"
 
 
 def parse_date_string(date_str: str) -> Optional[datetime]:

@@ -76,7 +76,7 @@ class OpenWeatherMapAPI(IWeatherAPI):
 
         url = f"{self.base_url}/{endpoint}"
         max_retries = 2  # Quick retries for network issues
-        
+
         for attempt in range(max_retries + 1):
             try:
                 response = self.session.get(url, params=params, timeout=self.config.timeout)

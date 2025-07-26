@@ -34,10 +34,10 @@ from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForec
 # Import UI modules
 from .styling import WeatherIcons, GlassmorphicStyle, AnimationHelper
 from .components import (
-    GlassmorphicFrame, 
-    ModernButton, 
-    BootstrapButton, 
-    BootstrapFrame, 
+    GlassmorphicFrame,
+    ModernButton,
+    BootstrapButton,
+    BootstrapFrame,
     BootstrapEntry,
     ModernScrollableFrame
 )
@@ -320,7 +320,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         # Create Bootstrap-styled notebook (tabbed interface)
         self.notebook = ttk_bs.Notebook(self.root)
         self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 10))
-        
+
         # Note: Tab switching sound effect will be bound after initialization
 
         # Weather tab
@@ -684,7 +684,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Configure custom styling for the dropdown menus to match glassmorphic theme."""
         try:
             style = ttk.Style()
-            
+
             # Configure the custom combobox style
             style.configure("Glassmorphic.TCombobox",
                 fieldbackground=GlassmorphicStyle.GLASS_BG_LIGHT,  # Background color
@@ -698,7 +698,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
                 selectforeground=GlassmorphicStyle.TEXT_PRIMARY,   # Selection text
                 font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM)
             )
-            
+
             # Configure the dropdown listbox
             style.configure("Glassmorphic.TCombobox.Listbox",
                 background=GlassmorphicStyle.GLASS_BG_LIGHT,
@@ -708,7 +708,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
                 borderwidth=1,
                 relief="solid"
             )
-            
+
             # Map the styles for different states
             style.map("Glassmorphic.TCombobox",
                 fieldbackground=[
@@ -728,7 +728,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
                     ('!hover', GlassmorphicStyle.TEXT_ACCENT)
                 ]
             )
-            
+
         except Exception as e:
             # If styling fails, continue without custom styling
             if hasattr(self, 'logger'):
@@ -937,7 +937,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
 
         # Play weather-appropriate sound
         play_weather_sound(weather_data.description)
-        
+
         # Play weather load success sound
         play_sound(SoundType.WEATHER_LOAD, 0.4)
 
@@ -1164,20 +1164,20 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
     def show_error(self, message: str, show_dialog: bool = True) -> None:
         """Show error message with sound effect."""
         play_sound(SoundType.ERROR)
-        
+
         # Only show dialog for critical errors, not network timeouts
         if show_dialog and not any(keyword in message.lower() for keyword in ['timeout', 'connection', 'network']):
             messagebox.showerror("Error", message)
-        
+
         self.update_status(f"Error: {message}", is_error=True)
 
     def show_warning(self, message: str, show_dialog: bool = False) -> None:
         """Show warning message with subtle sound effect."""
         play_sound(SoundType.WARNING, 0.3)
-        
+
         if show_dialog:
             messagebox.showwarning("Warning", message)
-        
+
         self.update_status(f"Warning: {message}", is_warning=True)
 
     def show_message(self, message: str) -> None:
@@ -1194,7 +1194,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
             color = GlassmorphicStyle.WARNING
         else:
             color = GlassmorphicStyle.TEXT_SECONDARY
-            
+
         self.status_label.configure(text=message, fg=color)
 
         # Auto-clear status after 8 seconds for errors/warnings, 5 seconds for normal messages
@@ -1258,7 +1258,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Refresh current weather."""
         # Play refresh sound
         play_sound(SoundType.BUTTON_CLICK, 0.3)
-        
+
         if self.current_weather and "get_weather" in self.callbacks:
             self.callbacks["get_weather"](self.current_weather.location.name)
 
@@ -1303,7 +1303,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
                 self.city1_dropdown.set(default_cities[0])
                 self.city2_dropdown.set(default_cities[1])
                 return
-                
+
             # Get available cities from team data via callback
             if "get_team_cities" in self.callbacks:
                 cities = self.callbacks["get_team_cities"]()
@@ -1311,14 +1311,14 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
                     # Update dropdown values
                     self.city1_dropdown['values'] = cities
                     self.city2_dropdown['values'] = cities
-                    
+
                     # Set default selections if cities are available
                     if len(cities) >= 2:
                         self.city1_dropdown.set(cities[0])
                         self.city2_dropdown.set(cities[1])
                     elif len(cities) == 1:
                         self.city1_dropdown.set(cities[0])
-                        
+
                     if hasattr(self, 'update_status'):
                         self.update_status(f"Loaded {len(cities)} cities from team data")
                 else:
@@ -1337,7 +1337,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
                 self.city2_dropdown['values'] = default_cities
                 self.city1_dropdown.set(default_cities[0])
                 self.city2_dropdown.set(default_cities[1])
-                
+
         except Exception as e:
             if hasattr(self, 'logger'):
                 self.logger.error(f"Error populating city dropdowns: {e}")
@@ -1354,15 +1354,15 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Refresh team cities from GitHub repository."""
         try:
             self.update_status("Refreshing team cities from GitHub...")
-            
+
             if "refresh_team_data" in self.callbacks:
                 self.callbacks["refresh_team_data"]()
-            
+
             # Repopulate dropdowns with fresh data
             self.populate_city_dropdowns()
-            
+
             self.show_message("Team cities refreshed successfully!")
-            
+
         except Exception as e:
             self.logger.error(f"Error refreshing team cities: {e}")
             self.show_error(f"Error refreshing team cities: {str(e)}")
@@ -1438,7 +1438,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Display weather comparison with sound effects."""
         # Store the comparison data for temperature unit refresh
         self.current_comparison_data = comparison
-        
+
         # Play comparison success sound
         play_sound(SoundType.COMPARE_CITIES, 0.5)
 
@@ -1573,7 +1573,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Display error message in activities tab instead of popup."""
         # Play error sound for activity display
         play_sound(SoundType.ERROR, 0.5)
-        
+
         # Clear existing content
         for widget in self.activities_content.scrollable_frame.winfo_children():
             widget.destroy()
@@ -1629,7 +1629,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Display activity suggestions with improved formatting."""
         # Play activity display sound
         play_sound(SoundType.MAGIC, 0.6)
-        
+
         # Clear existing content
         for widget in self.activities_content.scrollable_frame.winfo_children():
             widget.destroy()
@@ -1941,7 +1941,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Display weather poem in the poetry tab with enhanced visual styling and sound."""
         # Play magical poetry generation sound
         play_sound(SoundType.MAGIC, 0.6)
-        
+
         # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():
             widget.destroy()
@@ -2090,14 +2090,14 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
 
         # Play soft magic completion sound
         play_sound(SoundType.MAGIC, 0.3)
-        
+
         self.update_status("Poetry displayed with enhanced styling!")
 
     def display_weather_poem_collection(self, poems) -> None:
         """Display a collection of weather poems with enhanced visual styling."""
         # Play collection display sound
         play_sound(SoundType.MAGIC, 0.5)
-        
+
         # Clear existing poetry content
         for widget in self.poetry_content.winfo_children():
             widget.destroy()
@@ -2276,7 +2276,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
 
         # Play collection completion sound
         play_sound(SoundType.MAGIC, 0.4)
-        
+
         self.update_status(
             f"Poetry collection displayed with enhanced styling! ({len(poems)} poems)"
         )
@@ -2285,7 +2285,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Toggle between Celsius and Fahrenheit."""
         # Play a quick toggle sound
         play_sound(SoundType.BUTTON_CLICK, 0.3)
-        
+
         self.temperature_unit = "F" if self.temperature_unit == "C" else "C"
         self.update_temp_toggle_text()
         self.refresh_temperature_displays()
@@ -2340,7 +2340,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Get weather for a random city for demonstration purposes."""
         # Play random Mario sound effect for fun!
         play_sound(SoundType.MAGIC, 0.4)
-        
+
         # List of interesting cities around the world
         cities = [
             "Tokyo",
@@ -2378,7 +2378,7 @@ class WeatherDashboardGUI(IUserInterface, ModernLayoutMixin):
         """Get weather for current detected location."""
         # Play location detection sound - Mario beedoo!
         play_sound(SoundType.NOTIFICATION, 0.4)
-        
+
         try:
             # Show loading message
             self.status_label.configure(

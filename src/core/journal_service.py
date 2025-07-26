@@ -380,11 +380,11 @@ class WeatherJournalService:
                 'frustrated': MoodType.ANXIOUS,  # Map to anxious as closest match
                 'neutral': MoodType.CONTENT,  # Map neutral to content
             }
-            
+
             # Try direct mapping first
             if mood_lower in mood_mapping:
                 return mood_mapping[mood_lower]
-            
+
             # Try to match with existing MoodType values
             try:
                 return MoodType(mood_lower)
@@ -393,7 +393,7 @@ class WeatherJournalService:
                 for mood_type in MoodType:
                     if mood_type.value.lower() == mood_lower:
                         return mood_type
-                
+
                 self.logger.warning(f"Could not parse mood '{mood_value}', using content")
                 return MoodType.CONTENT
         else:
@@ -419,11 +419,11 @@ class WeatherJournalService:
                 except (AttributeError, ValueError) as e:
                     self.logger.warning(f"Error serializing date: {e}, using today's date")
                     date_str = date.today().isoformat()
-            
+
             # Ensure we never store an empty date string
             if not date_str or date_str.strip() == "":
                 date_str = date.today().isoformat()
-            
+
             # Safely handle created_at serialization - never allow empty strings
             created_at_str = datetime.now().isoformat()  # Default fallback
             if entry.created_at:
@@ -432,7 +432,7 @@ class WeatherJournalService:
                 except (AttributeError, ValueError) as e:
                     self.logger.warning(f"Error serializing created_at: {e}, using current time")
                     created_at_str = datetime.now().isoformat()
-            
+
             # Ensure we never store an empty created_at string
             if not created_at_str or created_at_str.strip() == "":
                 created_at_str = datetime.now().isoformat()
