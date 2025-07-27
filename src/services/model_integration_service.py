@@ -10,21 +10,12 @@ import asyncio
 import json
 import logging
 from dataclasses import dataclass
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Union
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from ..config import config_manager
-from ..interfaces.weather_interfaces import IDataStorage
-from ..interfaces.weather_interfaces import IWeatherAPI
-from ..models.predictive_models import ModelType
-from ..models.predictive_models import PredictionResult
-from ..models.predictive_models import WeatherPredictor
+from ..interfaces.weather_interfaces import IDataStorage, IWeatherAPI
+from ..models.predictive_models import ModelType, PredictionResult, WeatherPredictor
 from ..services.model_training_service import ModelTrainingService
 
 

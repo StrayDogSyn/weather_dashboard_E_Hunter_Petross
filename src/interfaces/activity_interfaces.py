@@ -4,11 +4,12 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
 
 
 class ActivityCategory(Enum):
     """Categories of activities."""
+
     OUTDOOR_SPORTS = "outdoor_sports"
     INDOOR_SPORTS = "indoor_sports"
     RECREATION = "recreation"
@@ -25,6 +26,7 @@ class ActivityCategory(Enum):
 
 class ActivityDifficulty(Enum):
     """Difficulty levels for activities."""
+
     EASY = "easy"
     MODERATE = "moderate"
     CHALLENGING = "challenging"
@@ -33,6 +35,7 @@ class ActivityDifficulty(Enum):
 
 class WeatherSuitability(Enum):
     """Weather suitability ratings."""
+
     EXCELLENT = "excellent"
     GOOD = "good"
     FAIR = "fair"
@@ -42,6 +45,7 @@ class WeatherSuitability(Enum):
 
 class ActivityDuration(Enum):
     """Expected duration of activities."""
+
     SHORT = "short"  # < 2 hours
     MEDIUM = "medium"  # 2-6 hours
     LONG = "long"  # 6+ hours
@@ -51,6 +55,7 @@ class ActivityDuration(Enum):
 @dataclass
 class WeatherConditions:
     """Current weather conditions for activity recommendations."""
+
     temperature: float
     humidity: float
     wind_speed: float
@@ -66,6 +71,7 @@ class WeatherConditions:
 @dataclass
 class ActivityPreferences:
     """User preferences for activity recommendations."""
+
     preferred_categories: List[ActivityCategory]
     difficulty_level: Optional[ActivityDifficulty] = None
     duration: Optional[ActivityDuration] = None
@@ -80,6 +86,7 @@ class ActivityPreferences:
 @dataclass
 class Activity:
     """Represents a recommended activity."""
+
     id: str
     name: str
     description: str
@@ -102,6 +109,7 @@ class Activity:
 @dataclass
 class WeatherRequirement:
     """Weather requirements for an activity."""
+
     min_temperature: Optional[float] = None
     max_temperature: Optional[float] = None
     max_wind_speed: Optional[float] = None
@@ -116,6 +124,7 @@ class WeatherRequirement:
 @dataclass
 class ActivityRecommendation:
     """A recommended activity with weather suitability."""
+
     activity: Activity
     suitability: WeatherSuitability
     confidence_score: float  # 0.0 to 1.0
@@ -131,6 +140,7 @@ class ActivityRecommendation:
 @dataclass
 class ActivityRequest:
     """Request for activity recommendations."""
+
     weather_conditions: WeatherConditions
     preferences: ActivityPreferences
     location: Optional[str] = None
@@ -143,6 +153,7 @@ class ActivityRequest:
 @dataclass
 class ActivityResponse:
     """Response containing activity recommendations."""
+
     request: ActivityRequest
     recommendations: List[ActivityRecommendation]
     indoor_alternatives: Optional[List[ActivityRecommendation]] = None
@@ -154,6 +165,7 @@ class ActivityResponse:
 @dataclass
 class ActivityFilter:
     """Filter criteria for activity search."""
+
     categories: Optional[List[ActivityCategory]] = None
     difficulty: Optional[ActivityDifficulty] = None
     duration: Optional[ActivityDuration] = None
@@ -179,12 +191,16 @@ class IActivityDatabase(ABC):
         pass
 
     @abstractmethod
-    async def search_activities(self, filter_criteria: ActivityFilter) -> List[Activity]:
+    async def search_activities(
+        self, filter_criteria: ActivityFilter
+    ) -> List[Activity]:
         """Search activities by filter criteria."""
         pass
 
     @abstractmethod
-    async def get_activities_by_category(self, category: ActivityCategory) -> List[Activity]:
+    async def get_activities_by_category(
+        self, category: ActivityCategory
+    ) -> List[Activity]:
         """Get activities by category."""
         pass
 
@@ -212,7 +228,7 @@ class IWeatherMatcher(ABC):
         self,
         activity: Activity,
         weather: WeatherConditions,
-        requirements: WeatherRequirement
+        requirements: WeatherRequirement,
     ) -> WeatherSuitability:
         """Calculate weather suitability for an activity."""
         pass
@@ -222,7 +238,7 @@ class IWeatherMatcher(ABC):
         self,
         activity: Activity,
         weather: WeatherConditions,
-        requirements: WeatherRequirement
+        requirements: WeatherRequirement,
     ) -> float:
         """Get numerical weather match score (0.0 to 1.0)."""
         pass
@@ -234,9 +250,7 @@ class IWeatherMatcher(ABC):
 
     @abstractmethod
     async def generate_weather_warnings(
-        self,
-        activity: Activity,
-        weather: WeatherConditions
+        self, activity: Activity, weather: WeatherConditions
     ) -> List[str]:
         """Generate weather-related warnings for an activity."""
         pass
@@ -247,27 +261,21 @@ class IPreferenceMatcher(ABC):
 
     @abstractmethod
     async def calculate_preference_score(
-        self,
-        activity: Activity,
-        preferences: ActivityPreferences
+        self, activity: Activity, preferences: ActivityPreferences
     ) -> float:
         """Calculate preference match score (0.0 to 1.0)."""
         pass
 
     @abstractmethod
     async def filter_by_preferences(
-        self,
-        activities: List[Activity],
-        preferences: ActivityPreferences
+        self, activities: List[Activity], preferences: ActivityPreferences
     ) -> List[Activity]:
         """Filter activities by user preferences."""
         pass
 
     @abstractmethod
     async def get_preference_reasons(
-        self,
-        activity: Activity,
-        preferences: ActivityPreferences
+        self, activity: Activity, preferences: ActivityPreferences
     ) -> List[str]:
         """Get reasons why activity matches preferences."""
         pass
@@ -278,8 +286,7 @@ class IRecommendationEngine(ABC):
 
     @abstractmethod
     async def generate_recommendations(
-        self,
-        request: ActivityRequest
+        self, request: ActivityRequest
     ) -> List[ActivityRecommendation]:
         """Generate activity recommendations based on request."""
         pass
@@ -289,25 +296,21 @@ class IRecommendationEngine(ABC):
         self,
         activities: List[Activity],
         weather: WeatherConditions,
-        preferences: ActivityPreferences
+        preferences: ActivityPreferences,
     ) -> List[ActivityRecommendation]:
         """Rank activities based on weather and preferences."""
         pass
 
     @abstractmethod
     async def get_indoor_alternatives(
-        self,
-        outdoor_activities: List[Activity],
-        preferences: ActivityPreferences
+        self, outdoor_activities: List[Activity], preferences: ActivityPreferences
     ) -> List[ActivityRecommendation]:
         """Get indoor alternatives for outdoor activities."""
         pass
 
     @abstractmethod
     async def generate_preparation_tips(
-        self,
-        activity: Activity,
-        weather: WeatherConditions
+        self, activity: Activity, weather: WeatherConditions
     ) -> List[str]:
         """Generate preparation tips for an activity."""
         pass
@@ -326,16 +329,14 @@ class IActivityService(ABC):
         self,
         weather: WeatherConditions,
         category: Optional[ActivityCategory] = None,
-        indoor_only: bool = False
+        indoor_only: bool = False,
     ) -> List[ActivityRecommendation]:
         """Get quick activity recommendations."""
         pass
 
     @abstractmethod
     async def search_activities(
-        self,
-        query: str,
-        filter_criteria: Optional[ActivityFilter] = None
+        self, query: str, filter_criteria: Optional[ActivityFilter] = None
     ) -> List[Activity]:
         """Search activities by text query and filters."""
         pass
@@ -347,18 +348,14 @@ class IActivityService(ABC):
 
     @abstractmethod
     async def get_weather_advice(
-        self,
-        weather: WeatherConditions,
-        activity_id: str
+        self, weather: WeatherConditions, activity_id: str
     ) -> Dict[str, Any]:
         """Get weather-specific advice for an activity."""
         pass
 
     @abstractmethod
     async def get_seasonal_activities(
-        self,
-        season: str,
-        preferences: Optional[ActivityPreferences] = None
+        self, season: str, preferences: Optional[ActivityPreferences] = None
     ) -> List[Activity]:
         """Get activities suitable for a specific season."""
         pass
@@ -369,16 +366,14 @@ class IActivityService(ABC):
         activity_id: str,
         weather_conditions: WeatherConditions,
         rating: float,
-        feedback: Optional[str] = None
+        feedback: Optional[str] = None,
     ) -> bool:
         """Save user feedback for improving recommendations."""
         pass
 
     @abstractmethod
     async def get_trending_activities(
-        self,
-        weather: WeatherConditions,
-        limit: int = 5
+        self, weather: WeatherConditions, limit: int = 5
     ) -> List[Activity]:
         """Get trending activities for current weather."""
         pass

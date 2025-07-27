@@ -4,8 +4,7 @@ import json
 import logging
 import subprocess
 import sys
-from typing import Optional
-from typing import Tuple
+from typing import Optional, Tuple
 
 import requests
 

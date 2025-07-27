@@ -8,20 +8,18 @@ all weather dashboard functionality.
 import argparse
 import asyncio
 import logging
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 from ..application.dependency_container import DependencyContainer
-from ..business.interfaces import IActivitySuggestionService
-from ..business.interfaces import ICityComparisonService
-from ..business.interfaces import ICortanaVoiceService
-from ..business.interfaces import IWeatherJournalService
-from ..business.interfaces import IWeatherPoetryService
-from ..business.interfaces import IWeatherService
-from ..shared.exceptions import UIError
-from ..shared.exceptions import WeatherDashboardError
+from ..business.interfaces import (
+    IActivitySuggestionService,
+    ICityComparisonService,
+    ICortanaVoiceService,
+    IWeatherJournalService,
+    IWeatherPoetryService,
+    IWeatherService,
+)
+from ..shared.exceptions import UIError, WeatherDashboardError
 
 
 class WeatherDashboardCLIApp:

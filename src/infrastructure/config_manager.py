@@ -8,20 +8,17 @@ import configparser
 import json
 import logging
 import os
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import Any, Dict, List, Optional, Union
 
-from ..shared.constants import CONFIG_FILE_PATH
-from ..shared.constants import DEFAULT_API_TIMEOUT
-from ..shared.constants import DEFAULT_CACHE_TTL
-from ..shared.constants import DEFAULT_DATABASE_PATH
-from ..shared.constants import DEFAULT_LOG_LEVEL
+from ..shared.constants import (
+    CONFIG_FILE_PATH,
+    DEFAULT_API_TIMEOUT,
+    DEFAULT_CACHE_TTL,
+    DEFAULT_DATABASE_PATH,
+    DEFAULT_LOG_LEVEL,
+)
 from ..shared.exceptions import ConfigurationError
 
 

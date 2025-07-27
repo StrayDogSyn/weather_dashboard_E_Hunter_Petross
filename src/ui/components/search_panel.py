@@ -9,17 +9,11 @@ import os
 import tkinter as tk
 from datetime import datetime
 from tkinter import ttk
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from ..animations.effects import AnimationHelper
-from ..styles.glassmorphic import GlassmorphicFrame
-from ..styles.glassmorphic import GlassmorphicStyle
-from ..widgets.modern_button import IconButton
-from ..widgets.modern_button import ModernButton
+from ..styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
+from ..widgets.modern_button import IconButton, ModernButton
 
 
 class SearchPanel(GlassmorphicFrame):

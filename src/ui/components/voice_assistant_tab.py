@@ -9,14 +9,10 @@ import logging
 import threading
 import tkinter as tk
 from tkinter import ttk
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import Optional
+from typing import Any, Callable, Dict, Optional
 
 from ...business.interfaces import ICortanaVoiceService
-from ..styles.glassmorphic import GlassmorphicFrame
-from ..styles.glassmorphic import GlassmorphicStyle
+from ..styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
 from ..widgets.enhanced_button import ButtonFactory
 from ..widgets.modern_button import ModernButton
 from .responsive_layout import ResponsiveSpacing

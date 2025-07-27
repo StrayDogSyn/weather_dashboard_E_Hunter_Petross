@@ -15,48 +15,41 @@ import logging
 import threading
 import tkinter as tk
 from datetime import datetime
-from tkinter import messagebox
-from tkinter import simpledialog
-from tkinter import ttk
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
+from tkinter import messagebox, simpledialog, ttk
+from typing import Any, Callable, Dict, List, Optional
 
 import ttkbootstrap as ttk_bs
-from ttkbootstrap.constants import DANGER
-from ttkbootstrap.constants import DARK
-from ttkbootstrap.constants import INFO
-from ttkbootstrap.constants import LIGHT
-from ttkbootstrap.constants import PRIMARY
-from ttkbootstrap.constants import SECONDARY
+from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
 
 from src.config.config import config_manager
 from src.interfaces.weather_interfaces import IUserInterface
-from src.models.capstone_models import ActivitySuggestion
-from src.models.capstone_models import JournalEntry
-from src.models.capstone_models import MoodType
-from src.models.capstone_models import WeatherComparison
-from src.models.capstone_models import WeatherPoem
-from src.models.weather_models import CurrentWeather
-from src.models.weather_models import FavoriteCity
-from src.models.weather_models import Location
-from src.models.weather_models import WeatherForecast
-from src.services.sound_service import SoundType
-from src.services.sound_service import get_sound_service
-from src.services.sound_service import play_sound
-from src.services.sound_service import play_weather_sound
+from src.models.capstone_models import (
+    ActivitySuggestion,
+    JournalEntry,
+    MoodType,
+    WeatherComparison,
+    WeatherPoem,
+)
+from src.models.weather_models import (
+    CurrentWeather,
+    FavoriteCity,
+    Location,
+    WeatherForecast,
+)
+from src.services.sound_service import (
+    SoundType,
+    get_sound_service,
+    play_sound,
+    play_weather_sound,
+)
 
 from .animations.effects import AnimationHelper
 from .components import ModernEntry
 from .components.header import ApplicationHeader
 from .components.main_dashboard import MainDashboard
-from .components.responsive_layout import ResponsiveLayoutManager
-from .components.responsive_layout import ResponsiveSpacing
+from .components.responsive_layout import ResponsiveLayoutManager, ResponsiveSpacing
 from .components.search_panel import SearchPanel
-from .components.temperature_controls import TemperatureControls
-from .components.temperature_controls import TemperatureUnit
+from .components.temperature_controls import TemperatureControls, TemperatureUnit
 from .components.weather_card import WeatherCard
 from .components.weather_icons import WeatherIcons
 
@@ -64,18 +57,18 @@ from .components.weather_icons import WeatherIcons
 from .dashboard import WeatherDashboard
 
 # Import refactored components
-from .styles.glassmorphic import GlassmorphicFrame
-from .styles.glassmorphic import GlassmorphicStyle
-from .styles.glassmorphic_themes import GlassButton
-from .styles.glassmorphic_themes import GlassmorphicStyleManager
-from .styles.glassmorphic_themes import GlassPanel
-from .styles.glassmorphic_themes import GlassTheme
-from .styles.glassmorphic_themes import GlassWidget
-from .styles.glassmorphic_themes import WeatherGlassCard
+from .styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
+from .styles.glassmorphic_themes import (
+    GlassButton,
+    GlassmorphicStyleManager,
+    GlassPanel,
+    GlassTheme,
+    GlassWidget,
+    WeatherGlassCard,
+)
 from .styles.theme_integration import DashboardThemeIntegrator
 from .widgets.enhanced_button import ButtonFactory
-from .widgets.modern_button import IconButton
-from .widgets.modern_button import ModernButton
+from .widgets.modern_button import IconButton, ModernButton
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -272,7 +265,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Get the container for child widgets (handles elevation effects)
         content_container = main_content.get_container()
-        
+
         # Create temperature controls with responsive layout
         self.temperature_controls = TemperatureControls(
             content_container,
@@ -322,12 +315,14 @@ class WeatherDashboardGUI(IUserInterface):
             self.container = container
 
             # Import interface types
-            from ..business.interfaces import IActivitySuggestionService
-            from ..business.interfaces import ICityComparisonService
-            from ..business.interfaces import ICortanaVoiceService
-            from ..business.interfaces import IWeatherJournalService
-            from ..business.interfaces import IWeatherPoetryService
-            from ..business.interfaces import IWeatherService
+            from ..business.interfaces import (
+                IActivitySuggestionService,
+                ICityComparisonService,
+                ICortanaVoiceService,
+                IWeatherJournalService,
+                IWeatherPoetryService,
+                IWeatherService,
+            )
 
             # Inject services
             self.weather_service = container.get_service(IWeatherService)
@@ -384,7 +379,7 @@ class WeatherDashboardGUI(IUserInterface):
 
             # Get the container for child widgets
             panel_container = theme_panel.get_container()
-            
+
             # Theme selector title
             title_label = tk.Label(
                 panel_container,

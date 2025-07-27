@@ -4,13 +4,9 @@ This module defines all the interfaces (contracts) for business services
 following the Interface Segregation Principle and Dependency Inversion Principle.
 """
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import date
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from typing import Any, Dict, List, Optional
 
 
 class IWeatherService(ABC):

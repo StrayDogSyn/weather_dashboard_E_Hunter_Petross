@@ -7,21 +7,15 @@ different weather dashboard sections and components.
 import logging
 import tkinter as tk
 from tkinter import ttk
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import Optional
+from typing import Any, Callable, Dict, Optional
 
 from ...core.weather_service import WeatherService
 from ...models.weather_models import WeatherData
 from ..animations.effects import AnimationHelper
-from ..styles.glassmorphic import GlassmorphicFrame
-from ..styles.glassmorphic import GlassmorphicStyle
+from ..styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
 from ..widgets.enhanced_button import ButtonFactory
-from ..widgets.modern_button import IconButton
-from ..widgets.modern_button import ModernButton
-from .responsive_layout import ResponsiveLayoutManager
-from .responsive_layout import ResponsiveSpacing
+from ..widgets.modern_button import IconButton, ModernButton
+from .responsive_layout import ResponsiveLayoutManager, ResponsiveSpacing
 from .search_panel import SearchPanel
 from .weather_card import WeatherCard
 
@@ -222,12 +216,14 @@ class MainDashboard(GlassmorphicFrame):
         """
         try:
             # Import interface types
-            from ...business.interfaces import IActivitySuggestionService
-            from ...business.interfaces import ICityComparisonService
-            from ...business.interfaces import ICortanaVoiceService
-            from ...business.interfaces import IWeatherJournalService
-            from ...business.interfaces import IWeatherPoetryService
-            from ...business.interfaces import IWeatherService
+            from ...business.interfaces import (
+                IActivitySuggestionService,
+                ICityComparisonService,
+                ICortanaVoiceService,
+                IWeatherJournalService,
+                IWeatherPoetryService,
+                IWeatherService,
+            )
 
             # Inject services
             self.weather_service = container.get_service(IWeatherService)

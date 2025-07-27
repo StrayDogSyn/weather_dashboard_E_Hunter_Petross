@@ -5,16 +5,11 @@ This service provides functionality to create and manage weather journal entries
 """
 
 import logging
-from datetime import date
-from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
 
 from ..interfaces.weather_interfaces import IDataStorage
-from ..models.capstone_models import JournalEntry
-from ..models.capstone_models import MoodType
+from ..models.capstone_models import JournalEntry, MoodType
 from ..models.weather_models import CurrentWeather
 
 

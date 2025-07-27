@@ -278,4 +278,7 @@ class IStorageService:
 
 ## Conclusion
 
-The enhanced Cortana Voice Assistant provides a robust, scalable foundation for voice-enabled weather interactions. The Bot Framework-inspired architecture ensures maintainability and extensibility while delivering a superior user experience through advanced NLU and conversation management capabilities.
+The enhanced Cortana Voice Assistant provides a robust, scalable foundation for voice-enabled
+weather interactions. The Bot Framework-inspired architecture ensures maintainability and
+extensibility while delivering a superior user experience through advanced NLU and conversation
+management capabilities.

@@ -15,22 +15,12 @@ Enhancements:
 import json
 import logging
 import os
-from abc import ABC
-from abc import abstractmethod
-from dataclasses import dataclass
-from dataclasses import field
-from datetime import datetime
-from datetime import timezone
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Protocol
-from typing import Tuple
-from typing import Union
-from uuid import UUID
-from uuid import uuid4
+from typing import Any, Dict, List, Optional, Protocol, Tuple, Union
+from uuid import UUID, uuid4
 
 # Type aliases for cleaner interfaces
 WeatherData = "CurrentWeather"
@@ -570,7 +560,7 @@ class CurrentWeather(AIEnhancedWeatherModel):
             return {"status": "no_api_key", "insights": []}
 
         prompt = f"""Analyze the current weather conditions for {self.location.display_name}:
-        
+
 Temperature: {self.temperature}
 Condition: {self.condition.value} - {self.description}
 Humidity: {self.humidity}%

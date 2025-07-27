@@ -15,7 +15,10 @@
       "Bash(mkdir:*)",
       "Bash(mv:*)",
       "Bash(git add:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pip install:*)",
+      "Bash(npm install:*)",
+      "Bash(markdownlint:*)"
     ],
     "deny": []
   }

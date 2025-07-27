@@ -3,16 +3,10 @@
 # mypy: disable-error-code="arg-type,assignment"
 
 import logging
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
 
-from src.models.weather_models import CurrentWeather
-from src.models.weather_models import WeatherForecast
+from src.models.weather_models import CurrentWeather, WeatherForecast
 
 
 class WeatherVisualizationService:

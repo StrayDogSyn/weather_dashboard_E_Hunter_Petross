@@ -2,7 +2,8 @@
 
 ## Production Deployment with Bot Framework
 
-This guide demonstrates how to deploy the enhanced Cortana Voice Service in a production environment using Microsoft Bot Framework and Azure services.
+This guide demonstrates how to deploy the enhanced Cortana Voice Service in a production
+environment using Microsoft Bot Framework and Azure services.
 
 ## Prerequisites
 
@@ -24,7 +25,7 @@ This guide demonstrates how to deploy the enhanced Cortana Voice Service in a pr
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Bot Channels  │────│  Azure Bot       │────│  App Service    │
 │ (Teams, Cortana)│    │  Service         │    │  (Bot Logic)    │
@@ -95,7 +96,7 @@ az webapp create \
 
 ### 2.1 Create Bot Project Structure
 
-```
+```text
 cortana-weather-bot/
 ├── Controllers/
 │   └── BotController.cs
@@ -547,4 +548,7 @@ az cognitiveservices account show --resource-group "rg-cortana-weather" --name "
 
 ## Conclusion
 
-This deployment guide provides a comprehensive approach to deploying the Cortana Voice Service in a production environment using Microsoft Bot Framework and Azure services. The architecture ensures scalability, reliability, and maintainability while providing an excellent user experience through advanced voice capabilities.
+This deployment guide provides a comprehensive approach to deploying the Cortana Voice Service
+in a production environment using Microsoft Bot Framework and Azure services. The architecture
+ensures scalability, reliability, and maintainability while providing an excellent user
+experience through advanced voice capabilities.

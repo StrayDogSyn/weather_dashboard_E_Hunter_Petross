@@ -5,9 +5,7 @@ hover animations, and glassmorphic design elements.
 """
 
 import tkinter as tk
-from typing import Any
-from typing import Callable
-from typing import Optional
+from typing import Any, Callable, Optional
 
 from ..styles.glassmorphic import GlassmorphicStyle
 

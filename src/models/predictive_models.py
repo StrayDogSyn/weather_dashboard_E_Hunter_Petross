@@ -15,25 +15,15 @@ Enhancements:
 """
 
 import logging
-from abc import ABC
-from abc import abstractmethod
-from dataclasses import dataclass
-from dataclasses import field
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 
 # For static type checking and type hints
-from typing import TYPE_CHECKING
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from uuid import UUID
-from uuid import uuid4
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
+from uuid import UUID, uuid4
 
 if TYPE_CHECKING:
     from sklearn.ensemble import GradientBoostingRegressor as _GradientBoostingRegressor
@@ -53,16 +43,11 @@ import pandas as pd
 
 # ML Libraries
 try:
-    from sklearn.ensemble import GradientBoostingRegressor
-    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
     from sklearn.linear_model import LinearRegression
-    from sklearn.metrics import mean_absolute_error
-    from sklearn.metrics import mean_squared_error
-    from sklearn.metrics import r2_score
-    from sklearn.model_selection import cross_val_score
-    from sklearn.model_selection import train_test_split
-    from sklearn.preprocessing import LabelEncoder
-    from sklearn.preprocessing import StandardScaler
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+    from sklearn.model_selection import cross_val_score, train_test_split
+    from sklearn.preprocessing import LabelEncoder, StandardScaler
 
     SKLEARN_AVAILABLE = True
 except ImportError:
@@ -925,19 +910,19 @@ class EnhancedWeatherPredictor(WeatherPredictor):
             model = genai.GenerativeModel("gemini-pro")
 
             prompt = f"""Analyze this weather prediction and provide insights:
-            
+
 Predicted Temperature: {result.predicted_temperature:.1f}°C
 Confidence: {result.confidence_score:.2f}
 Weather Pattern: {result.weather_pattern}
 Model Used: {result.model_used}
 Features: {feature_dict}
-            
+
 Provide insights about:
 1. Reliability of this prediction
 2. Factors affecting accuracy
 3. What to watch for in actual conditions
 4. Recommendations for users
-            
+
 Format as JSON with keys: reliability_assessment, accuracy_factors, monitoring_points, user_recommendations."""
 
             response = model.generate_content(prompt)
@@ -1017,9 +1002,7 @@ class WeatherPatternClassifier:
         y_pred = self.model.predict(X_test_scaled)
 
         # Calculate performance metrics
-        from sklearn.metrics import mean_absolute_error
-        from sklearn.metrics import mean_squared_error
-        from sklearn.metrics import r2_score
+        from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
         mae = mean_absolute_error(y_test_encoded, y_pred)
         mse = mean_squared_error(y_test_encoded, y_pred)
@@ -1130,17 +1113,17 @@ class WeatherPatternClassifier:
             model = genai.GenerativeModel("gemini-pro")
 
             prompt = f"""Analyze this weather pattern prediction:
-            
+
 Conditions: {conditions}
 Predicted Pattern: {result['pattern']}
 Confidence: {result['confidence']:.2f}
-            
+
 Provide insights about:
 1. Why this pattern was predicted
 2. How reliable this prediction is
 3. What conditions might change the pattern
 4. Implications for activities and planning
-            
+
 Format as JSON with keys: prediction_reasoning, reliability_notes, change_factors, implications."""
 
             response = model.generate_content(prompt)

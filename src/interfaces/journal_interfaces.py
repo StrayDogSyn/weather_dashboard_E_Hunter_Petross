@@ -2,13 +2,14 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime, date
-from typing import List, Optional, Dict, Any, Union
+from datetime import date, datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Union
 
 
 class JournalEntryType(Enum):
     """Types of journal entries."""
+
     DAILY_WEATHER = "daily_weather"
     ACTIVITY_LOG = "activity_log"
     MOOD_WEATHER = "mood_weather"
@@ -20,6 +21,7 @@ class JournalEntryType(Enum):
 
 class WeatherMood(Enum):
     """Weather-related mood states."""
+
     ENERGETIC = "energetic"
     CALM = "calm"
     MELANCHOLY = "melancholy"
@@ -34,6 +36,7 @@ class WeatherMood(Enum):
 
 class SearchSortBy(Enum):
     """Sort options for journal searches."""
+
     DATE_DESC = "date_desc"
     DATE_ASC = "date_asc"
     TITLE = "title"
@@ -46,6 +49,7 @@ class SearchSortBy(Enum):
 @dataclass
 class WeatherSnapshot:
     """Weather conditions at time of journal entry."""
+
     temperature: float
     condition: str
     humidity: float
@@ -62,6 +66,7 @@ class WeatherSnapshot:
 @dataclass
 class JournalEntry:
     """A weather journal entry."""
+
     id: str
     title: str
     content: str
@@ -83,6 +88,7 @@ class JournalEntry:
 @dataclass
 class JournalSearchFilter:
     """Filter criteria for journal searches."""
+
     start_date: Optional[date] = None
     end_date: Optional[date] = None
     entry_types: Optional[List[JournalEntryType]] = None
@@ -102,6 +108,7 @@ class JournalSearchFilter:
 @dataclass
 class JournalSearchRequest:
     """Request for searching journal entries."""
+
     filters: JournalSearchFilter
     sort_by: SearchSortBy = SearchSortBy.DATE_DESC
     limit: int = 50
@@ -112,6 +119,7 @@ class JournalSearchRequest:
 @dataclass
 class WeatherStatistics:
     """Weather statistics for a period."""
+
     avg_temperature: float
     min_temperature: float
     max_temperature: float
@@ -128,9 +136,12 @@ class WeatherStatistics:
 @dataclass
 class MoodAnalysis:
     """Analysis of mood patterns related to weather."""
+
     most_common_mood: WeatherMood
     mood_distribution: Dict[WeatherMood, int]
-    weather_mood_correlations: Dict[str, WeatherMood]  # weather condition -> most common mood
+    weather_mood_correlations: Dict[
+        str, WeatherMood
+    ]  # weather condition -> most common mood
     best_weather_days: List[date]  # Days with highest ratings
     challenging_weather_days: List[date]  # Days with lowest ratings
 
@@ -138,6 +149,7 @@ class MoodAnalysis:
 @dataclass
 class JournalSearchResult:
     """Result of journal search."""
+
     entries: List[JournalEntry]
     total_count: int
     weather_stats: Optional[WeatherStatistics] = None
@@ -148,6 +160,7 @@ class JournalSearchResult:
 @dataclass
 class JournalTemplate:
     """Template for creating journal entries."""
+
     id: str
     name: str
     entry_type: JournalEntryType
@@ -161,6 +174,7 @@ class JournalTemplate:
 @dataclass
 class JournalExportRequest:
     """Request for exporting journal data."""
+
     filters: JournalSearchFilter
     format: str  # "json", "csv", "pdf", "markdown"
     include_photos: bool = False
@@ -171,6 +185,7 @@ class JournalExportRequest:
 @dataclass
 class JournalInsight:
     """Insight generated from journal analysis."""
+
     type: str  # "pattern", "correlation", "trend", "recommendation"
     title: str
     description: str
@@ -203,15 +218,15 @@ class IJournalStorage(ABC):
         pass
 
     @abstractmethod
-    async def search_entries(self, request: JournalSearchRequest) -> JournalSearchResult:
+    async def search_entries(
+        self, request: JournalSearchRequest
+    ) -> JournalSearchResult:
         """Search journal entries with filters."""
         pass
 
     @abstractmethod
     async def get_entries_by_date_range(
-        self, 
-        start_date: date, 
-        end_date: date
+        self, start_date: date, end_date: date
     ) -> List[JournalEntry]:
         """Get entries within a date range."""
         pass
@@ -232,32 +247,26 @@ class IWeatherAnalyzer(ABC):
 
     @abstractmethod
     async def calculate_weather_statistics(
-        self, 
-        entries: List[JournalEntry]
+        self, entries: List[JournalEntry]
     ) -> WeatherStatistics:
         """Calculate weather statistics from journal entries."""
         pass
 
     @abstractmethod
-    async def analyze_mood_patterns(
-        self, 
-        entries: List[JournalEntry]
-    ) -> MoodAnalysis:
+    async def analyze_mood_patterns(self, entries: List[JournalEntry]) -> MoodAnalysis:
         """Analyze mood patterns related to weather."""
         pass
 
     @abstractmethod
     async def find_weather_correlations(
-        self, 
-        entries: List[JournalEntry]
+        self, entries: List[JournalEntry]
     ) -> Dict[str, Any]:
         """Find correlations between weather and mood/activities."""
         pass
 
     @abstractmethod
     async def generate_insights(
-        self, 
-        entries: List[JournalEntry]
+        self, entries: List[JournalEntry]
     ) -> List[JournalInsight]:
         """Generate insights from journal data."""
         pass
@@ -293,8 +302,7 @@ class ITemplateManager(ABC):
 
     @abstractmethod
     async def get_templates_by_type(
-        self, 
-        entry_type: JournalEntryType
+        self, entry_type: JournalEntryType
     ) -> List[JournalTemplate]:
         """Get templates for a specific entry type."""
         pass
@@ -304,10 +312,7 @@ class IExportManager(ABC):
     """Interface for exporting journal data."""
 
     @abstractmethod
-    async def export_journal(
-        self, 
-        request: JournalExportRequest
-    ) -> bytes:
+    async def export_journal(self, request: JournalExportRequest) -> bytes:
         """Export journal data in specified format."""
         pass
 
@@ -317,10 +322,7 @@ class IExportManager(ABC):
         pass
 
     @abstractmethod
-    async def estimate_export_size(
-        self, 
-        request: JournalExportRequest
-    ) -> int:
+    async def estimate_export_size(self, request: JournalExportRequest) -> int:
         """Estimate size of export in bytes."""
         pass
 
@@ -337,17 +339,13 @@ class IJournalService(ABC):
         weather_snapshot: WeatherSnapshot,
         mood: Optional[WeatherMood] = None,
         tags: Optional[List[str]] = None,
-        **kwargs
+        **kwargs,
     ) -> JournalEntry:
         """Create a new journal entry."""
         pass
 
     @abstractmethod
-    async def update_entry(
-        self,
-        entry_id: str,
-        **updates
-    ) -> Optional[JournalEntry]:
+    async def update_entry(self, entry_id: str, **updates) -> Optional[JournalEntry]:
         """Update an existing journal entry."""
         pass
 
@@ -363,8 +361,7 @@ class IJournalService(ABC):
 
     @abstractmethod
     async def search_entries(
-        self, 
-        request: JournalSearchRequest
+        self, request: JournalSearchRequest
     ) -> JournalSearchResult:
         """Search journal entries."""
         pass
@@ -381,35 +378,25 @@ class IJournalService(ABC):
 
     @abstractmethod
     async def get_weather_summary(
-        self, 
-        start_date: date, 
-        end_date: date
+        self, start_date: date, end_date: date
     ) -> WeatherStatistics:
         """Get weather summary for a date range."""
         pass
 
     @abstractmethod
     async def analyze_mood_trends(
-        self, 
-        start_date: date, 
-        end_date: date
+        self, start_date: date, end_date: date
     ) -> MoodAnalysis:
         """Analyze mood trends for a date range."""
         pass
 
     @abstractmethod
-    async def get_insights(
-        self, 
-        days_back: int = 30
-    ) -> List[JournalInsight]:
+    async def get_insights(self, days_back: int = 30) -> List[JournalInsight]:
         """Get insights from recent journal entries."""
         pass
 
     @abstractmethod
-    async def export_journal(
-        self, 
-        request: JournalExportRequest
-    ) -> bytes:
+    async def export_journal(self, request: JournalExportRequest) -> bytes:
         """Export journal data."""
         pass
 
@@ -420,10 +407,7 @@ class IJournalService(ABC):
 
     @abstractmethod
     async def create_from_template(
-        self,
-        template_id: str,
-        weather_snapshot: WeatherSnapshot,
-        **template_vars
+        self, template_id: str, weather_snapshot: WeatherSnapshot, **template_vars
     ) -> JournalEntry:
         """Create entry from template."""
         pass
@@ -434,19 +418,13 @@ class IJournalService(ABC):
         pass
 
     @abstractmethod
-    async def suggest_tags(
-        self, 
-        content: str, 
-        weather: WeatherSnapshot
-    ) -> List[str]:
+    async def suggest_tags(self, content: str, weather: WeatherSnapshot) -> List[str]:
         """Suggest tags based on content and weather."""
         pass
 
     @abstractmethod
     async def get_memory_for_date(
-        self, 
-        target_date: date, 
-        years_back: int = 5
+        self, target_date: date, years_back: int = 5
     ) -> List[JournalEntry]:
         """Get entries from the same date in previous years."""
         pass

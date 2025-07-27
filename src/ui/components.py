@@ -10,15 +10,9 @@ import tkinter.font as tkFont
 from tkinter import ttk
 
 import ttkbootstrap as ttk_bs
-from ttkbootstrap.constants import DANGER
-from ttkbootstrap.constants import DARK
-from ttkbootstrap.constants import INFO
-from ttkbootstrap.constants import LIGHT
-from ttkbootstrap.constants import PRIMARY
-from ttkbootstrap.constants import SECONDARY
+from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
 
-from src.services.sound_service import SoundType
-from src.services.sound_service import play_sound
+from src.services.sound_service import SoundType, play_sound
 
 from .styling import GlassmorphicStyle
 

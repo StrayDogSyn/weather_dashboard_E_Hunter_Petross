@@ -10,14 +10,9 @@ import asyncio
 import logging
 import threading
 import tkinter as tk
-from datetime import datetime
-from datetime import timedelta
-from tkinter import messagebox
-from tkinter import ttk
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from datetime import datetime, timedelta
+from tkinter import messagebox, ttk
+from typing import Any, Dict, List, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,8 +20,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 from ..models.predictive_models import PredictionResult
-from ..services.model_integration_service import IntegratedForecast
-from ..services.model_integration_service import ModelIntegrationService
+from ..services.model_integration_service import (
+    IntegratedForecast,
+    ModelIntegrationService,
+)
 from .components.responsive_layout import ResponsiveSpacing
 
 

@@ -1,21 +1,13 @@
 """Weather poetry models and generation."""
 
 import json
-from dataclasses import asdict
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import auto
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from uuid import UUID
-from uuid import uuid4
+from typing import Any, Dict, List, Optional
+from uuid import UUID, uuid4
 
-from .base import AIEnhancedModel
-from .base import ExtensibleEnum
-from .base import ModelProtocol
+from .base import AIEnhancedModel, ExtensibleEnum, ModelProtocol
 
 
 class PoemType(ExtensibleEnum):
@@ -225,21 +217,21 @@ class WeatherPoem(AIEnhancedModel, ModelProtocol):
         """Generate AI prompt for poem analysis."""
         return f"""
         Analyze this weather-inspired poem and provide insights:
-        
+
         Poem Type: {self.poem_type.value}
         Weather Context: {self.weather_condition}, {self.temperature_range.value}
         Location: {self.location_context or 'General'}
-        
+
         Poem Text:
         {self.formatted_text}
-        
+
         Please provide:
         1. Literary analysis of the poem's effectiveness
         2. Assessment of how well it captures the weather mood
         3. Suggestions for improvement or variation
         4. Literary devices used (metaphor, alliteration, etc.)
         5. Overall emotional impact and imagery
-        
+
         Keep the analysis constructive and educational.
         """
 

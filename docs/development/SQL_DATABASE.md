@@ -1,6 +1,7 @@
 # SQL Database Integration
 
-The Weather Dashboard uses SQLite for robust data management, offering improved performance, data integrity, and advanced querying capabilities.
+The Weather Dashboard uses SQLite for robust data management, offering improved performance, data integrity,
+and advanced querying capabilities.
 
 ## Overview
 
@@ -265,4 +266,5 @@ If you encounter any issues with the SQL database integration:
 3. Ensure all dependencies are installed correctly
 4. Review the troubleshooting section above
 
-The SQL database integration provides a robust foundation for the Weather Dashboard while maintaining simplicity and ease of use.
+The SQL database integration provides a robust foundation for the Weather Dashboard while maintaining
+simplicity and ease of use.
