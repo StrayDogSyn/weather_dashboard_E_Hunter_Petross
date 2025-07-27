@@ -172,7 +172,6 @@ weather_dashboard_E_Hunter_Petross/
 ├── 📄 setup.cfg                 # Setup configuration
 ├── 📄 settings.json             # Application settings
 ├── 📁 src/                      # Source code directory
-│   ├── 📄 app_gui.py            # Main GUI controller
 │   ├── 📁 application/          # Application layer
 │   │   ├── 📄 app_factory.py    # Application factory
 │   │   └── 📄 dependency_container.py # Dependency injection

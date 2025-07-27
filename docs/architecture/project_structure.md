@@ -27,7 +27,6 @@ weather_dashboard_E_Hunter_Petross/
 │   └── 📄 Week13_Reflection.md  # Latest progress reflection
 ├── 📁 src/                      # Source code directory
 │   ├── 📄 __init__.py
-│   ├── 📄 app_gui.py            # Main GUI application controller
 │   ├── 📁 ui/                   # User interface layer (refactored architecture)
 │   │   ├── 📄 __init__.py
 │   │   ├── 📄 gui_interface.py  # Main GUI orchestrator (649 lines, 82% reduction)

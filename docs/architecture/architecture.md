@@ -19,7 +19,6 @@ The Weather Dashboard implements Clean Architecture principles with clear separa
 weather_dashboard_E_Hunter_Petross/
 ├── src/                          # Source code with clean architecture
 │   ├── __init__.py              # Main package initialization
-│   ├── app_gui.py               # Main GUI application controller
 │   ├── config/                  # Configuration management
 │   │   ├── __init__.py
 │   │   └── config.py           # Environment-based configuration
@@ -143,8 +142,8 @@ weather_dashboard_E_Hunter_Petross/
 - `src/ui/animations/`: Animation effects and transitions
 - `src/ui/components/`: Specialized UI components (weather cards, search panels, headers)
 - `src/ui/dialogs/`: Dialog windows and modal interfaces
-- `src/app_gui.py`: GUI application controller/orchestrator
-- `main.py`: Application entry point with GUI launcher
+- `src/presentation/gui_app.py`: Clean architecture GUI application with dependency injection
+- `main.py`: Application entry point with clean architecture factory pattern
 
 ## Key Features Implemented
 
