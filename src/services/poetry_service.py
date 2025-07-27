@@ -25,8 +25,8 @@ from ..interfaces.poetry_interfaces import (
     PoetryMood,
     PoetryGenerationConfig
 )
-from ..models.weather import CurrentWeather, WeatherCondition
-from ..core.exceptions import ServiceError, ValidationError
+from ..models.weather_models import CurrentWeather, WeatherCondition
+from ..shared.exceptions import ServiceError, ValidationError
 
 
 class PoetryCache(IPoetryCache):
@@ -80,6 +80,51 @@ class PoetryCache(IPoetryCache):
         """Clear all cached entries."""
         self._cache.clear()
         self.logger.info("Poetry cache cleared")
+    
+    # Interface methods required by IPoetryCache
+    async def get_cached_poem(
+        self, weather_key: str, style: PoetryStyle, mood: PoetryMood
+    ) -> Optional[PoetryResponse]:
+        """Retrieve cached poem for weather conditions and style."""
+        # Create a mock request to use existing get method
+        from dataclasses import dataclass
+        @dataclass
+        class MockRequest:
+            location: str = weather_key
+            style: PoetryStyle = style
+            mood: PoetryMood = mood
+            weather_condition: str = ""
+        
+        return await self.get(MockRequest())
+    
+    async def cache_poem(
+        self, weather_key: str, style: PoetryStyle, mood: PoetryMood, 
+        response: PoetryResponse, ttl: int = 3600
+    ) -> bool:
+        """Cache generated poem."""
+        try:
+            from dataclasses import dataclass
+            @dataclass
+            class MockRequest:
+                location: str = weather_key
+                style: PoetryStyle = style
+                mood: PoetryMood = mood
+                weather_condition: str = ""
+            
+            await self.set(MockRequest(), response)
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to cache poem: {e}")
+            return False
+    
+    async def clear_cache(self) -> bool:
+        """Clear all cached poems."""
+        try:
+            await self.clear()
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to clear cache: {e}")
+            return False
 
 
 class AzureOpenAIPoetryGenerator(IPoetryGenerator):
@@ -90,17 +135,22 @@ class AzureOpenAIPoetryGenerator(IPoetryGenerator):
         self.logger = logging.getLogger(__name__)
         
         # Initialize Azure OpenAI client
-        if not config.azure_openai_endpoint or not config.azure_openai_key:
-            raise ValidationError("Azure OpenAI endpoint and key are required")
-        
-        self.client = AsyncAzureOpenAI(
-            azure_endpoint=config.azure_openai_endpoint,
-            api_key=config.azure_openai_key,
-            api_version=config.azure_openai_api_version
-        )
+        if not hasattr(config, 'azure_openai_endpoint') or not hasattr(config, 'azure_openai_key'):
+            # Use fallback values for basic functionality
+            self.client = None
+            self.logger.warning("Azure OpenAI credentials not configured, using template fallback")
+        else:
+            self.client = AsyncAzureOpenAI(
+                azure_endpoint=config.azure_openai_endpoint,
+                api_key=config.azure_openai_key,
+                api_version=getattr(config, 'azure_openai_api_version', '2024-02-15-preview')
+            )
     
     async def generate_poem(self, request: PoetryRequest) -> PoetryResponse:
         """Generate a poem using Azure OpenAI."""
+        if not self.client:
+            raise ServiceError("Azure OpenAI client not configured")
+            
         try:
             prompt = self._build_prompt(request)
             
@@ -204,6 +254,48 @@ class AzureOpenAIPoetryGenerator(IPoetryGenerator):
         ])
         
         return "\n".join(prompt_parts)
+    
+    # Additional interface methods required by IPoetryGenerator
+    async def generate_weather_haiku(self, weather_data) -> Optional[str]:
+        """Generate a simple haiku for weather data."""
+        try:
+            # Create a haiku request
+            request = PoetryRequest(
+                weather_data=weather_data,
+                style=PoetryStyle.HAIKU,
+                mood=PoetryMood.PEACEFUL
+            )
+            response = await self.generate_poem(request)
+            return response.poem if response else None
+        except Exception as e:
+            self.logger.error(f"Failed to generate haiku: {e}")
+            return None
+    
+    async def get_available_styles(self) -> List[PoetryStyle]:
+        """Get list of supported poetry styles."""
+        return list(PoetryStyle)
+    
+    async def validate_request(self, request: PoetryRequest) -> bool:
+        """Validate poetry generation request."""
+        try:
+            return (
+                request.weather_data is not None and
+                isinstance(request.style, PoetryStyle) and
+                isinstance(request.mood, PoetryMood)
+            )
+        except Exception:
+            return False
+    
+    async def get_generation_stats(self) -> Dict[str, Any]:
+        """Get statistics about poetry generation usage."""
+        return {
+            "generator_type": "azure_openai",
+            "model_name": self.config.model_name,
+            "temperature": self.config.temperature,
+            "max_tokens": self.config.max_tokens,
+            "available_styles": [style.value for style in PoetryStyle],
+            "available_moods": [mood.value for mood in PoetryMood]
+        }
 
 
 class TemplatePoetryGenerator(IPoetryGenerator):
@@ -276,6 +368,44 @@ class TemplatePoetryGenerator(IPoetryGenerator):
             return f"Weather in {request.location[:10]}\nBrings its own special beauty\nNature's gift to us"
         else:
             return f"The weather in {request.location} today brings its own special charm."
+    
+    # Additional interface methods required by IPoetryGenerator
+    async def generate_weather_haiku(self, weather_data) -> Optional[str]:
+        """Generate a simple haiku for weather data."""
+        try:
+            request = PoetryRequest(
+                weather_data=weather_data,
+                style=PoetryStyle.HAIKU,
+                mood=PoetryMood.PEACEFUL
+            )
+            response = await self.generate_poem(request)
+            return response.poem if response else None
+        except Exception as e:
+            self.logger.error(f"Failed to generate haiku: {e}")
+            return None
+    
+    async def get_available_styles(self) -> List[PoetryStyle]:
+        """Get list of supported poetry styles."""
+        return list(self.templates.keys())
+    
+    async def validate_request(self, request: PoetryRequest) -> bool:
+        """Validate poetry generation request."""
+        try:
+            return (
+                request.weather_data is not None and
+                isinstance(request.style, PoetryStyle) and
+                isinstance(request.mood, PoetryMood)
+            )
+        except Exception:
+            return False
+    
+    async def get_generation_stats(self) -> Dict[str, Any]:
+        """Get statistics about poetry generation usage."""
+        return {
+            "generator_type": "template",
+            "available_styles": list(self.templates.keys()),
+            "template_count": sum(len(templates) for templates in self.templates.values())
+        }
 
 
 class PoetryService(IPoetryService):
@@ -289,6 +419,10 @@ class PoetryService(IPoetryService):
         self.cache = PoetryCache()
         self.ai_generator = AzureOpenAIPoetryGenerator(config)
         self.template_generator = TemplatePoetryGenerator()
+        
+        # Storage for poem history and favorites
+        self._poem_history: List[PoetryResponse] = []
+        self._favorite_poems: List[PoetryResponse] = []
     
     async def generate_poetry(self, request: PoetryRequest) -> PoetryResponse:
         """Generate weather-inspired poetry."""
@@ -304,7 +438,8 @@ class PoetryService(IPoetryService):
             
             # Try AI generation first
             response = None
-            if self.config.use_ai_generation:
+            use_ai = getattr(self.config, 'use_ai_generation', False)
+            if use_ai:
                 try:
                     response = await self.ai_generator.generate_poem(request)
                     self.logger.info(f"Generated AI poetry for {request.location}")
@@ -365,6 +500,89 @@ class PoetryService(IPoetryService):
         await self.cache.clear()
         self.logger.info("Poetry cache cleared")
     
+    # Implementation of IPoetryService abstract methods
+    async def create_weather_poem(
+        self, weather_data, style: PoetryStyle = PoetryStyle.FREE_VERSE,
+        mood: PoetryMood = PoetryMood.PEACEFUL, use_cache: bool = True
+    ) -> Optional[PoetryResponse]:
+        """Create a weather-inspired poem."""
+        try:
+            # Convert weather_data to PoetryRequest
+            request = PoetryRequest(
+                location=getattr(weather_data, 'location', 'Unknown'),
+                weather_condition=getattr(weather_data, 'condition', 'clear'),
+                temperature=getattr(weather_data, 'temperature', 20),
+                style=style,
+                mood=mood
+            )
+            
+            response = await self.generate_poetry(request)
+            
+            # Add to history
+            self._poem_history.append(response)
+            
+            return response
+        except Exception as e:
+            self.logger.error(f"Failed to create weather poem: {e}")
+            return None
+    
+    async def create_daily_weather_haiku(self, weather_data) -> Optional[str]:
+        """Create a simple daily weather haiku."""
+        try:
+            request = PoetryRequest(
+                location=getattr(weather_data, 'location', 'Unknown'),
+                weather_condition=getattr(weather_data, 'condition', 'clear'),
+                temperature=getattr(weather_data, 'temperature', 20),
+                style=PoetryStyle.HAIKU,
+                mood=PoetryMood.PEACEFUL
+            )
+            
+            response = await self.generate_poetry(request)
+            return response.poem if response else None
+        except Exception as e:
+            self.logger.error(f"Failed to create daily haiku: {e}")
+            return None
+    
+    async def get_poem_history(
+        self, location: Optional[str] = None, limit: int = 10
+    ) -> List[PoetryResponse]:
+        """Get history of generated poems."""
+        history = self._poem_history
+        
+        # Filter by location if specified
+        if location:
+            history = [p for p in history if p.location.lower() == location.lower()]
+        
+        # Apply limit
+        return history[-limit:] if limit > 0 else history
+    
+    async def save_favorite_poem(self, poem_id: str, user_notes: Optional[str] = None) -> bool:
+        """Save a poem as favorite."""
+        try:
+            # Find poem in history by ID (using generated_at as ID for simplicity)
+            for poem in self._poem_history:
+                if str(poem.generated_at) == poem_id:
+                    # Add user notes to metadata if provided
+                    if user_notes:
+                        poem.metadata['user_notes'] = user_notes
+                    
+                    # Add to favorites if not already there
+                    if poem not in self._favorite_poems:
+                        self._favorite_poems.append(poem)
+                    
+                    self.logger.info(f"Saved poem as favorite: {poem_id}")
+                    return True
+            
+            self.logger.warning(f"Poem not found for ID: {poem_id}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Failed to save favorite poem: {e}")
+            return False
+    
+    async def get_favorite_poems(self) -> List[PoetryResponse]:
+        """Get user's favorite poems."""
+        return self._favorite_poems.copy()
+    
     def _validate_request(self, request: PoetryRequest) -> None:
         """Validate poetry request."""
         if not request.location or len(request.location.strip()) == 0:
@@ -393,3 +611,7 @@ def create_poetry_service(azure_openai_endpoint: str,
         use_ai_generation=use_ai_generation
     )
     return PoetryService(config)
+
+
+# Alias for backward compatibility
+WeatherPoetryService = PoetryService

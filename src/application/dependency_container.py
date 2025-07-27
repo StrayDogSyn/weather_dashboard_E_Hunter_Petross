@@ -101,7 +101,14 @@ class DependencyContainer:
         self._singletons["activity_service"] = ActivitySuggestionService()
 
         # Poetry service
-        self._singletons["poetry_service"] = WeatherPoetryService()
+        from ..interfaces.poetry_interfaces import PoetryGenerationConfig
+        poetry_config = PoetryGenerationConfig(
+            api_key="",  # Will be configured later or use environment variable
+            model_name="gpt-4",
+            max_tokens=500,
+            temperature=0.8
+        )
+        self._singletons["poetry_service"] = WeatherPoetryService(poetry_config)
 
     def _register_infrastructure_services(self) -> None:
         """Register infrastructure services."""

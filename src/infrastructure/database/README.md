@@ -1,10 +1,11 @@
 # Weather Dashboard - Data Storage and Caching Layer
 
-A comprehensive data storage and caching solution built with SQLite for persistence and Redis for high-performance caching, following the Repository pattern and implementing cache-aside strategies.
+A comprehensive data storage and caching solution built with SQLite for persistence and Redis for
+high-performance caching, following the Repository pattern and implementing cache-aside strategies.
 
 ## Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Service Layer                            │
 │  (WeatherService, JournalService, ActivityService, etc.)    │
@@ -551,6 +552,8 @@ config.slow_query_threshold = 0.1  # Log queries > 100ms
 
 ---
 
-**Built with ❤️ for the Weather Dashboard project**
+## Built with ❤️ for the Weather Dashboard project
 
-This data storage and caching layer provides a solid foundation for building scalable, high-performance weather applications with proper separation of concerns and enterprise-grade reliability.
+This data storage and caching layer provides a solid foundation for building scalable,
+high-performance weather applications with proper separation of concerns and enterprise-grade
+reliability.
