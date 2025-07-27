@@ -35,48 +35,41 @@ from ..models.weather_models import (
 
 class TeamDataConfig(BaseModel):
     """Configuration model for team data service."""
-    
+
     model_config = ConfigDict(frozen=True)
-    
+
     github_repo_base: str = Field(
         default="https://raw.githubusercontent.com/StrayDogSyn/New_Team_Dashboard/main/exports",
-        description="Base URL for GitHub repository exports"
+        description="Base URL for GitHub repository exports",
     )
     csv_filename: str = Field(
         default="team_weather_data_20250717_204218.csv",
-        description="CSV filename for weather data"
+        description="CSV filename for weather data",
     )
     json_filename: str = Field(
         default="team_compare_cities_data_20250717_204218.json",
-        description="JSON filename for analysis data"
+        description="JSON filename for analysis data",
     )
     cache_ttl_seconds: int = Field(
-        default=3600,
-        description="Cache time-to-live in seconds"
+        default=3600, description="Cache time-to-live in seconds"
     )
-    max_retries: int = Field(
-        default=3,
-        description="Maximum number of retry attempts"
-    )
-    request_timeout: int = Field(
-        default=30,
-        description="Request timeout in seconds"
-    )
-    
-    @validator('cache_ttl_seconds')
+    max_retries: int = Field(default=3, description="Maximum number of retry attempts")
+    request_timeout: int = Field(default=30, description="Request timeout in seconds")
+
+    @validator("cache_ttl_seconds")
     def validate_cache_ttl(cls, v):
         if v < 60:
-            raise ValueError('Cache TTL must be at least 60 seconds')
+            raise ValueError("Cache TTL must be at least 60 seconds")
         return v
 
 
 class CacheEntry(BaseModel):
     """Cache entry with timestamp for TTL validation."""
-    
+
     data: Any
     timestamp: datetime
     ttl_seconds: int
-    
+
     @property
     def is_expired(self) -> bool:
         return datetime.now() - self.timestamp > timedelta(seconds=self.ttl_seconds)
@@ -84,7 +77,7 @@ class CacheEntry(BaseModel):
 
 class DataValidator:
     """Validates and cleans team data."""
-    
+
     @staticmethod
     def safe_float(val: Any, default: float = 0.0) -> float:
         """Safely convert value to float with default fallback."""
@@ -94,7 +87,7 @@ class DataValidator:
             return float(val)
         except (TypeError, ValueError, AttributeError):
             return default
-    
+
     @staticmethod
     def safe_int(val: Any, default: int = 0) -> int:
         """Safely convert value to int with default fallback."""
@@ -104,35 +97,35 @@ class DataValidator:
             return int(float(val))
         except (TypeError, ValueError, AttributeError):
             return default
-    
+
     @staticmethod
     def validate_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         """Validate and clean DataFrame with required columns."""
-        required_columns = ['city']
+        required_columns = ["city"]
         missing_cols = [col for col in required_columns if col not in df.columns]
         if missing_cols:
             raise ValueError(f"Missing required columns: {missing_cols}")
-        
+
         # Clean and standardize data
         df = df.copy()
-        if 'city' in df.columns:
-            df['city'] = df['city'].astype(str).str.strip()
-        
+        if "city" in df.columns:
+            df["city"] = df["city"].astype(str).str.strip()
+
         # Handle timestamp column
-        if 'timestamp' in df.columns:
+        if "timestamp" in df.columns:
             try:
-                df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
+                df["timestamp"] = pd.to_datetime(df["timestamp"], errors="coerce")
             except Exception:
-                df['timestamp'] = pd.to_datetime(datetime.now())
+                df["timestamp"] = pd.to_datetime(datetime.now())
         else:
-            df['timestamp'] = pd.to_datetime(datetime.now())
-        
+            df["timestamp"] = pd.to_datetime(datetime.now())
+
         return df
 
 
 class OptimizedTeamDataService:
     """High-performance service for loading and processing team weather data.
-    
+
     Features:
     - Intelligent caching with TTL
     - Async support for better scalability
@@ -144,75 +137,75 @@ class OptimizedTeamDataService:
 
     def __init__(self, config: Optional[TeamDataConfig] = None):
         """Initialize the optimized team data service.
-        
+
         Args:
             config: Configuration object, uses defaults if None
         """
         self.config = config or TeamDataConfig()
         self.logger = logging.getLogger(__name__)
-        
+
         # Setup directories
         self.exports_dir = Path(__file__).parent.parent.parent / "exports"
         self.exports_dir.mkdir(exist_ok=True)
-        
+
         # Initialize caches
         self._cache: Dict[str, CacheEntry] = {}
         self._lock = asyncio.Lock()
-        
+
         # Metrics
         self._metrics = {
-            'cache_hits': 0,
-            'cache_misses': 0,
-            'download_attempts': 0,
-            'download_successes': 0,
-            'errors': 0
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "download_attempts": 0,
+            "download_successes": 0,
+            "errors": 0,
         }
-        
+
         # Thread pool for I/O operations
         self._executor = ThreadPoolExecutor(max_workers=4)
-        
+
         self.logger.info("OptimizedTeamDataService initialized with caching enabled")
-    
+
     def get_metrics(self) -> Dict[str, Any]:
         """Get service performance metrics."""
-        cache_total = self._metrics['cache_hits'] + self._metrics['cache_misses']
-        hit_rate = self._metrics['cache_hits'] / cache_total if cache_total > 0 else 0
-        
+        cache_total = self._metrics["cache_hits"] + self._metrics["cache_misses"]
+        hit_rate = self._metrics["cache_hits"] / cache_total if cache_total > 0 else 0
+
         return {
             **self._metrics,
-            'cache_hit_rate': hit_rate,
-            'cache_size': len(self._cache),
-            'config': self.config.model_dump()
+            "cache_hit_rate": hit_rate,
+            "cache_size": len(self._cache),
+            "config": self.config.model_dump(),
         }
-    
+
     async def _get_cached_or_fetch(self, key: str, fetch_func) -> Any:
         """Get data from cache or fetch using provided function."""
         async with self._lock:
             # Check cache first
             if key in self._cache and not self._cache[key].is_expired:
-                self._metrics['cache_hits'] += 1
+                self._metrics["cache_hits"] += 1
                 self.logger.debug(f"Cache hit for key: {key}")
                 return self._cache[key].data
-            
+
             # Cache miss or expired
-            self._metrics['cache_misses'] += 1
+            self._metrics["cache_misses"] += 1
             self.logger.debug(f"Cache miss for key: {key}")
-            
+
             try:
                 # Fetch new data
                 data = await fetch_func()
-                
+
                 # Cache the result
                 self._cache[key] = CacheEntry(
                     data=data,
                     timestamp=datetime.now(),
-                    ttl_seconds=self.config.cache_ttl_seconds
+                    ttl_seconds=self.config.cache_ttl_seconds,
                 )
-                
+
                 return data
-                
+
             except Exception as e:
-                self._metrics['errors'] += 1
+                self._metrics["errors"] += 1
                 self.logger.error(f"Failed to fetch data for key {key}: {e}")
                 raise
 
@@ -220,42 +213,44 @@ class OptimizedTeamDataService:
         """Download file with exponential backoff retry logic."""
         for attempt in range(self.config.max_retries):
             try:
-                self._metrics['download_attempts'] += 1
-                
+                self._metrics["download_attempts"] += 1
+
                 # Create request with proper headers
                 request = Request(url)
-                request.add_header('User-Agent', 'WeatherDashboard/1.0')
-                
+                request.add_header("User-Agent", "WeatherDashboard/1.0")
+
                 with urlopen(request, timeout=self.config.request_timeout) as response:
                     local_path.write_bytes(response.read())
-                
-                self._metrics['download_successes'] += 1
+
+                self._metrics["download_successes"] += 1
                 self.logger.info(f"Successfully downloaded: {url}")
                 return True
-                
+
             except (HTTPError, URLError, OSError) as e:
-                wait_time = 2 ** attempt
+                wait_time = 2**attempt
                 self.logger.warning(
                     f"Download attempt {attempt + 1} failed for {url}: {e}. "
                     f"Retrying in {wait_time}s..."
                 )
-                
+
                 if attempt < self.config.max_retries - 1:
                     await asyncio.sleep(wait_time)
                 else:
-                    self.logger.error(f"Failed to download {url} after {self.config.max_retries} attempts")
+                    self.logger.error(
+                        f"Failed to download {url} after {self.config.max_retries} attempts"
+                    )
                     return False
-        
+
         return False
-    
+
     async def _load_csv_data(self) -> pd.DataFrame:
         """Load and validate CSV data with fallback to local files."""
         csv_url = f"{self.config.github_repo_base}/{self.config.csv_filename}"
         csv_local_path = self.exports_dir / self.config.csv_filename
-        
+
         # Try to download from GitHub
         download_success = await self._download_with_retry(csv_url, csv_local_path)
-        
+
         # If download failed, try local files
         if not download_success:
             local_csv_files = list(self.exports_dir.glob("team_weather_data_*.csv"))
@@ -264,94 +259,96 @@ class OptimizedTeamDataService:
                 self.logger.info(f"Using local CSV file: {csv_local_path}")
             else:
                 raise FileNotFoundError("No CSV data available locally or remotely")
-        
+
         # Load and validate data
         df = await asyncio.get_event_loop().run_in_executor(
             self._executor, pd.read_csv, csv_local_path
         )
-        
+
         return DataValidator.validate_dataframe(df)
-    
+
     async def _load_json_data(self) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         """Load and validate JSON analysis data with fallback to local files."""
         json_url = f"{self.config.github_repo_base}/{self.config.json_filename}"
         json_local_path = self.exports_dir / self.config.json_filename
-        
+
         # Try to download from GitHub
         download_success = await self._download_with_retry(json_url, json_local_path)
-        
+
         # If download failed, try local files
         if not download_success:
-            local_json_files = list(self.exports_dir.glob("team_compare_cities_data_*.json"))
+            local_json_files = list(
+                self.exports_dir.glob("team_compare_cities_data_*.json")
+            )
             if local_json_files:
                 json_local_path = max(local_json_files, key=lambda p: p.stat().st_ctime)
                 self.logger.info(f"Using local JSON file: {json_local_path}")
             else:
                 self.logger.warning("No JSON analysis data available")
                 return {}, {}
-        
+
         # Load JSON data
         def load_json():
-            with open(json_local_path, 'r', encoding='utf-8') as f:
+            with open(json_local_path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        
+
         analysis_data = await asyncio.get_event_loop().run_in_executor(
             self._executor, load_json
         )
-        
+
         cities_analysis = analysis_data.get("cities_analysis", {})
         team_summary = analysis_data.get("team_summary", {})
-        
+
         return cities_analysis, team_summary
-    
+
     async def load_team_data(self) -> bool:
         """Load team weather data with async support and caching.
-        
+
         Returns:
             True if data was loaded successfully, False otherwise
         """
         try:
             # Load CSV and JSON data concurrently
-            csv_task = self._get_cached_or_fetch('csv_data', self._load_csv_data)
-            json_task = self._get_cached_or_fetch('json_data', self._load_json_data)
-            
+            csv_task = self._get_cached_or_fetch("csv_data", self._load_csv_data)
+            json_task = self._get_cached_or_fetch("json_data", self._load_json_data)
+
             csv_data, (cities_analysis, team_summary) = await asyncio.gather(
                 csv_task, json_task, return_exceptions=True
             )
-            
+
             # Handle any exceptions
             if isinstance(csv_data, Exception):
                 self.logger.error(f"Failed to load CSV data: {csv_data}")
                 return False
-            
+
             if isinstance(cities_analysis, Exception):
                 self.logger.warning(f"Failed to load JSON data: {cities_analysis}")
                 cities_analysis, team_summary = {}, {}
-            
+
             # Cache individual components for faster access
-            self._cache['team_data'] = CacheEntry(
+            self._cache["team_data"] = CacheEntry(
                 data=csv_data,
                 timestamp=datetime.now(),
-                ttl_seconds=self.config.cache_ttl_seconds
+                ttl_seconds=self.config.cache_ttl_seconds,
             )
-            
-            self._cache['cities_analysis'] = CacheEntry(
+
+            self._cache["cities_analysis"] = CacheEntry(
                 data=cities_analysis,
                 timestamp=datetime.now(),
-                ttl_seconds=self.config.cache_ttl_seconds
+                ttl_seconds=self.config.cache_ttl_seconds,
             )
-            
-            self._cache['team_summary'] = CacheEntry(
+
+            self._cache["team_summary"] = CacheEntry(
                 data=team_summary,
                 timestamp=datetime.now(),
-                ttl_seconds=self.config.cache_ttl_seconds
+                ttl_seconds=self.config.cache_ttl_seconds,
             )
-            
+
             self.logger.info("Team data loaded successfully")
             return True
-            
+
         except Exception as e:
-            self._metrics['errors'] += 1
+            self._metrics["errors"] += 1
             self.logger.error(f"Error loading team data: {e}")
             return False
 
@@ -368,10 +365,12 @@ class OptimizedTeamDataService:
         """
         try:
             # Ensure data is loaded
-            team_data = await self._get_cached_or_fetch('team_data', self._load_csv_data)
-            
+            team_data = await self._get_cached_or_fetch(
+                "team_data", self._load_csv_data
+            )
+
             # Search for city (case-insensitive, optimized)
-            city_mask = team_data['city'].str.lower() == city_name.lower()
+            city_mask = team_data["city"].str.lower() == city_name.lower()
             city_data = team_data[city_mask]
 
             if city_data.empty:
@@ -379,20 +378,20 @@ class OptimizedTeamDataService:
                 return None
 
             # Get most recent data efficiently
-            if 'timestamp' in city_data.columns:
-                latest_data = city_data.loc[city_data['timestamp'].idxmax()]
+            if "timestamp" in city_data.columns:
+                latest_data = city_data.loc[city_data["timestamp"].idxmax()]
             else:
                 latest_data = city_data.iloc[-1]
 
             # Extract and validate data using optimized validators
             location = Location(
-                name=str(latest_data['city']),
-                country=str(latest_data.get('country', 'Unknown')),
-                latitude=DataValidator.safe_float(latest_data.get('latitude'), 0.0),
-                longitude=DataValidator.safe_float(latest_data.get('longitude'), 0.0),
+                name=str(latest_data["city"]),
+                country=str(latest_data.get("country", "Unknown")),
+                latitude=DataValidator.safe_float(latest_data.get("latitude"), 0.0),
+                longitude=DataValidator.safe_float(latest_data.get("longitude"), 0.0),
             )
 
-            temp_value = DataValidator.safe_float(latest_data.get('temperature'), 0.0)
+            temp_value = DataValidator.safe_float(latest_data.get("temperature"), 0.0)
             temperature = Temperature(
                 value=temp_value,
                 unit=TemperatureUnit.CELSIUS,
@@ -400,24 +399,24 @@ class OptimizedTeamDataService:
             )
 
             pressure = AtmosphericPressure(
-                value=DataValidator.safe_float(latest_data.get('pressure'), 1013.25)
+                value=DataValidator.safe_float(latest_data.get("pressure"), 1013.25)
             )
 
             wind = Wind(
-                speed=DataValidator.safe_float(latest_data.get('wind_speed'), 0.0),
-                direction=DataValidator.safe_int(latest_data.get('wind_direction'), 0),
+                speed=DataValidator.safe_float(latest_data.get("wind_speed"), 0.0),
+                direction=DataValidator.safe_int(latest_data.get("wind_direction"), 0),
             )
 
-            condition_str = str(latest_data.get('condition', 'clear')).lower()
+            condition_str = str(latest_data.get("condition", "clear")).lower()
             condition = self._map_condition_string(condition_str)
 
-            humidity = DataValidator.safe_int(latest_data.get('humidity'), 50)
+            humidity = DataValidator.safe_int(latest_data.get("humidity"), 50)
 
             weather = CurrentWeather(
                 location=location,
                 temperature=temperature,
                 condition=condition,
-                description=str(latest_data.get('description', condition_str.title())),
+                description=str(latest_data.get("description", condition_str.title())),
                 humidity=humidity,
                 pressure=pressure,
                 wind=wind,
@@ -428,7 +427,7 @@ class OptimizedTeamDataService:
             return weather
 
         except Exception as e:
-            self._metrics['errors'] += 1
+            self._metrics["errors"] += 1
             self.logger.error(f"Error creating weather data for {city_name}: {e}")
             return None
 
@@ -443,22 +442,22 @@ class OptimizedTeamDataService:
             Corresponding WeatherCondition enum value
         """
         condition_mapping = {
-            'clear': WeatherCondition.CLEAR,
-            'sunny': WeatherCondition.CLEAR,
-            'clouds': WeatherCondition.CLOUDS,
-            'cloudy': WeatherCondition.CLOUDS,
-            'partly cloudy': WeatherCondition.CLOUDS,
-            'overcast': WeatherCondition.CLOUDS,
-            'rain': WeatherCondition.RAIN,
-            'rainy': WeatherCondition.RAIN,
-            'drizzle': WeatherCondition.DRIZZLE,
-            'snow': WeatherCondition.SNOW,
-            'snowy': WeatherCondition.SNOW,
-            'thunderstorm': WeatherCondition.THUNDERSTORM,
-            'storm': WeatherCondition.THUNDERSTORM,
-            'mist': WeatherCondition.MIST,
-            'fog': WeatherCondition.MIST,
-            'haze': WeatherCondition.MIST,
+            "clear": WeatherCondition.CLEAR,
+            "sunny": WeatherCondition.CLEAR,
+            "clouds": WeatherCondition.CLOUDS,
+            "cloudy": WeatherCondition.CLOUDS,
+            "partly cloudy": WeatherCondition.CLOUDS,
+            "overcast": WeatherCondition.CLOUDS,
+            "rain": WeatherCondition.RAIN,
+            "rainy": WeatherCondition.RAIN,
+            "drizzle": WeatherCondition.DRIZZLE,
+            "snow": WeatherCondition.SNOW,
+            "snowy": WeatherCondition.SNOW,
+            "thunderstorm": WeatherCondition.THUNDERSTORM,
+            "storm": WeatherCondition.THUNDERSTORM,
+            "mist": WeatherCondition.MIST,
+            "fog": WeatherCondition.MIST,
+            "haze": WeatherCondition.MIST,
         }
 
         return condition_mapping.get(condition_str.lower(), WeatherCondition.CLEAR)
@@ -470,11 +469,13 @@ class OptimizedTeamDataService:
             List of city names
         """
         try:
-            team_data = await self._get_cached_or_fetch('team_data', self._load_csv_data)
-            cities = sorted(team_data['city'].unique().tolist())
+            team_data = await self._get_cached_or_fetch(
+                "team_data", self._load_csv_data
+            )
+            cities = sorted(team_data["city"].unique().tolist())
             return cities
         except Exception as e:
-            self._metrics['errors'] += 1
+            self._metrics["errors"] += 1
             self.logger.error(f"Error getting available cities: {e}")
             return []
 
@@ -485,10 +486,12 @@ class OptimizedTeamDataService:
             Dictionary containing team summary data
         """
         try:
-            _, team_summary = await self._get_cached_or_fetch('json_data', self._load_json_data)
+            _, team_summary = await self._get_cached_or_fetch(
+                "json_data", self._load_json_data
+            )
             return team_summary
         except Exception as e:
-            self._metrics['errors'] += 1
+            self._metrics["errors"] += 1
             self.logger.error(f"Error getting team summary: {e}")
             return {}
 
@@ -499,10 +502,12 @@ class OptimizedTeamDataService:
             Dictionary containing cities analysis data
         """
         try:
-            cities_analysis, _ = await self._get_cached_or_fetch('json_data', self._load_json_data)
+            cities_analysis, _ = await self._get_cached_or_fetch(
+                "json_data", self._load_json_data
+            )
             return cities_analysis
         except Exception as e:
-            self._metrics['errors'] += 1
+            self._metrics["errors"] += 1
             self.logger.error(f"Error getting cities analysis: {e}")
             return {}
 
@@ -523,9 +528,9 @@ class OptimizedTeamDataService:
             if success:
                 self.logger.info("Team data refreshed successfully")
             return success
-            
+
         except Exception as e:
-            self._metrics['errors'] += 1
+            self._metrics["errors"] += 1
             self.logger.error(f"Error refreshing team data: {e}")
             return False
 
@@ -536,54 +541,54 @@ class OptimizedTeamDataService:
             Dictionary with repository information
         """
         return {
-            'repository': 'StrayDogSyn/New_Team_Dashboard',
-            'base_url': self.config.github_repo_base,
-            'csv_file': self.config.csv_filename,
-            'json_file': self.config.json_filename,
-            'csv_url': f"{self.config.github_repo_base}/{self.config.csv_filename}",
-            'json_url': f"{self.config.github_repo_base}/{self.config.json_filename}",
-            'cache_ttl': self.config.cache_ttl_seconds,
-            'max_retries': self.config.max_retries,
+            "repository": "StrayDogSyn/New_Team_Dashboard",
+            "base_url": self.config.github_repo_base,
+            "csv_file": self.config.csv_filename,
+            "json_file": self.config.json_filename,
+            "csv_url": f"{self.config.github_repo_base}/{self.config.csv_filename}",
+            "json_url": f"{self.config.github_repo_base}/{self.config.json_filename}",
+            "cache_ttl": self.config.cache_ttl_seconds,
+            "max_retries": self.config.max_retries,
         }
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Perform a health check of the service.
-        
+
         Returns:
             Health status information
         """
         start_time = time.time()
-        
+
         try:
             # Test data loading
             cities = await self.get_available_cities()
-            
+
             # Calculate response time
             response_time = time.time() - start_time
-            
+
             status = {
-                'status': 'healthy',
-                'response_time_ms': round(response_time * 1000, 2),
-                'cities_available': len(cities),
-                'cache_entries': len(self._cache),
-                'metrics': self.get_metrics(),
-                'timestamp': datetime.now().isoformat()
+                "status": "healthy",
+                "response_time_ms": round(response_time * 1000, 2),
+                "cities_available": len(cities),
+                "cache_entries": len(self._cache),
+                "metrics": self.get_metrics(),
+                "timestamp": datetime.now().isoformat(),
             }
-            
+
             return status
-            
+
         except Exception as e:
             return {
-                'status': 'unhealthy',
-                'error': str(e),
-                'response_time_ms': round((time.time() - start_time) * 1000, 2),
-                'timestamp': datetime.now().isoformat()
+                "status": "unhealthy",
+                "error": str(e),
+                "response_time_ms": round((time.time() - start_time) * 1000, 2),
+                "timestamp": datetime.now().isoformat(),
             }
-    
+
     async def __aenter__(self):
         """Async context manager entry."""
         return self
-    
+
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         self._executor.shutdown(wait=True)
@@ -736,7 +741,9 @@ class OptimizedTeamDataService:
             analysis_data = {
                 "cities_analysis": {
                     str(city_data["city"]): {
-                        "avg_temperature": DataValidator.safe_float(city_data["temperature"]),
+                        "avg_temperature": DataValidator.safe_float(
+                            city_data["temperature"]
+                        ),
                         "avg_humidity": DataValidator.safe_float(city_data["humidity"]),
                         "dominant_condition": (
                             str(city_data.get("weather_main", "")).lower()
@@ -757,10 +764,12 @@ class OptimizedTeamDataService:
                     / len(sample_data),
                     "temperature_range": {
                         "min": min(
-                            DataValidator.safe_float(d["temperature"]) for d in sample_data
+                            DataValidator.safe_float(d["temperature"])
+                            for d in sample_data
                         ),
                         "max": max(
-                            DataValidator.safe_float(d["temperature"]) for d in sample_data
+                            DataValidator.safe_float(d["temperature"])
+                            for d in sample_data
                         ),
                     },
                     "most_common_condition": "clear",
@@ -775,20 +784,18 @@ class OptimizedTeamDataService:
             # Create JSON file
             json_filename = f"team_compare_cities_data_{timestamp}.json"
             json_path = self.exports_dir / json_filename
-            
+
             def write_json():
-                with open(json_path, 'w', encoding='utf-8') as f:
+                with open(json_path, "w", encoding="utf-8") as f:
                     json.dump(analysis_data, f, indent=2, ensure_ascii=False)
-            
-            await asyncio.get_event_loop().run_in_executor(
-                self._executor, write_json
-            )
+
+            await asyncio.get_event_loop().run_in_executor(self._executor, write_json)
             self.logger.info(f"Created sample JSON: {json_path}")
 
             return True
 
         except Exception as e:
-            self._metrics['errors'] += 1
+            self._metrics["errors"] += 1
             self.logger.error(f"Error creating sample data: {e}")
             return False
 

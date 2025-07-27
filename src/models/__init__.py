@@ -14,7 +14,7 @@ Enhancements:
 """
 
 # Enhanced Capstone Models with AI Integration
-from .capstone_models import (  # Core entities; Enhanced enums; Factory and Builder patterns; Protocols and base classes; Convenience functions
+from .capstone_models import (  # Core entities; Enhanced enums; Factory and Builder patterns; Protocols and base classes
     Activity,
     ActivityDifficulty,
     ActivityFactory,
@@ -35,9 +35,6 @@ from .capstone_models import (  # Core entities; Enhanced enums; Factory and Bui
     WeatherComparisonBuilder,
     WeatherImpact,
     WeatherPoem,
-    create_activity_suggestions,
-    create_journal_entry_from_weather,
-    create_weather_poem,
 )
 
 # Enhanced Database Models with Repository Pattern

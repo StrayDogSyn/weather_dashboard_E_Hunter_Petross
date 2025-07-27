@@ -76,7 +76,21 @@
       "temperature": 27.13,
       "condition": "clear",
       "timestamp": "2025-07-19T09:21:01"
+    },
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 24.63,
+      "condition": "haze",
+      "timestamp": "2025-07-26T20:03:15"
+    },
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 24.59,
+      "condition": "haze",
+      "timestamp": "2025-07-26T20:04:22"
     }
   ],
-  "last_updated": "2025-07-19T09:25:25.209503"
+  "last_updated": "2025-07-26T20:09:12.785613"
 }

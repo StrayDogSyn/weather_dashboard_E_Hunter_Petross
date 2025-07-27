@@ -25,6 +25,7 @@ from uuid import UUID, uuid4
 # Type aliases for cleaner interfaces
 WeatherData = "CurrentWeather"
 ForecastData = "WeatherForecast"
+LocationData = "Location"
 
 
 # Enhanced protocols for extensibility

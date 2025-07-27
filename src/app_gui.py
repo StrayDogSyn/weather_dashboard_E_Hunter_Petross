@@ -713,8 +713,11 @@ def main_gui():
     except KeyboardInterrupt:
         print("\\n\\n👋 Application stopped by user")
     except Exception as e:
+        import traceback
         logging.error(f"Unexpected error: {e}")
+        logging.error(f"Full traceback: {traceback.format_exc()}")
         print(f"❌ An error occurred: {e}")
+        print(f"Full traceback:\n{traceback.format_exc()}")
 
 
 if __name__ == "__main__":
