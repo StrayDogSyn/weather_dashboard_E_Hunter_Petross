@@ -9,6 +9,9 @@ pyyaml>=6.0.0                 # YAML parsing for configuration files
 
 # Database & Storage
 sqlalchemy>=2.0.0             # ORM for database operations
+aiosqlite>=0.19.0             # Async SQLite database operations
+redis>=5.0.0                  # Redis caching and session storage
+aiohttp>=3.9.0                # Async HTTP client for API requests
 
 # Data Science & Visualization
 matplotlib>=3.7.0             # Charts and graphs
