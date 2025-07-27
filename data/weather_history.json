@@ -90,7 +90,28 @@
       "temperature": 24.59,
       "condition": "haze",
       "timestamp": "2025-07-26T20:04:22"
+    },
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 24.33,
+      "condition": "haze",
+      "timestamp": "2025-07-26T20:39:06"
+    },
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 24.33,
+      "condition": "haze",
+      "timestamp": "2025-07-26T20:46:07"
+    },
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 24.33,
+      "condition": "haze",
+      "timestamp": "2025-07-26T20:46:07"
     }
   ],
-  "last_updated": "2025-07-26T20:09:12.785613"
+  "last_updated": "2025-07-26T20:47:46.340979"
 }

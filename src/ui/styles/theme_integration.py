@@ -305,9 +305,12 @@ class DashboardThemeIntegrator:
         """Create a theme selector panel."""
         panel = GlassPanel(parent, self.style_manager, elevated=True)
 
+        # Get the container for child widgets
+        panel_container = panel.get_container()
+        
         # Title
         title_label = tk.Label(
-            panel,
+            panel_container,
             text="🎨 Theme Selection",
             font=("Segoe UI", 12, "bold"),
             **GlassWidget(self.style_manager).get_glass_label_config("accent"),
@@ -316,7 +319,7 @@ class DashboardThemeIntegrator:
 
         # Theme buttons
         button_frame = tk.Frame(
-            panel, **GlassWidget(self.style_manager).get_glass_frame_config("primary")
+            panel_container, **GlassWidget(self.style_manager).get_glass_frame_config("primary")
         )
         button_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
@@ -435,10 +438,13 @@ class GlassmorphicDashboardExample:
         # Main container
         main_container = GlassPanel(self.root, self.style_manager, elevated=True)
         main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Get the container for child widgets
+        container = main_container.get_container()
 
         # Header
         header_frame = tk.Frame(
-            main_container,
+            container,
             **GlassWidget(self.style_manager).get_glass_frame_config("primary"),
         )
         header_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
@@ -453,7 +459,7 @@ class GlassmorphicDashboardExample:
 
         # Content area
         content_frame = tk.Frame(
-            main_container,
+            container,
             **GlassWidget(self.style_manager).get_glass_frame_config("primary"),
         )
         content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
@@ -496,7 +502,7 @@ class GlassmorphicDashboardExample:
 
         # Footer with action buttons
         footer_frame = tk.Frame(
-            main_container,
+            container,
             **GlassWidget(self.style_manager).get_glass_frame_config("primary"),
         )
         footer_frame.pack(fill=tk.X, padx=10, pady=(5, 10))

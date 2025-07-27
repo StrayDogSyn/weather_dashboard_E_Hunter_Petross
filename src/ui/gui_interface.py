@@ -270,9 +270,12 @@ class WeatherDashboardGUI(IUserInterface):
         # Store main content for responsive updates
         self.main_content = main_content
 
+        # Get the container for child widgets (handles elevation effects)
+        content_container = main_content.get_container()
+        
         # Create temperature controls with responsive layout
         self.temperature_controls = TemperatureControls(
-            main_content,
+            content_container,
             initial_unit=TemperatureUnit.FAHRENHEIT,
             on_unit_change=self.on_temperature_unit_change,
         )
@@ -286,7 +289,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create main dashboard with responsive layout
         self.main_dashboard = MainDashboard(
-            main_content,
+            content_container,
             on_search=self.search_weather,
             on_add_favorite=self.add_favorite_city,
             on_tab_change=self.on_tab_change,
@@ -303,7 +306,7 @@ class WeatherDashboardGUI(IUserInterface):
         # Components are already positioned using grid layout
 
         # Create theme selector
-        self.create_theme_selector(main_content)
+        self.create_theme_selector(content_container)
 
         # Apply entrance animations
         self.animation_helper.slide_in(self.header, direction="down")
@@ -379,9 +382,12 @@ class WeatherDashboardGUI(IUserInterface):
             )
             theme_panel.grid(row=0, column=2, sticky="ns", padx=10, pady=10)
 
+            # Get the container for child widgets
+            panel_container = theme_panel.get_container()
+            
             # Theme selector title
             title_label = tk.Label(
-                theme_panel,
+                panel_container,
                 text="🎨 Themes",
                 font=("Segoe UI", 12, "bold"),
                 **GlassWidget(self.theme_manager).get_glass_label_config("accent"),
@@ -397,7 +403,7 @@ class WeatherDashboardGUI(IUserInterface):
 
             for theme, display_name in themes:
                 btn = GlassButton(
-                    theme_panel,
+                    panel_container,
                     self.theme_manager,
                     text=display_name,
                     command=lambda t=theme: self.switch_theme(t),

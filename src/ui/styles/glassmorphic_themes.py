@@ -447,18 +447,36 @@ class GlassPanel(tk.Frame, GlassWidget):
         tk.Frame.__init__(self, parent, **frame_config)
 
         # Add gradient effect simulation
+        self.container = self  # Default container is self
         if elevated:
             self._create_elevation_effect()
+    
+    def get_container(self):
+        """Get the container where child widgets should be placed."""
+        return getattr(self, 'container', self)
 
     def _create_elevation_effect(self):
-        """Create elevation effect with gradient simulation."""
+        """Create elevation effect with gradient simulation using grid layout."""
+        # Configure grid weights for proper expansion
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        
         # Top highlight
         top_highlight = tk.Frame(self, bg=self.palette.silver_light, height=1)
-        top_highlight.pack(fill=tk.X, side=tk.TOP)
-
+        top_highlight.grid(row=0, column=0, sticky="ew")
+        
+        # Main content area (where child widgets will be placed)
+        self.content_frame = tk.Frame(self, bg=self.cget('bg'))
+        self.content_frame.grid(row=1, column=0, sticky="nsew")
+        self.content_frame.grid_rowconfigure(0, weight=1)
+        self.content_frame.grid_columnconfigure(0, weight=1)
+        
         # Bottom shadow
         bottom_shadow = tk.Frame(self, bg=self.palette.background, height=1)
-        bottom_shadow.pack(fill=tk.X, side=tk.BOTTOM)
+        bottom_shadow.grid(row=2, column=0, sticky="ew")
+        
+        # Override the default container for child widgets
+        self.container = self.content_frame
 
 
 class GlassModal(tk.Toplevel, GlassWidget):
