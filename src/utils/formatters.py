@@ -3,7 +3,8 @@
 import logging
 import re
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
+from typing import Optional
 
 
 def validate_city_name(city: str) -> bool:

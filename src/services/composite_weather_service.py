@@ -6,10 +6,13 @@ Primary: OpenWeatherMap, Fallback: WeatherAPI.com
 """
 
 import logging
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
 from ..interfaces.weather_interfaces import IWeatherAPI
-from ..models.weather_models import CurrentWeather, Location, WeatherForecast
+from ..models.weather_models import CurrentWeather
+from ..models.weather_models import Location
+from ..models.weather_models import WeatherForecast
 from .weather_api import OpenWeatherMapAPI
 from .weatherapi_service import WeatherAPIService
 
@@ -199,38 +202,38 @@ class CompositeWeatherService(IWeatherAPI):
         # Try primary service first
         try:
             self.logger.debug(
-                f"Trying primary service coordinates weather for {latitude},{longitude}"
+                f"Trying primary service coordinates weather for {latitude}, {longitude}"
             )
             weather = self.primary_service.get_current_weather_by_coordinates(
                 latitude, longitude, units
             )
             if weather:
                 self.logger.debug(
-                    f"Primary service coordinates weather succeeded for {latitude},{longitude}"
+                    f"Primary service coordinates weather succeeded for {latitude}, {longitude}"
                 )
                 return weather
         except Exception as e:
             self.logger.warning(
-                f"Primary service coordinates weather error for {latitude},{longitude}: {e}"
+                f"Primary service coordinates weather error for {latitude}, {longitude}: {e}"
             )
 
         # Try fallback service if primary fails
         if self.fallback_service:
             try:
                 self.logger.info(
-                    f"Trying fallback service coordinates weather for {latitude},{longitude}"
+                    f"Trying fallback service coordinates weather for {latitude}, {longitude}"
                 )
                 weather = self.fallback_service.get_current_weather_by_coordinates(
                     latitude, longitude, units
                 )
                 if weather:
                     self.logger.info(
-                        f"Fallback service coordinates weather succeeded for {latitude},{longitude}"
+                        f"Fallback service coordinates weather succeeded for {latitude}, {longitude}"
                     )
                     return weather
             except Exception as e:
                 self.logger.error(
-                    f"Fallback service coordinates weather error for {latitude},{longitude}: {e}"
+                    f"Fallback service coordinates weather error for {latitude}, {longitude}: {e}"
                 )
 
         return None
@@ -253,26 +256,26 @@ class CompositeWeatherService(IWeatherAPI):
         # Try primary service first
         try:
             self.logger.debug(
-                f"Trying primary service coordinates forecast for {latitude},{longitude}"
+                f"Trying primary service coordinates forecast for {latitude}, {longitude}"
             )
             forecast = self.primary_service.get_forecast_by_coordinates(
                 latitude, longitude, days, units
             )
             if forecast:
                 self.logger.debug(
-                    f"Primary service coordinates forecast succeeded for {latitude},{longitude}"
+                    f"Primary service coordinates forecast succeeded for {latitude}, {longitude}"
                 )
                 return forecast
         except Exception as e:
             self.logger.warning(
-                f"Primary service coordinates forecast error for {latitude},{longitude}: {e}"
+                f"Primary service coordinates forecast error for {latitude}, {longitude}: {e}"
             )
 
         # Try fallback service if primary fails
         if self.fallback_service:
             try:
                 self.logger.info(
-                    f"Trying fallback service coordinates forecast for {latitude},{longitude}"
+                    f"Trying fallback service coordinates forecast for {latitude}, {longitude}"
                 )
                 fallback_days = min(days, 3)
                 forecast = self.fallback_service.get_forecast_by_coordinates(
@@ -280,12 +283,12 @@ class CompositeWeatherService(IWeatherAPI):
                 )
                 if forecast:
                     self.logger.info(
-                        f"Fallback service coordinates forecast succeeded for {latitude},{longitude}"
+                        f"Fallback service coordinates forecast succeeded for {latitude}, {longitude}"
                     )
                     return forecast
             except Exception as e:
                 self.logger.error(
-                    f"Fallback service coordinates forecast error for {latitude},{longitude}: {e}"
+                    f"Fallback service coordinates forecast error for {latitude}, {longitude}: {e}"
                 )
 
         return None

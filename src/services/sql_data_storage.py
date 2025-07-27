@@ -5,7 +5,10 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -14,16 +17,14 @@ from ..interfaces.weather_interfaces import IDataStorage
 
 # Import database models from src.models
 try:
-    from ..models.database_models import (
-        ActivityRecommendations,
-        FavoriteCities,
-        JournalEntries,
-        UserPreferences,
-        WeatherHistory,
-        close_db_session,
-        get_db_session,
-        init_database,
-    )
+    from ..models.database_models import ActivityRecommendations
+    from ..models.database_models import FavoriteCities
+    from ..models.database_models import JournalEntries
+    from ..models.database_models import UserPreferences
+    from ..models.database_models import WeatherHistory
+    from ..models.database_models import close_db_session
+    from ..models.database_models import get_db_session
+    from ..models.database_models import init_database
 except ImportError as e:
     logging.error(f"Failed to import database module: {e}")
     raise ImportError(

@@ -8,9 +8,12 @@ and related weather display components.
 import tkinter as tk
 from typing import Optional
 
-from .styling import WeatherIcons, GlassmorphicStyle, AnimationHelper
-from .components import GlassmorphicFrame
 from src.models.weather_models import CurrentWeather
+
+from .styles.glassmorphic import GlassmorphicFrame
+from .styling import AnimationHelper
+from .styling import GlassmorphicStyle
+from .styling import WeatherIcons
 
 
 class WeatherCard(GlassmorphicFrame):

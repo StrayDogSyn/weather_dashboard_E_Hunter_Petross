@@ -1,3656 +1,1047 @@
-"""
-Modern TKinter GUI with Glassmorphic Design for Weather Dashboard.
+"""Refactored Weather Dashboard GUI with glassmorphic design.
 
-This module provides a modern, glassmorphic user interface using TKinter
-with custom styling and modern visual elements including weather icons,
-animations, enhanced visual effects, and fun sound feedback.
+This module provides a comprehensive weather dashboard interface with:
+- Modern glassmorphic styling and animations
+- Real-time weather data display
+- Interactive charts and forecasts
+- Voice assistant integration
+- Customizable themes and layouts
+
+Refactored for better separation of concerns and maintainability.
 """
 
 import json
 import logging
-import random
 import threading
 import tkinter as tk
-import tkinter.font as tkFont
-from datetime import date, datetime
-from tkinter import messagebox, simpledialog, ttk
-from typing import Any, Callable, Dict, List, Optional
+from datetime import datetime
+from tkinter import messagebox
+from tkinter import simpledialog
+from tkinter import ttk
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import ttkbootstrap as ttk_bs
-from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
+from ttkbootstrap.constants import DANGER
+from ttkbootstrap.constants import DARK
+from ttkbootstrap.constants import INFO
+from ttkbootstrap.constants import LIGHT
+from ttkbootstrap.constants import PRIMARY
+from ttkbootstrap.constants import SECONDARY
 
 from src.config.config import config_manager
 from src.interfaces.weather_interfaces import IUserInterface
-from src.models.capstone_models import (
-    ActivitySuggestion,
-    JournalEntry,
-    MoodType,
-    WeatherComparison,
-    WeatherPoem,
-)
-from src.models.weather_models import CurrentWeather, FavoriteCity, WeatherForecast
-from src.services.sound_service import (
-    SoundType,
-    get_sound_service,
-    play_sound,
-    play_weather_sound,
-)
+from src.models.capstone_models import ActivitySuggestion
+from src.models.capstone_models import JournalEntry
+from src.models.capstone_models import MoodType
+from src.models.capstone_models import WeatherComparison
+from src.models.capstone_models import WeatherPoem
+from src.models.weather_models import CurrentWeather
+from src.models.weather_models import FavoriteCity
+from src.models.weather_models import Location
+from src.models.weather_models import WeatherForecast
+from src.services.sound_service import SoundType
+from src.services.sound_service import get_sound_service
+from src.services.sound_service import play_sound
+from src.services.sound_service import play_weather_sound
+
+from .animations.effects import AnimationHelper
 from .components import ModernEntry
-
-# Note: WeatherDashboard import will be added after class definition to avoid circular import
-
-
-class WeatherIcons:
-    """Weather condition icons using Unicode characters."""
-
-    CLEAR = "☀️"
-    PARTLY_CLOUDY = "⛅"
-    CLOUDY = "☁️"
-    OVERCAST = "☁️"
-    RAIN = "🌧️"
-    HEAVY_RAIN = "⛈️"
-    SNOW = "❄️"
-    FOG = "🌫️"
-    WIND = "💨"
-    HOT = "🔥"
-    COLD = "🧊"
-    DEFAULT = "🌤️"
-
-    @classmethod
-    def get_icon(cls, condition: str, temperature: Optional[float] = None) -> str:
-        """Get appropriate weather icon for condition."""
-        condition_lower = condition.lower()
-
-        # Temperature-based icons
-        if temperature is not None:
-            if temperature > 85:
-                return cls.HOT
-            elif temperature < 32:
-                return cls.COLD
-
-        # Condition-based icons
-        if "clear" in condition_lower or "sunny" in condition_lower:
-            return cls.CLEAR
-        elif "partly" in condition_lower or "scattered" in condition_lower:
-            return cls.PARTLY_CLOUDY
-        elif "overcast" in condition_lower:
-            return cls.OVERCAST
-        elif "cloudy" in condition_lower or "cloud" in condition_lower:
-            return cls.CLOUDY
-        elif "rain" in condition_lower or "shower" in condition_lower:
-            if "heavy" in condition_lower or "storm" in condition_lower:
-                return cls.HEAVY_RAIN
-            return cls.RAIN
-        elif "snow" in condition_lower or "blizzard" in condition_lower:
-            return cls.SNOW
-        elif "fog" in condition_lower or "mist" in condition_lower:
-            return cls.FOG
-        elif "wind" in condition_lower:
-            return cls.WIND
-        else:
-            return cls.DEFAULT
-
-
-class AnimationHelper:
-    """Helper class for creating smooth animations."""
-
-    @staticmethod
-    def fade_in(widget, duration=500):
-        """Fade in animation for widget."""
-        widget.configure(fg=GlassmorphicStyle.TEXT_SECONDARY)
-        steps = 20
-        step_time = duration // steps
-
-        def animate_step(step):
-            if step <= steps:
-                # Calculate alpha value (simulated with color intensity)
-                alpha = step / steps
-                color_intensity = int(176 + (255 - 176) * alpha)  # From gray to white
-                color = (
-                    f"#{color_intensity:02x}{color_intensity:02x}{color_intensity:02x}"
-                )
-                widget.configure(fg=color)
-                widget.after(step_time, lambda: animate_step(step + 1))
-            else:
-                widget.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
-
-        animate_step(0)
-
-    @staticmethod
-    def pulse_effect(widget, color=None, duration=1000):
-        """Create a pulsing effect on widget."""
-        original_bg = widget.cget("bg")
-        pulse_color = color or GlassmorphicStyle.ACCENT
-
-        def pulse_step(increasing=True, step=0):
-            if step < 50:
-                # Calculate intermediate color
-                ratio = step / 50.0 if increasing else (50 - step) / 50.0
-                # Simple color interpolation (in real implementation, would be more sophisticated)
-                widget.configure(bg=pulse_color if ratio > 0.5 else original_bg)
-                widget.after(duration // 100, lambda: pulse_step(increasing, step + 1))
-            elif increasing:
-                pulse_step(False, 0)
-            else:
-                widget.configure(bg=original_bg)
-                # Repeat pulse
-                widget.after(duration, lambda: pulse_step(True, 0))
-
-        pulse_step()
-
-    @staticmethod
-    def text_glow_effect(widget, glow_color=None, duration=2000):
-        """Create a text glow effect by cycling through related colors."""
-        glow_color = glow_color or GlassmorphicStyle.ACCENT
-        original_color = widget.cget("fg")
-
-        # Create a list of colors for the glow effect
-        glow_colors = [
-            original_color,
-            glow_color,
-            GlassmorphicStyle.TEXT_PRIMARY,
-            glow_color,
-            original_color,
-        ]
-
-        def cycle_colors(color_index=0, step=0):
-            if step >= len(glow_colors):
-                step = 0
-
-            widget.configure(fg=glow_colors[step])
-            widget.after(
-                duration // len(glow_colors),
-                lambda: cycle_colors(color_index, (step + 1) % len(glow_colors)),
-            )
-
-        cycle_colors()
-
-    @staticmethod
-    def rainbow_text_effect(widget, duration=3000):
-        """Create a subtle rainbow effect on text."""
-        colors = [
-            GlassmorphicStyle.ACCENT,
-            GlassmorphicStyle.ACCENT_SECONDARY,
-            GlassmorphicStyle.SUCCESS,
-            GlassmorphicStyle.WARNING,
-            GlassmorphicStyle.TEXT_PRIMARY,
-        ]
-
-        def cycle_rainbow(color_index=0):
-            widget.configure(fg=colors[color_index])
-            next_index = (color_index + 1) % len(colors)
-            widget.after(duration // len(colors), lambda: cycle_rainbow(next_index))
-
-        cycle_rainbow()
-
-
-class GlassmorphicStyle:
-    """Custom styling for glassmorphic design with enhanced visual features."""
-
-    # Enhanced color scheme with gradients
-    BACKGROUND = "#0a0a0a"  # Deeper dark base
-    BACKGROUND_SECONDARY = "#1a1a1a"  # Secondary dark
-    GLASS_BG = "#1e1e1e"  # Enhanced glass background
-    GLASS_BG_LIGHT = "#2a2a2a"  # Lighter glass variant
-    GLASS_BORDER = "#404040"  # More visible glass border
-    GLASS_BORDER_LIGHT = "#555555"  # Lighter border variant
-
-    # Enhanced accent colors
-    ACCENT = "#4a9eff"  # Blue accent
-    ACCENT_DARK = "#2563eb"  # Darker blue
-    ACCENT_LIGHT = "#60a5fa"  # Lighter blue
-    ACCENT_SECONDARY = "#ff6b4a"  # Orange accent
-    ACCENT_SECONDARY_DARK = "#ea580c"  # Darker orange
-    ACCENT_SECONDARY_LIGHT = "#fb7c56"  # Lighter orange
-
-    # Text colors
-    TEXT_PRIMARY = "#ffffff"  # White text
-    TEXT_SECONDARY = "#b0b0b0"  # Gray text
-    TEXT_TERTIARY = "#808080"  # Darker gray text
-    TEXT_ACCENT = "#4a9eff"  # Accent colored text
-
-    # Status colors
-    SUCCESS = "#22c55e"  # Green
-    SUCCESS_LIGHT = "#4ade80"  # Light green
-    WARNING = "#f59e0b"  # Amber
-    WARNING_LIGHT = "#fbbf24"  # Light amber
-    ERROR = "#ef4444"  # Red
-    ERROR_LIGHT = "#f87171"  # Light red
-
-    # Weather-specific colors
-    WEATHER_HOT = "#ff4444"  # Hot temperature
-    WEATHER_WARM = "#ff8844"  # Warm temperature
-    WEATHER_COOL = "#4488ff"  # Cool temperature
-    WEATHER_COLD = "#4444ff"  # Cold temperature
-
-    # Glassmorphic properties
-    BLUR_RADIUS = 15
-    TRANSPARENCY = 0.15
-    BORDER_RADIUS = 16
-
-    # Enhanced fonts
-    FONT_FAMILY = "Segoe UI"
-    FONT_FAMILY_MONO = "Consolas"
-    FONT_SIZE_XLARGE = 32  # For main temperature display
-    FONT_SIZE_LARGE = 18
-    FONT_SIZE_MEDIUM = 14
-    FONT_SIZE_SMALL = 12
-    FONT_SIZE_TINY = 10
-
-    @classmethod
-    def get_temperature_color(cls, temperature: float) -> str:
-        """Get color based on temperature value."""
-        if temperature >= 85:
-            return cls.WEATHER_HOT
-        elif temperature >= 70:
-            return cls.WEATHER_WARM
-        elif temperature >= 50:
-            return cls.TEXT_PRIMARY
-        elif temperature >= 32:
-            return cls.WEATHER_COOL
-        else:
-            return cls.WEATHER_COLD
-
-
-class GlassmorphicFrame(tk.Frame):
-    """Custom frame with enhanced glassmorphic styling and 3D effects."""
-
-    def __init__(
-        self,
-        parent,
-        bg_color=None,
-        border_color=None,
-        elevated=False,
-        gradient=False,
-        blur_intensity=None,  # Added blur_intensity parameter
-        **kwargs,
-    ):
-        # Remove blur_intensity from kwargs if it exists to avoid passing it to tkinter
-        if "blur_intensity" in kwargs:
-            blur_intensity = kwargs.pop("blur_intensity")
-
-        super().__init__(parent, **kwargs)
-
-        self.bg_color = bg_color or GlassmorphicStyle.GLASS_BG
-        self.border_color = border_color or GlassmorphicStyle.GLASS_BORDER
-        self.elevated = elevated
-        self.gradient = gradient
-
-        # Set blur intensity (higher value = more blur effect in border)
-        blur_effect = 3  # Default
-        if blur_intensity is not None:
-            if blur_intensity > 10:
-                blur_effect = 5  # High blur
-            elif blur_intensity > 5:
-                blur_effect = 4  # Medium blur
-
-        # Enhanced styling with 3D effect and optional gradient
-        if elevated:
-            # Create elevated/raised appearance with shadow effect
-            self.configure(
-                bg=GlassmorphicStyle.GLASS_BG_LIGHT if gradient else self.bg_color,
-                highlightbackground=GlassmorphicStyle.GLASS_BORDER_LIGHT,
-                highlightcolor="#777777",
-                highlightthickness=blur_effect,
-                relief="raised",
-                borderwidth=blur_effect,
-            )
-        else:
-            # Enhanced standard glassmorphic styling with subtle 3D
-            self.configure(
-                bg=self.bg_color,
-                highlightbackground=self.border_color,
-                highlightcolor=GlassmorphicStyle.GLASS_BORDER_LIGHT,
-                highlightthickness=2,
-                relief="ridge",
-                borderwidth=2,
-            )
-
-
-class ModernButton(tk.Button):
-    """Modern styled button with enhanced hover effects, 3D appearance, and animations."""
-
-    def __init__(self, parent, style="primary", icon=None, **kwargs):
-        self.style = style
-        self.icon = icon
-        self.default_bg = self._get_bg_color()
-        self.hover_bg = self._get_hover_color()
-        self.is_hovered = False
-
-        # Prepare button text with icon if provided
-        text = kwargs.get("text", "")
-        if self.icon:
-            text = f"{self.icon} {text}"
-            kwargs["text"] = text
-
-        super().__init__(
-            parent,
-            bg=self.default_bg,
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_SMALL,
-                "bold",
-            ),
-            relief="flat",  # Flat modern style
-            borderwidth=0,  # No border for cleaner look
-            padx=8,  # Reduced horizontal padding for more compact buttons
-            pady=4,  # Reduced vertical padding for more compact look
-            cursor="hand2",
-            activebackground=self.hover_bg,
-            activeforeground=GlassmorphicStyle.TEXT_PRIMARY,
-            # Adding rounded corners effect with highlightbackground
-            highlightbackground=self.default_bg,
-            highlightcolor=self.default_bg,
-            highlightthickness=1,
-            **kwargs,
-        )
-
-        self.bind("<Enter>", self._on_enter)
-        self.bind("<Leave>", self._on_leave)
-        self.bind("<Button-1>", self._on_click)
-        self.bind("<ButtonRelease-1>", self._on_release)
-
-    def _on_click(self, event):
-        """Handle button click for modern pressed effect with animation and sound."""
-        # Modern buttons use color and subtle scaling rather than relief changes
-        click_color = self._get_click_color()
-        self.configure(bg=click_color)
-        # Add subtle shadow effect
-        self.configure(highlightbackground=GlassmorphicStyle.GLASS_BORDER)
-        # Play click sound
-        play_sound(SoundType.BUTTON_CLICK)
-
-    def _on_release(self, event):
-        """Handle button release to restore appearance with modern style."""
-        self.configure(bg=self.hover_bg if self.is_hovered else self.default_bg)
-        # Restore highlight to match background for seamless look
-        self.configure(
-            highlightbackground=self.hover_bg if self.is_hovered else self.default_bg
-        )
-
-    def _get_bg_color(self):
-        if self.style == "primary":
-            return GlassmorphicStyle.ACCENT
-        elif self.style == "secondary":
-            return GlassmorphicStyle.ACCENT_SECONDARY
-        elif self.style == "success":
-            return GlassmorphicStyle.SUCCESS
-        elif self.style == "warning":
-            return GlassmorphicStyle.WARNING
-        elif self.style == "error":
-            return GlassmorphicStyle.ERROR
-        else:
-            return GlassmorphicStyle.GLASS_BG
-
-    def _get_hover_color(self):
-        # Slightly lighter version of the base color
-        base = self._get_bg_color()
-        if base == GlassmorphicStyle.ACCENT:
-            return GlassmorphicStyle.ACCENT_LIGHT
-        elif base == GlassmorphicStyle.ACCENT_SECONDARY:
-            return GlassmorphicStyle.ACCENT_SECONDARY_LIGHT
-        elif base == GlassmorphicStyle.SUCCESS:
-            return GlassmorphicStyle.SUCCESS_LIGHT
-        elif base == GlassmorphicStyle.WARNING:
-            return GlassmorphicStyle.WARNING_LIGHT
-        elif base == GlassmorphicStyle.ERROR:
-            return GlassmorphicStyle.ERROR_LIGHT
-        else:
-            return GlassmorphicStyle.GLASS_BG_LIGHT
-
-    def _get_click_color(self):
-        # Darker version for click effect
-        base = self._get_bg_color()
-        if base == GlassmorphicStyle.ACCENT:
-            return GlassmorphicStyle.ACCENT_DARK
-        elif base == GlassmorphicStyle.ACCENT_SECONDARY:
-            return GlassmorphicStyle.ACCENT_SECONDARY_DARK
-        else:
-            return base
-
-    def _on_enter(self, event):
-        self.is_hovered = True
-        self.configure(bg=self.hover_bg)
-        # Add subtle glow effect with matching highlight for seamless rounded corners
-        self.configure(highlightbackground=self.hover_bg, highlightcolor=self.hover_bg)
-        # Subtle text brightening for modern feedback
-        self.configure(fg="#ffffff")
-
-    def _on_leave(self, event):
-        self.is_hovered = False
-        self.configure(bg=self.default_bg)
-        # Match highlight to background for seamless look
-        self.configure(
-            highlightbackground=self.default_bg, highlightcolor=self.default_bg
-        )
-        # Restore normal text
-        self.configure(fg=GlassmorphicStyle.TEXT_PRIMARY)
-
-
-class BootstrapButton(ttk_bs.Button):
-    """Modern Bootstrap-style button using ttkbootstrap."""
-
-    def __init__(self, parent, style="primary", icon=None, **kwargs):
-        # Prepare button text with icon if provided
-        text = kwargs.get("text", "")
-        if icon:
-            text = f"{icon} {text}"
-            kwargs["text"] = text
-
-        # Initialize with ttkbootstrap - it inherits from ttk.Button
-        super().__init__(parent, **kwargs)
-
-
-class BootstrapFrame(ttk_bs.Frame):
-    """Modern Bootstrap-style frame using ttkbootstrap."""
-
-    def __init__(self, parent, style="", **kwargs):
-        super().__init__(parent, **kwargs)
-
-
-class BootstrapEntry(ttk_bs.Entry):
-    """Modern Bootstrap-style entry using ttkbootstrap."""
-
-    def __init__(self, parent, style="primary", **kwargs):
-        super().__init__(parent, **kwargs)
-
-
-class WeatherCard(GlassmorphicFrame):
-    """Enhanced weather information card with improved visual features."""
-
-    def __init__(self, parent, gui_ref=None, **kwargs):
-        super().__init__(parent, elevated=True, gradient=True, **kwargs)
-        self.gui_ref = gui_ref  # Reference to main GUI for temperature unit
-        self.setup_layout()
-
-    def setup_layout(self):
-        """Setup the enhanced card layout with better visual hierarchy."""
-        # Main container with reduced padding for better fit
-        main_container = tk.Frame(self, bg=self.bg_color)
-        main_container.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
-
-        # Title with icon
-        title_frame = tk.Frame(main_container, bg=self.bg_color)
-        title_frame.pack(fill=tk.X, pady=(0, 10))
-
-        self.title_label = tk.Label(
-            title_frame,
-            text="🌤️ Weather",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=self.bg_color,
-        )
-        self.title_label.pack()
-
-        # Content frame with center alignment
-        self.content_frame = tk.Frame(main_container, bg=self.bg_color)
-        self.content_frame.pack(fill=tk.BOTH, expand=True)
-
-    def update_weather(self, weather: CurrentWeather):
-        """Update the card with weather data and enhanced visuals."""
-        # Clear existing content
-        for widget in self.content_frame.winfo_children():
-            widget.destroy()
-
-        # Weather icon (large and prominent)
-        temp_celsius = weather.temperature.to_celsius()
-        icon = WeatherIcons.get_icon(weather.description, temp_celsius)
-        icon_label = tk.Label(
-            self.content_frame,
-            text=icon,
-            font=(GlassmorphicStyle.FONT_FAMILY, 56),  # Slightly smaller icon
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=self.bg_color,
-        )
-        icon_label.pack(pady=(5, 10))  # Reduced padding
-
-        # Location with enhanced styling
-        location_label = tk.Label(
-            self.content_frame,
-            text=weather.location.display_name,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_ACCENT,
-            bg=self.bg_color,
-        )
-        location_label.pack(pady=(0, 8))  # Reduced padding
-
-        # Temperature with color-coded display
-        if self.gui_ref:
-            temp_value, temp_unit = self.gui_ref.convert_temperature(temp_celsius)
-            temp_text = (
-                f"{temp_value:.1f}{temp_unit}"  # Fixed: removed extra degree symbol
-            )
-        else:
-            temp_text = f"{temp_celsius:.1f}°C"
-            temp_value = temp_celsius
-
-        # Get temperature color based on value
-        temp_color = GlassmorphicStyle.get_temperature_color(temp_value)
-
-        temp_label = tk.Label(
-            self.content_frame,
-            text=temp_text,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_XLARGE,
-                "bold",
-            ),
-            fg=temp_color,
-            bg=self.bg_color,
-        )
-        temp_label.pack(pady=(0, 3))  # Reduced padding
-
-        # Condition with better formatting
-        condition_label = tk.Label(
-            self.content_frame,
-            text=weather.description.title(),
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "italic",
-            ),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=self.bg_color,
-        )
-        condition_label.pack(pady=(0, 15))  # Reduced padding
-
-        # Enhanced weather details in a grid-like layout
-        details_frame = GlassmorphicFrame(
-            self.content_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
-        )
-        details_frame.pack(fill=tk.X, pady=(5, 0))  # Reduced top padding
-
-        # Create two columns for details
-        left_details = tk.Frame(details_frame, bg=details_frame.bg_color)
-        left_details.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=12, pady=12)
-
-        right_details = tk.Frame(details_frame, bg=details_frame.bg_color)
-        right_details.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=12, pady=12)
-
-        # Humidity with enhanced styling
-        humidity_frame = tk.Frame(left_details, bg=details_frame.bg_color)
-        humidity_frame.pack(fill=tk.X, pady=(0, 8))  # Reduced spacing
-
-        humidity_icon = tk.Label(
-            humidity_frame,
-            text="💧",
-            font=(GlassmorphicStyle.FONT_FAMILY, 20),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=details_frame.bg_color,
-        )
-        humidity_icon.pack(side=tk.LEFT)
-
-        humidity_label = tk.Label(
-            humidity_frame,
-            text=f" {weather.humidity}%",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=details_frame.bg_color,
-        )
-        humidity_label.pack(side=tk.LEFT)
-
-        humidity_desc = tk.Label(
-            humidity_frame,
-            text=" Humidity",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_TERTIARY,
-            bg=details_frame.bg_color,
-        )
-        humidity_desc.pack(side=tk.LEFT)
-
-        # Wind with enhanced styling
-        wind_frame = tk.Frame(right_details, bg=details_frame.bg_color)
-        wind_frame.pack(fill=tk.X, pady=(0, 8))  # Reduced spacing
-
-        wind_icon = tk.Label(
-            wind_frame,
-            text="💨",
-            font=(GlassmorphicStyle.FONT_FAMILY, 20),
-            fg=GlassmorphicStyle.ACCENT_SECONDARY,
-            bg=details_frame.bg_color,
-        )
-        wind_icon.pack(side=tk.LEFT)
-
-        wind_label = tk.Label(
-            wind_frame,
-            text=f" {weather.wind.speed:.1f}",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=details_frame.bg_color,
-        )
-        wind_label.pack(side=tk.LEFT)
-
-        wind_desc = tk.Label(
-            wind_frame,
-            text=" km/h Wind",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_TERTIARY,
-            bg=details_frame.bg_color,
-        )
-        wind_desc.pack(side=tk.LEFT)
-
-        # Add pressure if available
-        if hasattr(weather, "pressure") and weather.pressure:
-            pressure_frame = tk.Frame(left_details, bg=details_frame.bg_color)
-            pressure_frame.pack(fill=tk.X)
-
-            pressure_icon = tk.Label(
-                pressure_frame,
-                text="🌡️",
-                font=(GlassmorphicStyle.FONT_FAMILY, 20),
-                fg=GlassmorphicStyle.SUCCESS,
-                bg=details_frame.bg_color,
-            )
-            pressure_icon.pack(side=tk.LEFT)
-
-            pressure_label = tk.Label(
-                pressure_frame,
-                text=f" {weather.pressure.value:.0f} hPa",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                    "bold",
-                ),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=details_frame.bg_color,
-            )
-            pressure_label.pack(side=tk.LEFT)
-
-            pressure_desc = tk.Label(
-                pressure_frame,
-                text=" hPa",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-                fg=GlassmorphicStyle.TEXT_TERTIARY,
-                bg=details_frame.bg_color,
-            )
-            pressure_desc.pack(side=tk.LEFT)
-
-        # Add visibility if available
-        if hasattr(weather, "visibility") and weather.visibility:
-            visibility_frame = tk.Frame(right_details, bg=details_frame.bg_color)
-            visibility_frame.pack(fill=tk.X)
-
-            visibility_icon = tk.Label(
-                visibility_frame,
-                text="👁️",
-                font=(GlassmorphicStyle.FONT_FAMILY, 20),
-                fg=GlassmorphicStyle.WARNING,
-                bg=details_frame.bg_color,
-            )
-            visibility_icon.pack(side=tk.LEFT)
-
-            visibility_label = tk.Label(
-                visibility_frame,
-                text=f" {weather.visibility:.1f}",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                    "bold",
-                ),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=details_frame.bg_color,
-            )
-            visibility_label.pack(side=tk.LEFT)
-
-            visibility_desc = tk.Label(
-                visibility_frame,
-                text=" km",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-                fg=GlassmorphicStyle.TEXT_TERTIARY,
-                bg=details_frame.bg_color,
-            )
-            visibility_desc.pack(side=tk.LEFT)
-
-        # Apply fade-in animation to the main elements
-        AnimationHelper.fade_in(icon_label)
-        AnimationHelper.fade_in(temp_label)
-
-        # Apply subtle pulse effect to temperature for emphasis
-        if temp_value > 85 or temp_value < 32:  # Extreme temperatures
-            AnimationHelper.pulse_effect(temp_label, temp_color)
-
-
-class ModernScrollableFrame(tk.Frame):
-    """Scrollable frame with modern styling."""
-
-    def __init__(self, parent, **kwargs):
-        super().__init__(parent, **kwargs)
-
-        # Create canvas and scrollbar
-        self.canvas = tk.Canvas(
-            self, bg=GlassmorphicStyle.BACKGROUND, highlightthickness=0
-        )
-
-        self.scrollbar = ttk.Scrollbar(
-            self, orient="vertical", command=self.canvas.yview
-        )
-
-        self.scrollable_frame = tk.Frame(self.canvas, bg=GlassmorphicStyle.BACKGROUND)
-
-        # Configure scrolling
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")),
-        )
-
-        self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-        # Pack elements
-        self.canvas.pack(side="left", fill="both", expand=True)
-        self.scrollbar.pack(side="right", fill="y")
-
-        # Bind mousewheel
-        self.bind_mousewheel()
-
-    def bind_mousewheel(self):
-        """Bind mousewheel to canvas."""
-
-        def _on_mousewheel(event):
-            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-
-        self.canvas.bind("<MouseWheel>", _on_mousewheel)
+from .components.header import ApplicationHeader
+from .components.main_dashboard import MainDashboard
+from .components.responsive_layout import ResponsiveLayoutManager
+from .components.responsive_layout import ResponsiveSpacing
+from .components.search_panel import SearchPanel
+from .components.temperature_controls import TemperatureControls
+from .components.temperature_controls import TemperatureUnit
+from .components.weather_card import WeatherCard
+from .components.weather_icons import WeatherIcons
+
+# Import WeatherDashboard to avoid circular import issues
+from .dashboard import WeatherDashboard
+
+# Import refactored components
+from .styles.glassmorphic import GlassmorphicFrame
+from .styles.glassmorphic import GlassmorphicStyle
+from .styles.glassmorphic_themes import GlassButton
+from .styles.glassmorphic_themes import GlassmorphicStyleManager
+from .styles.glassmorphic_themes import GlassPanel
+from .styles.glassmorphic_themes import GlassTheme
+from .styles.glassmorphic_themes import GlassWidget
+from .styles.glassmorphic_themes import WeatherGlassCard
+from .styles.theme_integration import DashboardThemeIntegrator
+from .widgets.enhanced_button import ButtonFactory
+from .widgets.modern_button import IconButton
+from .widgets.modern_button import ModernButton
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class WeatherDashboardGUI(IUserInterface):
-    """Modern TKinter GUI for Weather Dashboard with glassmorphic design."""
+    """Main Weather Dashboard GUI application with refactored components."""
 
-    def __init__(self):
-        """Initialize the GUI with ttkbootstrap styling."""
-        # Initialize ttkbootstrap style first
-        self.style = ttk_bs.Style(theme="superhero")  # Dark modern theme
-        self.root = self.style.master
+    def __init__(self, root=None):
+        """Initialize the Weather Dashboard GUI.
 
-        self.config = config_manager.config
+        Args:
+            root: Existing root window to use (optional)
+        """
+        # Use provided root or create new one
+        # Load configuration
+        self.config = config_manager
+
+        # Set up logging
         self.logger = logging.getLogger(__name__)
-        self.current_weather = None
-        self.current_forecast_data = (
-            None  # Store forecast data for temperature unit changes
-        )
-        self.current_comparison_data = (
-            None  # Store comparison data for temperature unit changes
-        )
-        self.temperature_unit = "C"  # Default to Celsius, can be "C" or "F"
-        self.auto_refresh = False  # Auto-refresh state
-        self.refresh_interval = (
-            300000  # Default refresh interval: 5 minutes (in milliseconds)
-        )
-        self.refresh_timer = None  # Store the timer ID for auto-refresh
 
-        # Initialize dashboard (import here to avoid circular import)
-        from src.ui.dashboard import WeatherDashboard
+        # Initialize styling and animation helpers first (needed by setup_window)
+        self.glassmorphic_style = GlassmorphicStyle()
+        self.animation_helper = AnimationHelper()
+        self.weather_icons = WeatherIcons()
+        self.button_factory = ButtonFactory()
 
-        self.dashboard = WeatherDashboard(self.root)
+        if root is not None:
+            # Use provided root window
+            self.root = root
+            # Initialize ttkbootstrap style with existing root
+            self.style = ttk_bs.Style()
+        else:
+            # Initialize ttkbootstrap style
+            self.style = ttk_bs.Style(theme="darkly")
+            # Initialize main window
+            self.root = ttk_bs.Window(themename="darkly")
+            self.setup_window()
 
-        self.setup_window()
+        # Initialize glassmorphic theme system
+        self.theme_manager = GlassmorphicStyleManager(GlassTheme.MIDNIGHT_FOREST)
+        self.theme_integrator = DashboardThemeIntegrator(self.theme_manager)
+
+        # Apply theme to main window
+        self.theme_integrator.apply_theme_to_window(self.root)
+
+        # Initialize responsive layout manager after root window is created
+        self.responsive_layout = ResponsiveLayoutManager(self.root)
+
+        # Initialize dependency container and services (will be set by the app factory)
+        self.container = None
+        self.weather_service = None
+        self.poetry_service = None
+        self.journal_service = None
+        self.activity_service = None
+        self.comparison_service = None
+        self.voice_service = None
+
+        # Setup window if using provided root
+        if root is not None:
+            self.setup_window()
+
+        # Initialize callbacks dictionary
+        self.callbacks: Dict[str, Callable] = {}
+
+        # UI Components
+        self.header: Optional[ApplicationHeader] = None
+        self.main_dashboard: Optional[MainDashboard] = None
+        self.temperature_controls: Optional[TemperatureControls] = None
+
+        # State management
+        self.current_weather: Optional[CurrentWeather] = None
+        self.forecast_data: Optional[WeatherForecast] = None
+        self.favorite_cities: List[FavoriteCity] = []
+        self.is_loading = False
+
+        # Threading
+        self.update_thread: Optional[threading.Thread] = None
+        self.stop_updates = threading.Event()
+
+        # Initialize sound service
+        self.sound_service = get_sound_service()
+
+        # Setup UI (will be completed after services are injected)
         self.setup_styles()
-        self.create_layout()
-
-        # Clean up any stray widgets
-        self.cleanup_stray_widgets()
-
-        # Callback storage
-        self.callbacks = {}
-
-        # Cleanup stray widgets on startup
-        self.cleanup_stray_widgets()
-
-    def setup_event_bindings(self):
-        """Setup event bindings after initialization is complete."""
-        try:
-            # Add tab switching sound effect
-            if hasattr(self, "notebook"):
-                self.notebook.bind("<<NotebookTabChanged>>", self._on_tab_changed)
-        except Exception as e:
-            logging.debug(f"Could not setup event bindings: {e}")
-
-    def _on_tab_changed(self, event):
-        """Handle tab switching with sound effect."""
-        play_sound(SoundType.BUTTON_CLICK, 0.3)
+        self._ui_initialized = False
 
     def setup_window(self) -> None:
-        """Setup main window properties."""
-        self.root.title("JTC Capstone - Team 5")
-        self.root.geometry("1300x900")  # Increased height for better content fit
-        self.root.minsize(1100, 700)  # Increased minimum size
-        self.root.configure(bg=GlassmorphicStyle.BACKGROUND)
+        """Configure the main window."""
+        # Only configure title and background if not already set by parent
+        if not hasattr(self.root, "_configured_by_parent"):
+            self.root.title("CodeFront 2.0 - Your Personal Weather Companion")
+            # Set window to fullscreen
+            self.root.state("zoomed")  # Windows fullscreen
+            self.root.minsize(1200, 800)
+            # Center window on screen (fallback if fullscreen fails)
+            self.center_window()
 
-        # Center window on screen
+        # Configure window properties
+        self.root.configure(bg=self.glassmorphic_style.BACKGROUND)
+
+        # Configure grid weights for main content
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+
+        # Bind window events (only if not already bound)
+        if not hasattr(self.root, "_events_bound"):
+            self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+            self.root.bind("<Configure>", self.on_window_resize)
+            self.root._events_bound = True
+
+    def center_window(self) -> None:
+        """Center the window on the screen."""
         self.root.update_idletasks()
-        x = (self.root.winfo_screenwidth() // 2) - (1300 // 2)
-        y = (self.root.winfo_screenheight() // 2) - (900 // 2)
-        self.root.geometry(f"1300x900+{x}+{y}")
-
-        # Set up close handler to properly clean up
-        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.root.winfo_screenheight() // 2) - (height // 2)
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
 
     def setup_styles(self) -> None:
-        """Setup custom styles."""
+        """Configure custom styles for the application."""
+        # Configure ttk styles to match glassmorphic theme
         style = ttk.Style()
-        style.theme_use("clam")
 
-        # Configure ttk styles for dark theme with enhanced 3D effects
-        style.configure("TNotebook", background=GlassmorphicStyle.BACKGROUND)
+        # Configure notebook style
         style.configure(
-            "TNotebook.Tab",
-            background=GlassmorphicStyle.GLASS_BG,
-            foreground=GlassmorphicStyle.TEXT_SECONDARY,
-            padding=[20, 12],  # Increased padding for better appearance
-            relief="raised",  # 3D raised effect for tabs
-            borderwidth=2,  # Border for 3D effect
-            focuscolor="none",  # Remove focus outline
+            "Custom.TNotebook",
+            background=self.glassmorphic_style.GLASS_BG,
+            borderwidth=0,
+            tabmargins=[2, 5, 2, 0],
         )
+
+        style.configure(
+            "Custom.TNotebook.Tab",
+            background=self.glassmorphic_style.GLASS_BG_LIGHT,
+            foreground=self.glassmorphic_style.TEXT_PRIMARY,
+            padding=[20, 10],
+            borderwidth=1,
+            relief="solid",
+        )
+
         style.map(
-            "TNotebook.Tab",
+            "Custom.TNotebook.Tab",
             background=[
-                ("selected", GlassmorphicStyle.ACCENT),
-                ("active", "#555555"),  # Hover effect
+                ("selected", self.glassmorphic_style.ACCENT),
+                ("active", self.glassmorphic_style.GLASS_BG),
             ],
             foreground=[
-                ("selected", GlassmorphicStyle.TEXT_PRIMARY),
-                ("active", GlassmorphicStyle.TEXT_PRIMARY),
-            ],
-            relief=[
-                ("selected", "sunken"),  # Pressed effect for active tab
-                ("active", "raised"),
-            ],
-            borderwidth=[
-                ("selected", 3),  # Thicker border for active tab
-                ("active", 2),
+                ("selected", self.glassmorphic_style.TEXT_PRIMARY),
+                ("active", self.glassmorphic_style.TEXT_PRIMARY),
             ],
         )
 
     def create_layout(self) -> None:
-        """Create the main GUI layout."""
-        # Header
-        self.create_header()
+        """Create the main application layout with responsive design."""
+        # Get responsive spacing
+        spacing = self.responsive_layout.get_spacing_for_layout()
 
-        # Main content area with notebook
-        self.create_main_content()
-
-        # Status bar
-        self.create_status_bar()
-
-    def create_header(self):
-        """Create compact header section with Justice Emoji and enhanced styling."""
-        # Compact header frame with reduced padding
-        header_frame = GlassmorphicFrame(self.root, elevated=True, gradient=True)
-        header_frame.pack(fill=tk.X, padx=15, pady=(10, 5))
-
-        # Main header container - compact single row
-        main_header = tk.Frame(header_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        main_header.pack(fill=tk.X, padx=15, pady=10)
-
-        # Left side with compact logo and title layout
-        left_container = tk.Frame(main_header, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        left_container.pack(side=tk.LEFT)
-
-        # Compact horizontal icon layout
-        icon_row = tk.Frame(left_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        icon_row.pack(side=tk.LEFT, padx=(0, 15))
-
-        # Justice Emoji - compact size
-        justice_emoji = tk.Label(
-            icon_row,
-            text="⚖️",
-            font=(GlassmorphicStyle.FONT_FAMILY, 24),  # Smaller for compactness
-            fg=GlassmorphicStyle.ACCENT_SECONDARY,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
+        # Create header
+        self.header = ApplicationHeader(
+            self.root,
+            on_settings=self.show_settings,
+            on_refresh=self.refresh_weather,
+            on_help=self.show_help,
         )
-        justice_emoji.pack(side=tk.LEFT, padx=(0, 5))
-
-        # Weather icon next to Justice emoji
-        weather_logo = tk.Label(
-            icon_row,
-            text="⛅",
-            font=(GlassmorphicStyle.FONT_FAMILY, 20),  # Smaller for compactness
-            fg=GlassmorphicStyle.ACCENT,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-        )
-        weather_logo.pack(side=tk.LEFT)
-
-        # Compact title section - single column
-        title_container = tk.Frame(left_container, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        title_container.pack(side=tk.LEFT)
-
-        # Main title - reduced size for compactness
-        title_main = tk.Label(
-            title_container,
-            text="JTC CAPSTONE • Team 5 Weather Dashboard",
-            font=(GlassmorphicStyle.FONT_FAMILY, 18, "bold"),  # Single line title
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-        )
-        title_main.pack(anchor=tk.W)
-
-        # Compact tagline
-        tagline = tk.Label(
-            title_container,
-            text="⚡ Justice Through Code & Climate ⚡",
-            font=(GlassmorphicStyle.FONT_FAMILY, 11, "italic"),  # Smaller font
-            fg=GlassmorphicStyle.ACCENT_SECONDARY_LIGHT,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-        )
-        tagline.pack(anchor=tk.W)
-
-        # Right side container for buttons with modern layout
-        right_container = tk.Frame(main_header, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        right_container.pack(side=tk.RIGHT, padx=20, pady=5)
-
-        # Create a modern Bootstrap toolbar
-        toolbar_frame = BootstrapFrame(right_container, style="dark")
-        toolbar_frame.pack(pady=5)
-
-        actions_frame = BootstrapFrame(toolbar_frame, style="dark")
-        actions_frame.pack(padx=8, pady=5)
-
-        # Search button
-        self.search_btn = BootstrapButton(
-            actions_frame,
-            text="Search",
-            icon="🔍",
-            command=self.show_city_search,
-            style="primary",
-        )
-        self.search_btn.pack(side=tk.LEFT, padx=2)
-
-        # Modern separator using Bootstrap
-        ttk_bs.Separator(actions_frame, orient="vertical").pack(
-            side=tk.LEFT, fill=tk.Y, padx=3, pady=3
+        self.header.grid(
+            row=0,
+            column=0,
+            sticky="ew",
+            padx=spacing["container_padding"],
+            pady=(spacing["container_padding"], 0),
         )
 
-        # Refresh and Auto-refresh as a logical group
-        self.refresh_btn = BootstrapButton(
-            actions_frame,
-            text="Sync",
-            icon="🔄",
-            command=self.refresh_current_weather,
-            style="info",
+        # Create main content area with glassmorphic panel
+        main_content = GlassPanel(
+            self.root, self.theme_manager, panel_type="default", elevated=True
         )
-        self.refresh_btn.pack(side=tk.LEFT, padx=2)
-
-        self.auto_refresh_btn = BootstrapButton(
-            actions_frame,
-            text="Auto",
-            icon="⏱️",
-            command=self.toggle_auto_refresh,
-            style="success",
+        main_content.grid(
+            row=1,
+            column=0,
+            sticky="nsew",
+            padx=spacing["container_padding"],
+            pady=spacing["container_padding"],
         )
-        self.auto_refresh_btn.pack(side=tk.LEFT, padx=2)
+        main_content.grid_rowconfigure(0, weight=1)
+        main_content.grid_columnconfigure(0, weight=0)  # Temperature controls
+        main_content.grid_columnconfigure(1, weight=1)  # Main dashboard
+        main_content.grid_columnconfigure(2, weight=0)  # Theme selector
 
-        # Dashboard button
-        self.dashboard_btn = BootstrapButton(
-            actions_frame,
-            text="Charts",
-            icon="📊",
-            command=self.show_dashboard,
-            style="warning",
+        # Store main content for responsive updates
+        self.main_content = main_content
+
+        # Get the container for child widgets (handles elevation effects)
+        content_container = main_content.get_container()
+        
+        # Create temperature controls with responsive layout
+        self.temperature_controls = TemperatureControls(
+            content_container,
+            initial_unit=TemperatureUnit.FAHRENHEIT,
+            on_unit_change=self.on_temperature_unit_change,
         )
-        self.dashboard_btn.pack(side=tk.LEFT, padx=2)
-
-        # Modern separator using Bootstrap
-        ttk_bs.Separator(actions_frame, orient="vertical").pack(
-            side=tk.LEFT, fill=tk.Y, padx=3, pady=3
-        )
-
-        # Temperature controls with Bootstrap styling
-        temp_label = ttk_bs.Label(
-            actions_frame,
-            text="🌡️",
-            font=(GlassmorphicStyle.FONT_FAMILY, 14),
-        )
-        temp_label.pack(side=tk.LEFT, padx=(0, 1))
-
-        self.temp_toggle_btn = BootstrapButton(
-            actions_frame,
-            text="°C/°F",
-            style="secondary",
-            command=self.toggle_temperature_unit,
-        )
-        self.temp_toggle_btn.pack(side=tk.LEFT, padx=2)
-
-        # Update toggle button text to show current unit
-        self.update_temp_toggle_text()
-
-        # Add impressive animation effects to the compact header elements
-        AnimationHelper.pulse_effect(
-            justice_emoji, GlassmorphicStyle.ACCENT_SECONDARY, 4000
-        )
-        AnimationHelper.pulse_effect(weather_logo, GlassmorphicStyle.ACCENT, 3500)
-        AnimationHelper.text_glow_effect(title_main, GlassmorphicStyle.ACCENT, 3000)
-        AnimationHelper.rainbow_text_effect(tagline, 5000)
-
-    def create_main_content(self):
-        """Create main content area with tabbed interface."""
-        # Create Bootstrap-styled notebook (tabbed interface)
-        self.notebook = ttk_bs.Notebook(self.root)
-        self.notebook.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 10))
-
-        # Note: Tab switching sound effect will be bound after initialization
-
-        # Weather tab
-        self.create_weather_tab()
-
-        # Forecast tab
-        self.create_forecast_tab()
-
-        # Comparison tab
-        self.create_comparison_tab()
-
-        # Journal tab
-        self.create_journal_tab()
-
-        # Activities tab
-        self.create_activities_tab()
-
-        # Poetry tab
-        self.create_poetry_tab()
-
-        # Voice Assistant tab
-        self.create_voice_tab()
-
-        # Favorites tab
-        self.create_favorites_tab()
-
-    def create_weather_tab(self):
-        """Create enhanced current weather tab with Bootstrap styling."""
-        weather_frame = BootstrapFrame(self.notebook)
-        self.notebook.add(weather_frame, text="🌤️ Current Weather")
-
-        # Main weather card
-        self.main_weather_card = WeatherCard(weather_frame, gui_ref=self)
-        self.main_weather_card.pack(
-            side=tk.LEFT, fill=tk.BOTH, expand=True, padx=10, pady=10
+        self.temperature_controls.grid(
+            row=0,
+            column=0,
+            sticky="ns",
+            padx=(spacing["element_spacing"], spacing["element_spacing"]),
+            pady=spacing["element_spacing"],
         )
 
-        # Enhanced side panel with controls and scrollbar
-        side_panel = GlassmorphicFrame(weather_frame, elevated=True, gradient=True)
-        side_panel.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
-
-        # Create scrollable content area for the side panel
-        canvas = tk.Canvas(
-            side_panel,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-            highlightthickness=0,
-            width=300,  # Set fixed width for the side panel
+        # Create main dashboard with responsive layout
+        self.main_dashboard = MainDashboard(
+            content_container,
+            on_search=self.search_weather,
+            on_add_favorite=self.add_favorite_city,
+            on_tab_change=self.on_tab_change,
         )
-        scrollable_frame = tk.Frame(canvas, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        scrollbar = tk.Scrollbar(side_panel, orient="vertical", command=canvas.yview)
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        scrollbar.pack(side="right", fill="y")
-        canvas.pack(side="left", fill="both", expand=True)
-        canvas_window = canvas.create_window(
-            (0, 0), window=scrollable_frame, anchor="nw"
+        self.main_dashboard.grid(
+            row=0,
+            column=1,
+            sticky="nsew",
+            padx=(spacing["element_spacing"], spacing["element_spacing"]),
+            pady=spacing["element_spacing"],
         )
 
-        def configure_scroll_region(event):
-            canvas.configure(scrollregion=canvas.bbox("all"))
-            # Update the width of the frame to match the canvas
-            canvas.itemconfig(canvas_window, width=canvas.winfo_width())
+        # Responsive layout management is handled through callbacks
+        # Components are already positioned using grid layout
 
-        scrollable_frame.bind("<Configure>", configure_scroll_region)
-        canvas.bind(
-            "<Configure>",
-            lambda e: canvas.itemconfig(canvas_window, width=canvas.winfo_width()),
-        )
+        # Create theme selector
+        self.create_theme_selector(content_container)
 
-        # Mouse wheel scrolling
-        def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+        # Apply entrance animations
+        self.animation_helper.slide_in(self.header, direction="down")
+        self.animation_helper.fade_in(main_content)
 
-        canvas.bind("<MouseWheel>", _on_mousewheel)
+    def initialize_services(self, container) -> None:
+        """Initialize services from the dependency container.
 
-        # Header for side panel
-        panel_header = tk.Frame(scrollable_frame, bg=GlassmorphicStyle.GLASS_BG_LIGHT)
-        panel_header.pack(fill=tk.X, pady=(20, 15))
-
-        header_icon = tk.Label(
-            panel_header,
-            text="🏙️",
-            font=(GlassmorphicStyle.FONT_FAMILY, 24),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-        )
-        header_icon.pack()
-
-        header_text = tk.Label(
-            panel_header,
-            text="City Search",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-        )
-        header_text.pack(pady=(5, 0))
-
-        # City input section with enhanced styling
-        input_section = GlassmorphicFrame(
-            scrollable_frame, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
-        )
-        input_section.pack(fill=tk.X, padx=15, pady=(0, 15))
-
-        input_label = tk.Label(
-            input_section,
-            text="Enter City:",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_ACCENT,
-            bg=input_section.bg_color,
-        )
-        input_label.pack(pady=(15, 5))
-
-        self.city_entry = BootstrapEntry(input_section, style="primary")
-        self.city_entry.pack(pady=(0, 15), padx=15, fill=tk.X, ipady=10)
-
-        # Placeholder text functionality for Bootstrap entry
-        self.city_entry.insert(0, "e.g., New York, London...")
-
-        def on_entry_click(event):
-            if self.city_entry.get() == "e.g., New York, London...":
-                self.city_entry.delete(0, tk.END)
-
-        def on_entry_leave(event):
-            if not self.city_entry.get():
-                self.city_entry.insert(0, "e.g., New York, London...")
-
-        self.city_entry.bind("<FocusIn>", on_entry_click)
-        self.city_entry.bind("<FocusOut>", on_entry_leave)
-
-        # Action buttons with Bootstrap styling
-        button_section = BootstrapFrame(scrollable_frame)
-        button_section.pack(fill=tk.X, padx=15)
-
-        # Get weather button
-        self.get_weather_btn = BootstrapButton(
-            button_section,
-            text="Get Weather",
-            icon="🌤️",
-            style="primary",
-            command=self.get_weather_for_city,
-        )
-        self.get_weather_btn.pack(fill=tk.X, pady=(0, 10))
-
-        # Add to favorites button
-        self.add_favorite_btn = BootstrapButton(
-            button_section,
-            text="Add to Favorites",
-            icon="⭐",
-            style="warning",
-            command=self.add_to_favorites,
-        )
-        self.add_favorite_btn.pack(fill=tk.X, pady=(0, 10))
-
-        # Quick access section
-        quick_access = BootstrapFrame(scrollable_frame)
-        quick_access.pack(fill=tk.X, padx=15, pady=(15, 0))
-
-        quick_label = ttk_bs.Label(
-            quick_access,
-            text="Quick Actions",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_SMALL,
-                "bold",
-            ),
-        )
-        quick_label.pack(pady=(0, 10))
-
-        # Current location button
-        location_btn = BootstrapButton(
-            quick_access,
-            text="Current Location",
-            icon="📍",
-            style="success",
-            command=self.get_current_location_weather,
-        )
-        location_btn.pack(fill=tk.X, pady=(0, 5))
-
-        # Random city button
-        random_btn = BootstrapButton(
-            quick_access,
-            text="Random City",
-            icon="🎲",
-            style="info",
-            command=self.get_random_city_weather,
-        )
-        random_btn.pack(fill=tk.X)
-
-        # Bind Enter key to city entry
-        self.city_entry.bind("<Return>", lambda e: self.get_weather_for_city())
-
-    def create_forecast_tab(self):
-        """Create enhanced forecast tab with better layout."""
-        forecast_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
-        self.notebook.add(forecast_frame, text="📅 Forecast")
-
-        # Header with title and info
-        header_frame = GlassmorphicFrame(forecast_frame, elevated=True, gradient=True)
-        header_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
-
-        # Header content
-        header_content = tk.Frame(header_frame, bg=header_frame.bg_color)
-        header_content.pack(fill=tk.X, padx=20, pady=15)
-
-        # Title with icon
-        title_label = tk.Label(
-            header_content,
-            text="📅 7-Day Weather Forecast",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=header_frame.bg_color,
-        )
-        title_label.pack(side=tk.LEFT)
-
-        # Info label
-        info_label = tk.Label(
-            header_content,
-            text="Detailed weather predictions for the upcoming week",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=header_frame.bg_color,
-        )
-        info_label.pack(side=tk.RIGHT)
-
-        # Main forecast container
-        forecast_container = GlassmorphicFrame(forecast_frame, elevated=True)
-        forecast_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
-
-        # Scrollable forecast area with better organization
-        self.forecast_scroll = ModernScrollableFrame(forecast_container)
-        self.forecast_scroll.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
-
-    def create_comparison_tab(self):
-        """Create city comparison tab."""
-        comparison_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
-        self.notebook.add(comparison_frame, text="🌍 Compare Cities")
-
-        # Controls - compact design for better window usage
-        controls_frame = GlassmorphicFrame(comparison_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, padx=15, pady=(10, 8))
-
-        # Create a compact container
-        main_container = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        main_container.pack(pady=15, padx=30)
-
-        # Title for the section - more compact
-        title_label = tk.Label(
-            main_container,
-            text="Compare Weather Between Two Cities",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=controls_frame.bg_color,
-        )
-        title_label.pack(pady=(0, 15))
-
-        # City selection container - more compact
-        selection_container = tk.Frame(main_container, bg=controls_frame.bg_color)
-        selection_container.pack(pady=(0, 12))
-
-        # Use grid for better control over layout
-        selection_container.grid_columnconfigure(0, weight=1)
-        selection_container.grid_columnconfigure(
-            1, weight=0, minsize=60
-        )  # Reduced space between dropdowns
-        selection_container.grid_columnconfigure(2, weight=1)
-
-        # City 1 section - more compact
-        city1_frame = tk.Frame(selection_container, bg=controls_frame.bg_color)
-        city1_frame.grid(row=0, column=0, padx=(0, 15), sticky="e")
-
-        city1_label = tk.Label(
-            city1_frame,
-            text="🏙️ First City:",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_SMALL,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=controls_frame.bg_color,
-        )
-        city1_label.pack(pady=(0, 5))
-
-        # Slightly smaller dropdown
-        self.city1_dropdown = ttk.Combobox(
-            city1_frame,
-            width=22,
-            state="readonly",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            style="Glassmorphic.TCombobox",
-        )
-        self.city1_dropdown.pack(ipady=6)
-
-        # VS separator in the middle - smaller
-        vs_label = tk.Label(
-            selection_container,
-            text="VS",
-            font=(GlassmorphicStyle.FONT_FAMILY, 14, "bold"),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=controls_frame.bg_color,
-        )
-        vs_label.grid(row=0, column=1, padx=15)
-
-        # City 2 section - more compact
-        city2_frame = tk.Frame(selection_container, bg=controls_frame.bg_color)
-        city2_frame.grid(row=0, column=2, padx=(15, 0), sticky="w")
-
-        city2_label = tk.Label(
-            city2_frame,
-            text="🌆 Second City:",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_SMALL,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=controls_frame.bg_color,
-        )
-        city2_label.pack(pady=(0, 5))
-
-        self.city2_dropdown = ttk.Combobox(
-            city2_frame,
-            width=22,
-            state="readonly",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            style="Glassmorphic.TCombobox",
-        )
-        self.city2_dropdown.pack(ipady=6)
-
-        # Buttons container - more compact
-        buttons_frame = tk.Frame(main_container, bg=controls_frame.bg_color)
-        buttons_frame.pack(pady=(12, 0))
-
-        self.compare_btn = ModernButton(
-            buttons_frame,
-            text="🌍 Compare Weather",
-            command=self.compare_cities,
-            width=16,
-        )
-        self.compare_btn.pack(side=tk.LEFT, padx=(0, 15))
-
-        self.refresh_team_btn = ModernButton(
-            buttons_frame,
-            text="🔄 Refresh Cities",
-            command=self.refresh_team_cities,
-            style="secondary",
-            width=16,
-        )
-        self.refresh_team_btn.pack(side=tk.LEFT, padx=(15, 0))
-
-        # Configure custom ttk style for the dropdowns
-        self._configure_dropdown_style()
-
-        # Populate dropdowns with team cities
-        self.populate_city_dropdowns()
-
-        # Comparison results - give more space
-        self.comparison_results = GlassmorphicFrame(comparison_frame, elevated=True)
-        self.comparison_results.pack(fill=tk.BOTH, expand=True, padx=10, pady=(8, 10))
-
-    def _configure_dropdown_style(self):
-        """Configure custom styling for the dropdown menus to match glassmorphic theme."""
+        Args:
+            container: Dependency injection container with all services
+        """
         try:
-            style = ttk.Style()
+            self.container = container
 
-            # Configure the custom combobox style
-            style.configure(
-                "Glassmorphic.TCombobox",
-                fieldbackground=GlassmorphicStyle.GLASS_BG_LIGHT,  # Background color
-                background=GlassmorphicStyle.GLASS_BG_LIGHT,  # Button background
-                foreground=GlassmorphicStyle.TEXT_PRIMARY,  # Text color
-                borderwidth=2,
-                relief="flat",
-                arrowcolor=GlassmorphicStyle.TEXT_ACCENT,  # Arrow color
-                insertcolor=GlassmorphicStyle.TEXT_PRIMARY,  # Cursor color
-                selectbackground=GlassmorphicStyle.ACCENT,  # Selection background
-                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,  # Selection text
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                ),
-            )
+            # Import interface types
+            from ..business.interfaces import IActivitySuggestionService
+            from ..business.interfaces import ICityComparisonService
+            from ..business.interfaces import ICortanaVoiceService
+            from ..business.interfaces import IWeatherJournalService
+            from ..business.interfaces import IWeatherPoetryService
+            from ..business.interfaces import IWeatherService
 
-            # Configure the dropdown listbox
-            style.configure(
-                "Glassmorphic.TCombobox.Listbox",
-                background=GlassmorphicStyle.GLASS_BG_LIGHT,
-                foreground=GlassmorphicStyle.TEXT_PRIMARY,
-                selectbackground=GlassmorphicStyle.ACCENT,
-                selectforeground=GlassmorphicStyle.TEXT_PRIMARY,
-                borderwidth=1,
-                relief="solid",
-            )
+            # Inject services
+            self.weather_service = container.get_service(IWeatherService)
+            self.poetry_service = container.get_service(IWeatherPoetryService)
+            self.journal_service = container.get_service(IWeatherJournalService)
+            self.activity_service = container.get_service(IActivitySuggestionService)
+            self.comparison_service = container.get_service(ICityComparisonService)
+            self.voice_service = container.get_service(ICortanaVoiceService)
 
-            # Map the styles for different states
-            style.map(
-                "Glassmorphic.TCombobox",
-                fieldbackground=[
-                    ("readonly", GlassmorphicStyle.GLASS_BG_LIGHT),
-                    ("focus", GlassmorphicStyle.GLASS_BG_LIGHT),
-                ],
-                background=[
-                    ("readonly", GlassmorphicStyle.GLASS_BG_LIGHT),
-                    ("focus", GlassmorphicStyle.GLASS_BG_LIGHT),
-                ],
-                bordercolor=[
-                    ("focus", GlassmorphicStyle.ACCENT),
-                    ("!focus", GlassmorphicStyle.GLASS_BORDER),
-                ],
-                arrowcolor=[
-                    ("hover", GlassmorphicStyle.ACCENT),
-                    ("!hover", GlassmorphicStyle.TEXT_ACCENT),
-                ],
-            )
+            self.logger.info("Services initialized successfully")
+
+            # Complete UI initialization now that services are available
+            if not self._ui_initialized:
+                self.complete_initialization()
+
+            # Initialize services in dashboard components
+            if hasattr(self, "main_dashboard") and self.main_dashboard:
+                self.main_dashboard.initialize_services(container)
 
         except Exception as e:
-            # If styling fails, continue without custom styling
-            if hasattr(self, "logger"):
-                self.logger.warning(f"Could not configure dropdown styling: {e}")
+            self.logger.error(f"Failed to initialize services: {e}")
+            self.show_error(f"Failed to initialize services: {e}")
 
-    def create_journal_tab(self):
-        """Create weather journal tab."""
-        journal_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
-        self.notebook.add(journal_frame, text="📔 Journal")
+    def complete_initialization(self) -> None:
+        """Complete the UI initialization after services are injected."""
+        try:
+            # Create layout
+            self.create_layout()
 
-        # Controls
-        controls_frame = GlassmorphicFrame(journal_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
+            # Load saved data
+            self.load_saved_data()
 
-        self.new_entry_btn = ModernButton(
-            controls_frame, text="📝 New Entry", command=self.create_journal_entry
-        )
-        self.new_entry_btn.pack(side=tk.LEFT, padx=20, pady=15)
+            # Start periodic updates
+            self.start_periodic_updates()
 
-        self.view_entries_btn = ModernButton(
-            controls_frame,
-            text="📖 View Entries",
-            style="secondary",
-            command=self.view_journal_entries,
-        )
-        self.view_entries_btn.pack(side=tk.LEFT, padx=10, pady=15)
+            # Load default weather
+            self.load_default_weather()
 
-        # Journal content
-        self.journal_content = ModernScrollableFrame(journal_frame)
-        self.journal_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
+            self._ui_initialized = True
+            self.logger.info("UI initialization completed")
 
-    def create_activities_tab(self):
-        """Create activity suggestions tab with Bootstrap styling."""
-        activities_frame = BootstrapFrame(self.notebook)
-        self.notebook.add(activities_frame, text="🎯 Activities")
+        except Exception as e:
+            self.logger.error(f"Failed to complete UI initialization: {e}")
+            self.show_error(f"Failed to initialize UI: {e}")
 
-        # Controls with Bootstrap styling
-        controls_frame = BootstrapFrame(activities_frame, style="dark")
-        controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
-
-        # Button container
-        button_container = BootstrapFrame(controls_frame, style="dark")
-        button_container.pack(pady=15)
-
-        self.get_activities_btn = BootstrapButton(
-            button_container,
-            text="Get Suggestions",
-            icon="🎯",
-            style="primary",
-            command=self.get_activity_suggestions,
-        )
-        self.get_activities_btn.pack(side=tk.LEFT, padx=10)
-
-        # Activity filter buttons
-        self.indoor_filter_btn = BootstrapButton(
-            button_container,
-            text="Indoor Only",
-            icon="🏠",
-            style="info",
-            command=lambda: self.filter_activities("indoor"),
-        )
-        self.indoor_filter_btn.pack(side=tk.LEFT, padx=5)
-
-        self.outdoor_filter_btn = BootstrapButton(
-            button_container,
-            text="Outdoor Only",
-            icon="🌞",
-            style="warning",
-            command=lambda: self.filter_activities("outdoor"),
-        )
-        self.outdoor_filter_btn.pack(side=tk.LEFT, padx=5)
-
-        # Activities content with improved scrolling and wider layout
-        self.activities_content = ModernScrollableFrame(activities_frame)
-        self.activities_content.pack(
-            fill=tk.BOTH, expand=True, padx=2, pady=(5, 10)
-        )  # Minimal padding for full width
-
-    def create_poetry_tab(self):
-        """Create weather poetry tab."""
-        poetry_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
-        self.notebook.add(poetry_frame, text="🎨 Poetry")
-
-        # Controls
-        controls_frame = GlassmorphicFrame(poetry_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
-
-        # First row - Main generate buttons
-        main_buttons_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        main_buttons_frame.pack(pady=(15, 5))
-
-        self.generate_poetry_btn = ModernButton(
-            main_buttons_frame,
-            text="🎨 Generate Random Poetry",
-            command=self.generate_poetry,
-        )
-        self.generate_poetry_btn.pack(side=tk.LEFT, padx=10)
-
-        self.generate_collection_btn = ModernButton(
-            main_buttons_frame,
-            text="📚 Generate Collection",
-            style="success",
-            command=self.generate_poetry_collection,
-        )
-        self.generate_collection_btn.pack(side=tk.LEFT, padx=10)
-
-        # Second row - Specific poetry type buttons
-        specific_buttons_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        specific_buttons_frame.pack(pady=(5, 15))
-
-        tk.Label(
-            specific_buttons_frame,
-            text="Generate Specific Type:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=controls_frame.bg_color,
-        ).pack(pady=(0, 5))
-
-        buttons_row = tk.Frame(specific_buttons_frame, bg=controls_frame.bg_color)
-        buttons_row.pack()
-
-        self.haiku_btn = ModernButton(
-            buttons_row,
-            text="🌸 Haiku",
-            style="secondary",
-            command=lambda: self.generate_specific_poetry("haiku"),
-        )
-        self.haiku_btn.pack(side=tk.LEFT, padx=5)
-
-        self.phrase_btn = ModernButton(
-            buttons_row,
-            text="💭 Phrase",
-            style="secondary",
-            command=lambda: self.generate_specific_poetry("phrase"),
-        )
-        self.phrase_btn.pack(side=tk.LEFT, padx=5)
-
-        self.limerick_btn = ModernButton(
-            buttons_row,
-            text="🎵 Limerick",
-            style="secondary",
-            command=lambda: self.generate_specific_poetry("limerick"),
-        )
-        self.limerick_btn.pack(side=tk.LEFT, padx=5)
-
-        # Poetry content
-        self.poetry_content = GlassmorphicFrame(poetry_frame)
-        self.poetry_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
-
-    def create_favorites_tab(self):
-        """Create favorites management tab."""
-        favorites_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
-        self.notebook.add(favorites_frame, text="⭐ Favorites")
-
-        # Controls
-        controls_frame = GlassmorphicFrame(favorites_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
-
-        self.refresh_favorites_btn = ModernButton(
-            controls_frame, text="🔄 Refresh", command=self.refresh_favorites
-        )
-        self.refresh_favorites_btn.pack(side=tk.LEFT, padx=20, pady=15)
-
-        self.view_all_weather_btn = ModernButton(
-            controls_frame,
-            text="🌍 View All Weather",
-            style="secondary",
-            command=self.view_all_favorites_weather,
-        )
-        self.view_all_weather_btn.pack(side=tk.LEFT, padx=10, pady=15)
-
-        # Favorites content
-        self.favorites_content = ModernScrollableFrame(favorites_frame)
-        self.favorites_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
-
-    def create_voice_tab(self):
-        """Create voice assistant tab."""
-        voice_frame = tk.Frame(self.notebook, bg=GlassmorphicStyle.BACKGROUND)
-        self.notebook.add(voice_frame, text="🎤 Voice Assistant")
-
-        # Voice controls
-        controls_frame = GlassmorphicFrame(voice_frame, elevated=True)
-        controls_frame.pack(fill=tk.X, padx=10, pady=(10, 5))
-
-        # Voice status
-        status_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        status_frame.pack(fill=tk.X, padx=20, pady=15)
-
-        self.voice_status_label = tk.Label(
-            status_frame,
-            text="Voice Assistant: Checking...",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=controls_frame.bg_color,
-        )
-        self.voice_status_label.pack(side=tk.LEFT)
-
-        # Voice command input
-        input_frame = tk.Frame(controls_frame, bg=controls_frame.bg_color)
-        input_frame.pack(fill=tk.X, padx=20, pady=(0, 15))
-
-        tk.Label(
-            input_frame,
-            text="Voice Command:",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=controls_frame.bg_color,
-        ).pack(anchor=tk.W, pady=(0, 5))
-
-        command_input_frame = tk.Frame(input_frame, bg=controls_frame.bg_color)
-        command_input_frame.pack(fill=tk.X)
-
-        self.voice_command_entry = ModernEntry(command_input_frame, placeholder="Enter voice command...")
-        self.voice_command_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
-
-        self.process_command_btn = ModernButton(
-            command_input_frame,
-            text="🎤 Process",
-            command=lambda: self.process_voice_command_gui(),
-        )
-        self.process_command_btn.pack(side=tk.RIGHT)
-
-        # Voice configuration
-        config_frame = GlassmorphicFrame(voice_frame, elevated=True)
-        config_frame.pack(fill=tk.X, padx=10, pady=(5, 5))
-
-        config_title = tk.Label(
-            config_frame,
-            text="Voice Configuration",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_LARGE, "bold"),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=config_frame.bg_color,
-        )
-        config_title.pack(pady=(15, 10))
-
-        config_content = tk.Frame(config_frame, bg=config_frame.bg_color)
-        config_content.pack(fill=tk.X, padx=20, pady=(0, 15))
-
-        self.config_reload_btn = ModernButton(
-            config_content,
-            text="🔄 Reload Config",
-            style="secondary",
-            command=lambda: self.reload_voice_config_gui(),
-        )
-        self.config_reload_btn.pack(side=tk.LEFT, padx=(0, 10))
-
-        self.voice_help_btn = ModernButton(
-            config_content,
-            text="❓ Help",
-            style="secondary",
-            command=lambda: self.show_voice_help_gui(),
-        )
-        self.voice_help_btn.pack(side=tk.LEFT)
-
-        # Voice response area
-        self.voice_content = ModernScrollableFrame(voice_frame)
-        self.voice_content.pack(fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
-
-        # Initialize voice status (will be updated after callbacks are set)
-        self.voice_status_label.configure(
-            text="Voice Assistant: Initializing...",
-            fg=GlassmorphicStyle.TEXT_SECONDARY
-        )
-
-    def create_status_bar(self):
-        """Create status bar."""
-        self.status_frame = GlassmorphicFrame(self.root, elevated=True)
-        self.status_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
-
-        self.status_label = tk.Label(
-            self.status_frame,
-            text="Ready",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=self.status_frame.bg_color,
-        )
-        self.status_label.pack(side=tk.LEFT, padx=15, pady=8)
-
-        # Weather update time
-        self.update_time_label = tk.Label(
-            self.status_frame,
-            text="",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=self.status_frame.bg_color,
-        )
-        self.update_time_label.pack(side=tk.RIGHT, padx=15, pady=8)
-
-    # Interface implementation methods
-    def display_weather(self, weather_data: CurrentWeather) -> None:
-        """Display current weather data with sound effects."""
-        self.current_weather = weather_data
-        self.main_weather_card.update_weather(weather_data)
-        self.update_status(f"Weather updated for {weather_data.location.display_name}")
-
-        # Play weather-appropriate sound
-        play_weather_sound(weather_data.description)
-
-        # Play weather load success sound
-        play_sound(SoundType.WEATHER_LOAD, 0.4)
-
-        # Update dashboard with new weather data
-        if hasattr(self, "dashboard"):
-            self.dashboard.update_weather_data(weather_data)
-
-        # Update timestamp
-        if weather_data.timestamp:
-            time_str = weather_data.timestamp.strftime("%H:%M")
-            self.update_time_label.configure(text=f"Updated: {time_str}")
-
-    def display_forecast(self, forecast_data: WeatherForecast) -> None:
-        """Display forecast data with enhanced grid layout."""
-        # Store forecast data for temperature unit changes
-        self.current_forecast_data = forecast_data
-
-        # Update dashboard with new forecast data
-        if hasattr(self, "dashboard"):
-            self.dashboard.update_forecast_data(forecast_data)
-
-        # Clear existing forecast
-        for widget in self.forecast_scroll.scrollable_frame.winfo_children():
-            widget.destroy()
-
-        # Create main container for grid layout
-        main_container = tk.Frame(
-            self.forecast_scroll.scrollable_frame, bg=GlassmorphicStyle.BACKGROUND
-        )
-        main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        # Create forecast cards in a responsive grid
-        num_days = len(forecast_data.forecast_days)
-
-        # For better layout, use 3 columns for desktop view to fill window better
-        max_cols = 3
-
-        for i, day in enumerate(forecast_data.forecast_days):
-            row = i // max_cols
-            col = i % max_cols
-
-            day_card = self.create_forecast_card(main_container, day, i)
-            day_card.grid(
-                row=row, column=col, padx=12, pady=10, sticky="nsew", ipadx=3, ipady=3
+    def create_theme_selector(self, parent) -> None:
+        """Create theme selector controls."""
+        try:
+            # Create theme control panel
+            theme_panel = GlassPanel(
+                parent, self.theme_manager, panel_type="accent", elevated=False
             )
+            theme_panel.grid(row=0, column=2, sticky="ns", padx=10, pady=10)
 
-        # Configure grid weights for responsive behavior
-        for col in range(max_cols):
-            main_container.grid_columnconfigure(col, weight=1)
-        for row in range((num_days + max_cols - 1) // max_cols):
-            main_container.grid_rowconfigure(row, weight=1)
+            # Get the container for child widgets
+            panel_container = theme_panel.get_container()
+            
+            # Theme selector title
+            title_label = tk.Label(
+                panel_container,
+                text="🎨 Themes",
+                font=("Segoe UI", 12, "bold"),
+                **GlassWidget(self.theme_manager).get_glass_label_config("accent"),
+            )
+            title_label.pack(pady=(15, 10))
 
-    def create_forecast_card(self, parent, day_data, index):
-        """Create an enhanced forecast day card with better visual design."""
-        card = GlassmorphicFrame(parent, elevated=True, gradient=True)
-        card.configure(
-            width=350, height=200
-        )  # Slightly smaller width for 3-column layout
+            # Theme buttons
+            themes = [
+                (GlassTheme.MIDNIGHT_FOREST, "🌲 Midnight Forest"),
+                (GlassTheme.SILVER_MIST, "🌫️ Silver Mist"),
+                (GlassTheme.FOREST_SHADOW, "🌑 Forest Shadow"),
+            ]
 
-        # Main card container
-        card_content = tk.Frame(card, bg=card.bg_color)
-        card_content.pack(fill=tk.BOTH, expand=True, padx=15, pady=12)
+            for theme, display_name in themes:
+                btn = GlassButton(
+                    panel_container,
+                    self.theme_manager,
+                    text=display_name,
+                    command=lambda t=theme: self.switch_theme(t),
+                    style=(
+                        "accent"
+                        if theme == self.theme_manager.current_theme
+                        else "default"
+                    ),
+                )
+                btn.pack(fill=tk.X, padx=10, pady=2)
 
-        # Top section - Date and weather icon
-        top_section = tk.Frame(card_content, bg=card.bg_color)
-        top_section.pack(fill=tk.X, pady=(0, 10))
+        except Exception as e:
+            self.logger.error(f"Failed to create theme selector: {e}")
 
-        # Date section (left side)
-        date_section = tk.Frame(top_section, bg=card.bg_color)
-        date_section.pack(side=tk.LEFT, fill=tk.Y)
+    def switch_theme(self, theme: GlassTheme) -> None:
+        """Switch to a different glassmorphic theme."""
+        try:
+            self.theme_manager.switch_theme(theme)
+            self.theme_integrator = DashboardThemeIntegrator(self.theme_manager)
 
-        # Day name
-        day_name = day_data.date.strftime("%A")
-        day_label = tk.Label(
-            date_section,
-            text=day_name,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=card.bg_color,
-        )
-        day_label.pack(anchor=tk.W)
+            # Apply new theme to window
+            self.theme_integrator.apply_theme_to_window(self.root)
 
-        # Date
-        date_str = day_data.date.strftime("%B %d")
-        date_label = tk.Label(
-            date_section,
-            text=date_str,
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM),
-            fg=GlassmorphicStyle.TEXT_ACCENT,
-            bg=card.bg_color,
-        )
-        date_label.pack(anchor=tk.W)
+            # Refresh UI components with new theme
+            self.refresh_theme_ui()
 
-        # Weather icon (right side)
-        icon = WeatherIcons.get_icon(
-            day_data.description, day_data.temperature_high.value
-        )
-        icon_label = tk.Label(
-            top_section,
-            text=icon,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                42,
-            ),  # Slightly smaller for 3-column layout
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=card.bg_color,
-        )
-        icon_label.pack(side=tk.RIGHT)
+            self.logger.info(f"Switched to theme: {theme.value}")
 
-        # Middle section - Temperature range
-        temp_section = GlassmorphicFrame(
-            card_content, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
-        )
-        temp_section.pack(fill=tk.X, pady=(0, 10))
+        except Exception as e:
+            self.logger.error(f"Failed to switch theme: {e}")
 
-        temp_content = tk.Frame(temp_section, bg=temp_section.bg_color)
-        temp_content.pack(padx=15, pady=10)
+    def refresh_theme_ui(self) -> None:
+        """Refresh UI components with current theme."""
+        try:
+            # This would typically recreate UI components with new theme
+            # For now, we'll just update the palette reference
+            palette = self.theme_manager.get_current_palette()
 
-        # Convert temperatures to current unit
-        high_temp_celsius = day_data.temperature_high.to_celsius()
-        low_temp_celsius = day_data.temperature_low.to_celsius()
+            # Update root window background
+            self.root.configure(bg=palette.background)
 
-        high_temp_value, temp_unit = self.convert_temperature(high_temp_celsius)
-        low_temp_value, _ = self.convert_temperature(low_temp_celsius)
+            self.logger.info("UI theme refreshed")
 
-        # High temperature
-        high_temp_frame = tk.Frame(temp_content, bg=temp_section.bg_color)
-        high_temp_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        except Exception as e:
+            self.logger.error(f"Failed to refresh theme UI: {e}")
 
-        tk.Label(
-            high_temp_frame,
-            text="HIGH",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_TINY,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_TERTIARY,
-            bg=temp_section.bg_color,
-        ).pack()
+    def load_default_weather(self) -> None:
+        """Load weather for the default city."""
+        try:
+            default_city = self.config.get(
+                "default_city", "New York"
+            )  # Use configured default city
+            self.search_weather(default_city)
+        except Exception as e:
+            self.logger.error(f"Failed to load default weather: {e}")
 
-        high_temp_color = GlassmorphicStyle.get_temperature_color(high_temp_value)
-        tk.Label(
-            high_temp_frame,
-            text=f"{high_temp_value:.0f}°{temp_unit[-1]}",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=high_temp_color,
-            bg=temp_section.bg_color,
-        ).pack()
+    def set_callback(self, name: str, callback: Callable) -> None:
+        """Set a callback function for the specified name.
 
-        # Separator
-        tk.Label(
-            temp_content,
-            text="|",
-            font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_LARGE),
-            fg=GlassmorphicStyle.TEXT_TERTIARY,
-            bg=temp_section.bg_color,
-        ).pack(side=tk.LEFT, padx=20)
+        Args:
+            name: Name of the callback
+            callback: Callback function to set
+        """
+        self.callbacks[name] = callback
 
-        # Low temperature
-        low_temp_frame = tk.Frame(temp_content, bg=temp_section.bg_color)
-        low_temp_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
+    def get_callback(self, name: str) -> Optional[Callable]:
+        """Get a callback function by name.
 
-        tk.Label(
-            low_temp_frame,
-            text="LOW",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_TINY,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_TERTIARY,
-            bg=temp_section.bg_color,
-        ).pack()
+        Args:
+            name: Name of the callback
 
-        low_temp_color = GlassmorphicStyle.get_temperature_color(low_temp_value)
-        tk.Label(
-            low_temp_frame,
-            text=f"{low_temp_value:.0f}°{temp_unit[-1]}",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=low_temp_color,
-            bg=temp_section.bg_color,
-        ).pack()
+        Returns:
+            The callback function if found, None otherwise
+        """
+        return self.callbacks.get(name)
 
-        # Bottom section - Weather condition
-        condition_frame = tk.Frame(card_content, bg=card.bg_color)
-        condition_frame.pack(fill=tk.X)
+    def update_status(self, message: str) -> None:
+        """Update the status message in the UI.
 
-        condition_label = tk.Label(
-            condition_frame,
-            text=day_data.description.title(),
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "italic",
-            ),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=card.bg_color,
-            justify=tk.CENTER,
-        )
-        condition_label.pack()
-
-        # Add subtle animation for the icon
-        AnimationHelper.fade_in(icon_label)
-
-        return card
-
-    def get_user_input(self, prompt: str) -> str:
-        """Get input from user via dialog."""
-        return simpledialog.askstring("Input", prompt) or ""
-
-    def show_error(self, message: str, show_dialog: bool = True) -> None:
-        """Show error message with sound effect."""
-        play_sound(SoundType.ERROR)
-
-        # Only show dialog for critical errors, not network timeouts
-        if show_dialog and not any(
-            keyword in message.lower()
-            for keyword in ["timeout", "connection", "network"]
-        ):
-            messagebox.showerror("Error", message)
-
-        self.update_status(f"Error: {message}", is_error=True)
-
-    def show_warning(self, message: str, show_dialog: bool = False) -> None:
-        """Show warning message with subtle sound effect."""
-        play_sound(SoundType.WARNING, 0.3)
-
-        if show_dialog:
-            messagebox.showwarning("Warning", message)
-
-        self.update_status(f"Warning: {message}", is_warning=True)
-
-    def show_message(self, message: str) -> None:
-        """Show information message with sound effect."""
-        play_sound(SoundType.SUCCESS, 0.5)
-        messagebox.showinfo("Information", message)
-        self.update_status(message)
-
-    def update_status(
-        self, message: str, is_error: bool = False, is_warning: bool = False
-    ):
-        """Update status bar."""
-        if is_error:
-            color = GlassmorphicStyle.ERROR
-        elif is_warning:
-            color = GlassmorphicStyle.WARNING
+        Args:
+            message: Status message to display
+        """
+        if self.header:
+            # Update header status if available
+            try:
+                self.header.update_status(message)
+            except AttributeError:
+                # Header doesn't have update_status method, log the message instead
+                self.logger.info(f"Status: {message}")
         else:
-            color = GlassmorphicStyle.TEXT_SECONDARY
+            # Log the status message if no header available
+            self.logger.info(f"Status: {message}")
 
-        self.status_label.configure(text=message, fg=color)
+    # Weather-related methods
+    def search_weather(self, city: str) -> None:
+        """Search for weather in a specific city.
 
-        # Auto-clear status after 8 seconds for errors/warnings, 5 seconds for normal messages
-        clear_time = 8000 if (is_error or is_warning) else 5000
-        self.root.after(
-            clear_time,
-            lambda: self.status_label.configure(
-                text="Ready", fg=GlassmorphicStyle.TEXT_SECONDARY
-            ),
-        )
-
-    def cleanup_stray_widgets(self) -> None:
-        """Clean up any stray widgets that might be showing in the UI."""
-        # Iterate through all children of the root window
-        for widget in self.root.winfo_children():
-            # If it's a warning-colored widget with "Auto-Refresh" text, remove it
-            if isinstance(widget, (tk.Label, tk.Button, tk.Frame)):
-                if hasattr(widget, "cget"):
-                    try:
-                        bg_color = widget.cget("bg")
-                        if bg_color in ("#f59e0b", "#fbbf24"):  # Warning colors
-                            text = (
-                                widget.cget("text") if hasattr(widget, "cget") else ""
-                            )
-                            if "Auto-Refresh" in text:
-                                widget.destroy()
-                    except (tk.TclError, AttributeError):
-                        pass
-
-                # Recursively check children
-                if hasattr(widget, "winfo_children"):
-                    for child in widget.winfo_children():
-                        if hasattr(child, "cget"):
-                            try:
-                                bg_color = child.cget("bg")
-                                if bg_color in ("#f59e0b", "#fbbf24"):  # Warning colors
-                                    text = (
-                                        child.cget("text")
-                                        if hasattr(child, "cget")
-                                        else ""
-                                    )
-                                    if "Auto-Refresh" in text:
-                                        child.destroy()
-                            except (tk.TclError, AttributeError):
-                                pass
-
-    # GUI-specific methods
-    def get_weather_for_city(self) -> None:
-        """Get weather for entered city."""
-        city = self.city_entry.get().strip()
-        if not city:
+        Args:
+            city: City name to search for
+        """
+        if not city.strip():
             self.show_error("Please enter a city name")
             return
 
-        # Play search sound effect
-        play_sound(SoundType.BUTTON_CLICK, 0.4)
-        if "get_weather" in self.callbacks:
-            self.callbacks["get_weather"](city)
+        self.set_loading_state(True, f"Searching weather for {city}...")
 
-    def refresh_current_weather(self):
-        """Refresh current weather."""
-        # Play refresh sound
-        play_sound(SoundType.BUTTON_CLICK, 0.3)
+        # Run search in separate thread
+        search_thread = threading.Thread(
+            target=self._search_weather_thread, args=(city,), daemon=True
+        )
+        search_thread.start()
 
-        if self.current_weather and "get_weather" in self.callbacks:
-            self.callbacks["get_weather"](self.current_weather.location.name)
-
-    def show_city_search(self):
-        """Show city search dialog."""
-        city = simpledialog.askstring("Search", "Enter city name to search:")
-        if city and "search_locations" in self.callbacks:
-            self.callbacks["search_locations"](city)
-
-    def add_to_favorites(self):
-        """Add current city to favorites."""
-        if self.current_weather and "add_favorite" in self.callbacks:
-            # Play favorite add sound
-            play_sound(SoundType.SUCCESS, 0.4)
-            self.callbacks["add_favorite"](self.current_weather.location.name)
-
-    def compare_cities(self):
-        """Compare two cities."""
-        city1 = self.city1_dropdown.get().strip()
-        city2 = self.city2_dropdown.get().strip()
-
-        if not city1 or not city2:
-            self.show_error("Please select both cities from the dropdown menus")
-            return
-
-        if city1 == city2:
-            self.show_error("Please select two different cities to compare")
-            return
-
-        if "compare_cities" in self.callbacks:
-            self.callbacks["compare_cities"](city1, city2)
-
-    def populate_city_dropdowns(self):
-        """Populate city dropdowns with available team cities."""
+    def create_glassmorphic_weather_card(self, weather_data) -> None:
+        """Create a glassmorphic weather card from weather data."""
         try:
-            # Check if callbacks are available
-            if not hasattr(self, "callbacks") or not self.callbacks:
-                # Use default cities if callbacks not set up yet
-                default_cities = [
-                    "Austin",
-                    "Providence",
-                    "Rawlins",
-                    "Ontario",
-                    "New York",
-                    "Miami",
-                    "New Jersey",
-                ]
-                self.city1_dropdown["values"] = default_cities
-                self.city2_dropdown["values"] = default_cities
-                self.city1_dropdown.set(default_cities[0])
-                self.city2_dropdown.set(default_cities[1])
-                return
+            # Convert weather data to dictionary format for the card
+            location = getattr(weather_data, "location", None)
+            city_name = location.name if location else "Unknown"
 
-            # Get available cities from team data via callback
-            if "get_team_cities" in self.callbacks:
-                cities = self.callbacks["get_team_cities"]()
-                if cities:
-                    # Update dropdown values
-                    self.city1_dropdown["values"] = cities
-                    self.city2_dropdown["values"] = cities
+            weather_dict = {
+                "city": city_name,
+                "temperature": getattr(weather_data, "temperature", 0),
+                "condition": getattr(weather_data, "condition", "Unknown"),
+                "humidity": getattr(weather_data, "humidity", 0),
+                "wind_speed": getattr(weather_data, "wind_speed", 0),
+            }
 
-                    # Set default selections if cities are available
-                    if len(cities) >= 2:
-                        self.city1_dropdown.set(cities[0])
-                        self.city2_dropdown.set(cities[1])
-                    elif len(cities) == 1:
-                        self.city1_dropdown.set(cities[0])
-
-                    if hasattr(self, "update_status"):
-                        self.update_status(
-                            f"Loaded {len(cities)} cities from team data"
-                        )
-                else:
-                    # Fallback cities if team data not available
-                    fallback_cities = [
-                        "Austin",
-                        "Providence",
-                        "Rawlins",
-                        "Ontario",
-                        "New York",
-                        "Miami",
-                        "New Jersey",
-                    ]
-                    self.city1_dropdown["values"] = fallback_cities
-                    self.city2_dropdown["values"] = fallback_cities
-                    self.city1_dropdown.set(fallback_cities[0])
-                    self.city2_dropdown.set(fallback_cities[1])
-                    if hasattr(self, "update_status"):
-                        self.update_status(
-                            "Using fallback cities - team data not available"
-                        )
-            else:
-                # Default cities if callback not available
-                default_cities = [
-                    "Austin",
-                    "Providence",
-                    "Rawlins",
-                    "Ontario",
-                    "New York",
-                    "Miami",
-                    "New Jersey",
-                ]
-                self.city1_dropdown["values"] = default_cities
-                self.city2_dropdown["values"] = default_cities
-                self.city1_dropdown.set(default_cities[0])
-                self.city2_dropdown.set(default_cities[1])
+            # This would be used to create weather cards in a dedicated display area
+            # For now, we'll log the creation
+            self.logger.info(
+                f"Glassmorphic weather card data prepared for {weather_dict['city']}"
+            )
 
         except Exception as e:
-            if hasattr(self, "logger"):
-                self.logger.error(f"Error populating city dropdowns: {e}")
-            # Use fallback cities on error
-            fallback_cities = [
-                "Austin",
-                "Providence",
-                "Rawlins",
-                "Ontario",
-                "New York",
-                "Miami",
-            ]
-            self.city1_dropdown["values"] = fallback_cities
-            self.city2_dropdown["values"] = fallback_cities
-            if fallback_cities:
-                self.city1_dropdown.set(fallback_cities[0])
-                if len(fallback_cities) > 1:
-                    self.city2_dropdown.set(fallback_cities[1])
+            self.logger.error(f"Failed to create glassmorphic weather card: {e}")
 
-    def refresh_team_cities(self):
-        """Refresh team cities from GitHub repository."""
-        try:
-            self.update_status("Refreshing team cities from GitHub...")
-
-            if "refresh_team_data" in self.callbacks:
-                self.callbacks["refresh_team_data"]()
-
-            # Repopulate dropdowns with fresh data
-            self.populate_city_dropdowns()
-
-            self.show_message("Team cities refreshed successfully!")
-
-        except Exception as e:
-            self.logger.error(f"Error refreshing team cities: {e}")
-            self.show_error(f"Error refreshing team cities: {str(e)}")
-
-    def create_journal_entry(self):
-        """Create new journal entry with sound effect."""
-        play_sound(SoundType.JOURNAL_SAVE, 0.4)
-        if "create_journal" in self.callbacks:
-            self.callbacks["create_journal"]()
-
-    def view_journal_entries(self):
-        """View journal entries with sound effect."""
-        play_sound(SoundType.NOTIFICATION, 0.3)
-        if "view_journal" in self.callbacks:
-            self.callbacks["view_journal"]()
-
-    def get_activity_suggestions(self):
-        """Get activity suggestions with sound effect."""
-        play_sound(SoundType.MAGIC, 0.4)
-        if "get_activities" in self.callbacks:
-            self.callbacks["get_activities"]()
-
-    def filter_activities(self, activity_type):
-        """Filter activities by type."""
-        if "filter_activities" in self.callbacks:
-            self.callbacks["filter_activities"](activity_type)
-
-    def generate_poetry(self):
-        """Generate weather poetry."""
-        if "generate_poetry" in self.callbacks:
-            self.callbacks["generate_poetry"]()
-
-    def generate_specific_poetry(self, poetry_type):
-        """Generate specific type of poetry."""
-        if "generate_specific_poetry" in self.callbacks:
-            self.callbacks["generate_specific_poetry"](poetry_type)
-
-    def generate_poetry_collection(self):
-        """Generate a collection of different poetry types."""
-        if "generate_poetry_collection" in self.callbacks:
-            self.callbacks["generate_poetry_collection"]()
-
-    def refresh_favorites(self):
-        """Refresh favorites list."""
-        if "refresh_favorites" in self.callbacks:
-            self.callbacks["refresh_favorites"]()
-
-    def view_all_favorites_weather(self):
-        """View weather for all favorites."""
-        if "view_favorites_weather" in self.callbacks:
-            self.callbacks["view_favorites_weather"]()
-
-    def set_callback(self, event_name: str, callback: Callable):
-        """Set callback for GUI events."""
-        self.callbacks[event_name] = callback
-
-    def refresh_city_dropdowns_after_callbacks(self):
-        """Refresh city dropdowns after callbacks are set up."""
-        if hasattr(self, "city1_dropdown") and hasattr(self, "city2_dropdown"):
-            self.populate_city_dropdowns()
-
-    def run(self):
-        """Start the GUI event loop."""
-        self.root.mainloop()
-
-    def quit(self):
-        """Quit the application."""
-        self.root.quit()
-        self.root.destroy()
-
-    # Display methods for capstone features
-    def display_weather_comparison(self, comparison: WeatherComparison) -> None:
-        """Display weather comparison with sound effects."""
-        # Store the comparison data for temperature unit refresh
-        self.current_comparison_data = comparison
-
-        # Play comparison success sound
-        play_sound(SoundType.COMPARE_CITIES, 0.5)
-
-        # Clear existing results
-        for widget in self.comparison_results.winfo_children():
-            widget.destroy()
-
-        city1 = comparison.city1_weather
-        city2 = comparison.city2_weather
-
-        # Title
-        title_label = tk.Label(
-            self.comparison_results,
-            text="Weather Comparison Results",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=self.comparison_results.bg_color,
-        )
-        title_label.pack(pady=(20, 10))
-
-        # Create comparison cards
-        comparison_frame = tk.Frame(
-            self.comparison_results, bg=self.comparison_results.bg_color
-        )
-        comparison_frame.pack(fill=tk.BOTH, expand=True, padx=20)
-
-        # City 1 card
-        card1 = WeatherCard(comparison_frame, gui_ref=self)
-        card1.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
-        card1.update_weather(city1)
-
-        # VS label
-        vs_label = tk.Label(
-            comparison_frame,
-            text="VS",
-            font=(GlassmorphicStyle.FONT_FAMILY, 20, "bold"),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=self.comparison_results.bg_color,
-        )
-        vs_label.pack(side=tk.LEFT, padx=20)
-
-        # City 2 card
-        card2 = WeatherCard(comparison_frame, gui_ref=self)
-        card2.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(10, 0))
-        card2.update_weather(city2)
-
-        # Comparison summary
-        summary_frame = tk.Frame(
-            self.comparison_results, bg=self.comparison_results.bg_color
-        )
-        summary_frame.pack(fill=tk.X, padx=20, pady=20)
-
-        better_city = comparison.better_weather_city
-        summary_text = f"🏆 Better overall weather: {better_city}"
-
-        summary_label = tk.Label(
-            summary_frame,
-            text=summary_text,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.SUCCESS,
-            bg=self.comparison_results.bg_color,
-        )
-        summary_label.pack()
-
-        # Add team data information if available
-        add_team_info = getattr(self, "_add_team_data_info", None)
-        if add_team_info:
-            add_team_info(self.comparison_results)
-
-    def display_no_weather_message_activities(self) -> None:
-        """Display message when no weather data is available for activities."""
-        # Clear existing content
-        for widget in self.activities_content.scrollable_frame.winfo_children():
-            widget.destroy()
-
-        # Create a message frame
-        message_frame = GlassmorphicFrame(
-            self.activities_content.scrollable_frame,
-            bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
-            elevated=True,
-        )
-        message_frame.pack(fill=tk.X, padx=20, pady=50)
-
-        # Info icon and message
-        icon_label = tk.Label(
-            message_frame,
-            text="🌡️",
-            font=(GlassmorphicStyle.FONT_FAMILY, 48),
-            fg=GlassmorphicStyle.ACCENT,
-            bg=message_frame.bg_color,
-        )
-        icon_label.pack(pady=(20, 10))
-
-        title_label = tk.Label(
-            message_frame,
-            text="Weather Data Required",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=message_frame.bg_color,
-        )
-        title_label.pack(pady=(0, 10))
-
-        desc_label = tk.Label(
-            message_frame,
-            text="Please get weather data from the 'Current Weather' tab first to receive personalized activity suggestions.",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-            ),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=message_frame.bg_color,
-            wraplength=400,
-            justify=tk.CENTER,
-        )
-        desc_label.pack(pady=(0, 20))
-
-        self.update_status("Please get weather data first to get activity suggestions")
-
-    def display_activity_error(self, error_message: str) -> None:
-        """Display error message in activities tab instead of popup."""
-        # Play error sound for activity display
-        play_sound(SoundType.ERROR, 0.5)
-
-        # Clear existing content
-        for widget in self.activities_content.scrollable_frame.winfo_children():
-            widget.destroy()
-
-        # Create error frame
-        error_frame = GlassmorphicFrame(
-            self.activities_content.scrollable_frame,
-            bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
-            elevated=True,
-        )
-        error_frame.pack(fill=tk.X, padx=20, pady=50)
-
-        # Error icon and message
-        icon_label = tk.Label(
-            error_frame,
-            text="⚠️",
-            font=(GlassmorphicStyle.FONT_FAMILY, 48),
-            fg=GlassmorphicStyle.ERROR,
-            bg=error_frame.bg_color,
-        )
-        icon_label.pack(pady=(20, 10))
-
-        title_label = tk.Label(
-            error_frame,
-            text="Error Getting Activities",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_LARGE,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.ERROR,
-            bg=error_frame.bg_color,
-        )
-        title_label.pack(pady=(0, 10))
-
-        desc_label = tk.Label(
-            error_frame,
-            text=error_message,
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-            ),
-            fg=GlassmorphicStyle.TEXT_SECONDARY,
-            bg=error_frame.bg_color,
-            wraplength=400,
-            justify=tk.CENTER,
-        )
-        desc_label.pack(pady=(0, 20))
-
-        self.update_status(f"Error: {error_message}", is_error=True)
-
-    def display_activity_suggestions(self, suggestions: ActivitySuggestion) -> None:
-        """Display activity suggestions with improved formatting."""
-        # Play activity display sound
-        play_sound(SoundType.MAGIC, 0.6)
-
-        # Clear existing content
-        for widget in self.activities_content.scrollable_frame.winfo_children():
-            widget.destroy()
-
-        if not suggestions.suggested_activities:
-            no_activities_label = tk.Label(
-                self.activities_content.scrollable_frame,
-                text="No suitable activities found for current weather conditions.",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                ),
-                fg=GlassmorphicStyle.TEXT_SECONDARY,
-                bg=GlassmorphicStyle.BACKGROUND,
-            )
-            no_activities_label.pack(pady=50)
-            return
-
-        # Top recommendation - more compact for grid layout
-        if suggestions.top_suggestion:
-            top_activity, top_score = suggestions.suggested_activities[0]
-
-            top_frame = GlassmorphicFrame(
-                self.activities_content.scrollable_frame,
-                bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
-                elevated=True,
-            )
-            top_frame.pack(
-                fill=tk.X, padx=10, pady=(10, 12)
-            )  # Reduced for more grid space
-
-            # Top recommendation header - more compact
-            header_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            header_frame.pack(fill=tk.X, pady=(15, 8))  # Reduced padding
-
-            tk.Label(
-                header_frame,
-                text="🏆 TOP RECOMMENDATION",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                    "bold",
-                ),
-                fg=GlassmorphicStyle.SUCCESS,
-                bg=top_frame.bg_color,
-            ).pack()
-
-            # Activity name - more compact
-            name_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            name_frame.pack(fill=tk.X, pady=(8, 10))  # Reduced spacing
-
-            icon = "🏠" if top_activity.indoor else "🌞"
-            tk.Label(
-                name_frame,
-                text=f"{icon} {top_activity.name}",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_LARGE,
-                    "bold",
-                ),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=top_frame.bg_color,
-            ).pack()
-
-            # Activity description - more compact
-            desc_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            desc_frame.pack(fill=tk.X, pady=(8, 12), padx=20)  # Reduced padding
-
-            desc_label = tk.Label(
-                desc_frame,
-                text=top_activity.description,
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                ),
-                fg=GlassmorphicStyle.TEXT_SECONDARY,
-                bg=top_frame.bg_color,
-                wraplength=800,  # Increased for wider layout
-                justify=tk.LEFT,
-                anchor="nw",  # Northwest anchor for better alignment
-            )
-            desc_label.pack(fill=tk.X, anchor="w")
-
-            # Score - more compact
-            score_frame = tk.Frame(top_frame, bg=top_frame.bg_color)
-            score_frame.pack(fill=tk.X, pady=(8, 15))  # Reduced bottom padding
-
-            tk.Label(
-                score_frame,
-                text=f"Suitability Score: {top_score:.1f}/10",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_SMALL,
-                    "bold",
-                ),
-                fg=GlassmorphicStyle.ACCENT,
-                bg=top_frame.bg_color,
-            ).pack()
-
-        # All suggestions grid container
-        all_frame = GlassmorphicFrame(
-            self.activities_content.scrollable_frame,
-            bg_color=GlassmorphicStyle.GLASS_BG,
-            elevated=True,
-        )
-        all_frame.pack(
-            fill=tk.BOTH, expand=True, padx=10, pady=(8, 15)
-        )  # Minimal outer padding for full width usage
-
-        # Header for grid layout
-        header_frame = tk.Frame(all_frame, bg=all_frame.bg_color)
-        header_frame.pack(fill=tk.X, pady=(15, 12))  # Reduced padding for grid
-
-        tk.Label(
-            header_frame,
-            text="💡 All Activity Suggestions",
-            font=(
-                GlassmorphicStyle.FONT_FAMILY,
-                GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                "bold",
-            ),
-            fg=GlassmorphicStyle.TEXT_PRIMARY,
-            bg=all_frame.bg_color,
-        ).pack()
-
-        # Create a flexible layout that maximizes horizontal space usage with smart positioning
-        total_activities = len(suggestions.suggested_activities)
-
-        # Adjust max cards per row based on total activities for optimal layout
-        if total_activities == 5:
-            max_cards_per_row = 5  # All 5 cards on same row
-        else:
-            max_cards_per_row = 4  # Standard 4 cards per row
-
-        # Create main grid container for proper centering with improved spacing
-        grid_container = tk.Frame(all_frame, bg=all_frame.bg_color)
-
-        # Add explicit left margin padding for better visual centering
-        if total_activities == 1:
-            # Single card - center with significant side padding
-            grid_container.pack(fill=tk.BOTH, expand=True, padx=(200, 200), pady=10)
-        elif total_activities == 2:
-            # Two cards - moderate side padding for centering
-            grid_container.pack(fill=tk.BOTH, expand=True, padx=(150, 150), pady=10)
-        elif total_activities == 3:
-            # Three cards - add left margin for better visual balance
-            grid_container.pack(fill=tk.BOTH, expand=True, padx=(80, 80), pady=10)
-        elif total_activities == 4:
-            # Four cards - minimal padding to use available space
-            grid_container.pack(fill=tk.BOTH, expand=True, padx=(20, 20), pady=10)
-        else:
-            # Five or more cards - use full width
-            grid_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-
-        # Calculate rows and create grid layout
-        num_rows = (total_activities + max_cards_per_row - 1) // max_cards_per_row
-
-        # Simplified grid configuration for better centering
-        if total_activities <= 4:
-            # Use actual number of columns for cards <= 4
-            grid_columns = (
-                total_activities if total_activities <= 4 else max_cards_per_row
-            )
-        else:
-            # Use max cards per row for 5+ activities
-            grid_columns = max_cards_per_row
-
-        # Configure grid weights for proper centering and expansion
-        for col in range(grid_columns):
-            grid_container.grid_columnconfigure(col, weight=1, minsize=180)
-        for row in range(num_rows):
-            grid_container.grid_rowconfigure(row, weight=1)
-
-        # Create cards using smart grid layout for optimal positioning
-        for i, (activity, score) in enumerate(suggestions.suggested_activities, 1):
-            # Simplified positioning logic for better visual balance
-            if total_activities == 5:
-                # Special case for 5 cards: all 5 in a single row
-                row = 0
-                col = i - 1  # Cards 1-5 go in columns 0-4
-            elif total_activities <= 4:
-                # For 1-4 cards, use simple column positioning
-                row = 0
-                col = i - 1  # Cards positioned directly in columns 0, 1, 2, 3
-            elif total_activities == 6:
-                # Special case for 6 cards: 4 in first row, 2 centered in second row
-                if i <= 4:
-                    row = 0
-                    col = i - 1
-                else:
-                    row = 1
-                    col = (
-                        i - 5
-                    ) + 1  # Center the last 2 cards (columns 1-2 out of 0-3)
-            elif total_activities == 7:
-                # Special case for 7 cards: 4 in first row, 3 centered in second row
-                if i <= 4:
-                    row = 0
-                    col = i - 1
-                else:
-                    row = 1
-                    col = i - 5  # Place remaining cards starting from column 0
-            else:
-                # Default grid layout with centering for fewer cards
-                row = (i - 1) // max_cards_per_row
-                col_in_row = (i - 1) % max_cards_per_row
-
-                # Calculate centering offset for partial rows
-                if row == num_rows - 1:  # Last row
-                    cards_in_last_row = total_activities - (row * max_cards_per_row)
-                    if cards_in_last_row < max_cards_per_row:
-                        # Center the cards in the last row
-                        offset = (max_cards_per_row - cards_in_last_row) // 2
-                        col = col_in_row + offset
-                    else:
-                        col = col_in_row
-                else:
-                    col = col_in_row
-
-            # Create individual activity card with reduced width for 5-card layout
-            activity_card = GlassmorphicFrame(
-                grid_container, bg_color=GlassmorphicStyle.GLASS_BG_LIGHT
-            )
-
-            # Adjust padding based on number of cards for optimal fit
-            if total_activities == 5:
-                card_padx = 4  # Reduced horizontal padding for 5 cards
-                wrap_length = 140  # Narrower text wrap for 5 cards
-            else:
-                card_padx = 8  # Standard padding for 4 or fewer cards
-                wrap_length = 180  # Standard text wrap
-
-            # Use grid for perfect alignment and centering
-            activity_card.grid(
-                row=row,
-                column=col,
-                padx=card_padx,
-                pady=6,
-                sticky="nsew",  # Expand in all directions
-                ipadx=3,  # Reduced internal padding
-                ipady=5,
-            )
-
-            # Activity header - more compact for 4-column layout
-            activity_header = tk.Frame(activity_card, bg=activity_card.bg_color)
-            activity_header.pack(fill=tk.X, pady=(12, 8), padx=10)  # Reduced padding
-
-            icon = "🏠" if activity.indoor else "🌞"
-
-            # Activity name (centered for better grid appearance)
-            name_label = tk.Label(
-                activity_header,
-                text=f"{i}. {icon} {activity.name}",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                    "bold",
-                ),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=activity_card.bg_color,
-            )
-            name_label.pack(anchor="center")  # Center the activity name
-
-            # Score (centered below name for grid layout)
-            score_label = tk.Label(
-                activity_header,
-                text=f"Score: {score:.1f}/10",
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_SMALL,
-                    "bold",
-                ),
-                fg=GlassmorphicStyle.ACCENT,
-                bg=activity_card.bg_color,
-            )
-            score_label.pack(anchor="center", pady=(5, 0))
-
-            # Activity description - more compact for 4-column layout
-            desc_frame = tk.Frame(activity_card, bg=activity_card.bg_color)
-            desc_frame.pack(fill=tk.X, pady=(8, 15), padx=10)  # Reduced padding
-
-            desc_label = tk.Label(
-                desc_frame,
-                text=activity.description,
-                font=(
-                    GlassmorphicStyle.FONT_FAMILY,
-                    GlassmorphicStyle.FONT_SIZE_SMALL,
-                ),
-                fg=GlassmorphicStyle.TEXT_SECONDARY,
-                bg=activity_card.bg_color,
-                wraplength=wrap_length,  # Dynamic wrap length based on card count
-                justify=tk.CENTER,  # Center justify for grid layout
-                anchor="center",
-            )
-            desc_label.pack(anchor="center")
-
-        # Add some spacing at the bottom for better visual flow
-        bottom_spacer = tk.Frame(
-            self.activities_content.scrollable_frame,
-            bg=GlassmorphicStyle.BACKGROUND,
-            height=30,
-        )
-        bottom_spacer.pack(fill=tk.X, pady=20)
-
-        # Update the display
-        self.activities_content.scrollable_frame.update_idletasks()
-
-    def display_weather_poem(self, poem) -> None:
-        """Display weather poem in the poetry tab with enhanced visual styling and sound."""
-        # Play magical poetry generation sound
-        play_sound(SoundType.MAGIC, 0.6)
-
-        # Clear existing poetry content
-        for widget in self.poetry_content.winfo_children():
-            widget.destroy()
-
-        # Create a gradient background canvas for the poem
-        poem_container = GlassmorphicFrame(
-            self.poetry_content,
-            bg_color="#1d1d2b",
-            border_color="#3a3a4a",
-            elevated=True,
-            gradient=True,
-            blur_intensity=20,
-        )
-        poem_container.pack(fill=tk.BOTH, expand=True, padx=30, pady=30)
-
-        # Inner decorative frame with more padding and visual appeal
-        poem_frame = tk.Frame(poem_container, bg="#1d1d2b", padx=20, pady=20)
-        poem_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Create decorative elements
-        # Top decorative element
-        top_decor = tk.Frame(poem_frame, height=3, bg=GlassmorphicStyle.ACCENT_LIGHT)
-        top_decor.pack(fill=tk.X, pady=(0, 20))
-
-        # Poem type and title with enhanced styling
-        if hasattr(poem, "poem_type"):
-            # Enhanced icons with more visual appeal
-            type_icons = {"haiku": "🌸", "phrase": "�", "limerick": "🎵"}
-            icon = type_icons.get(getattr(poem, "poem_type", ""), "✨")
-
-            # Use .title if it exists, else fallback to .poem_type or class name
-
-            if hasattr(poem, "title"):
-                title_text = f"{icon} {poem.title} {icon}"
-            elif hasattr(poem, "poem_type"):
-                title_text = f"{icon} {poem.poem_type.title()} {icon}"
-            else:
-                title_text = f"{icon} Weather Poetry {icon}"
-        else:
-            title_text = (
-                poem.title if hasattr(poem, "title") else "✨ Weather Poetry ✨"
-            )
-
-        # Modern font for title with larger size
-        title_label = tk.Label(
-            poem_frame,
-            text=title_text,
-            font=("Georgia", 22, "bold"),  # More elegant font with increased size
-            fg="#80a0ff",  # Softer blue for better aesthetics
-            bg="#1d1d2b",
-            justify=tk.CENTER,
-        )
-        title_label.pack(pady=(0, 20), fill=tk.X)
-
-        # Poem text
-        poem_text = poem.text if hasattr(poem, "text") else str(poem)
-
-        # Create a decorative frame for the poem content
-        poem_text_frame = tk.Frame(
-            poem_frame,
-            bg="#252535",
-            bd=2,
-            relief="solid",
-            highlightbackground="#3d3d4d",
-            highlightcolor="#4a9eff",
-            highlightthickness=1,
-        )
-        poem_text_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
-
-        # Inner padding frame
-        padding_frame = tk.Frame(poem_text_frame, bg="#252535", padx=20, pady=20)
-        padding_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Adjust height based on poem type for better display
-        poem_height = 10  # Increased default height for better readability
-        if hasattr(poem, "poem_type"):
-            if poem.poem_type == "haiku":
-                poem_height = 12  # Increased for better spacing
-            elif poem.poem_type == "limerick":
-                poem_height = 14  # Increased for better spacing
-
-        # Text widget with enhanced styling for the poem content
-        text_widget = tk.Text(
-            padding_frame,
-            font=("Palatino Linotype", 20),  # More elegant, larger font
-            fg="#ffffff",  # Bright white for contrast
-            bg="#252535",  # Slightly lighter than background for contrast
-            relief="flat",
-            borderwidth=0,
-            wrap=tk.WORD,
-            height=poem_height,
-            padx=10,
-            pady=10,
-            state=tk.DISABLED,
-            cursor="arrow",
-        )
-
-        # Configure text widget appearance with subtle glow effect
-        text_widget.configure(
-            highlightthickness=0,
-            selectbackground="#6a8eff",  # Softer selection color
-            selectforeground="#ffffff",
-        )
-
-        # Insert poem text with proper formatting
-        text_widget.configure(state=tk.NORMAL)
-
-        # Center-align the text
-        text_widget.tag_configure("center", justify="center")
-
-        # Use formatted_text for haikus (line breaks instead of slashes)
-        if (
-            hasattr(poem, "poem_type")
-            and poem.poem_type == "haiku"
-            and hasattr(poem, "formatted_text")
-        ):
-            text_widget.insert(tk.END, poem.formatted_text, "center")
-        # Format limerick text with line breaks at / characters
-        elif hasattr(poem, "poem_type") and poem.poem_type == "limerick":
-            limerick_lines = poem_text.split(" / ")
-            formatted_limerick = "\n".join(limerick_lines)
-            text_widget.insert(tk.END, formatted_limerick, "center")
-        else:
-            text_widget.insert(tk.END, poem_text, "center")
-
-        text_widget.configure(state=tk.DISABLED)
-        text_widget.pack(fill=tk.BOTH, expand=True)
-
-        # Bottom decorative element
-        bottom_decor = tk.Frame(poem_frame, height=3, bg=GlassmorphicStyle.ACCENT_LIGHT)
-        bottom_decor.pack(fill=tk.X, pady=(20, 10))
-
-        # Poem metadata with enhanced styling
-        if hasattr(poem, "created_at") and poem.created_at:
-            timestamp = poem.created_at.strftime("%B %d, %Y at %I:%M %p")
-            meta_frame = tk.Frame(poem_frame, bg="#1d1d2b")
-            meta_frame.pack(fill=tk.X, pady=(5, 0))
-
-            meta_label = tk.Label(
-                meta_frame,
-                text=f"✦ Created: {timestamp} ✦",
-                font=("Georgia", 12, "italic"),  # Elegant font for metadata
-                fg="#8090a0",  # Softer color for metadata
-                bg="#1d1d2b",
-                justify=tk.CENTER,
-            )
-            meta_label.pack(fill=tk.X)
-
-        # Play soft magic completion sound
-        play_sound(SoundType.MAGIC, 0.3)
-
-        self.update_status("Poetry displayed with enhanced styling!")
-
-    def display_weather_poem_collection(self, poems) -> None:
-        """Display a collection of weather poems with enhanced visual styling."""
-        # Play collection display sound
-        play_sound(SoundType.MAGIC, 0.5)
-
-        # Clear existing poetry content
-        for widget in self.poetry_content.winfo_children():
-            widget.destroy()
-
-        # Create scrollable area with enhanced styling
-        collection_scroll = ModernScrollableFrame(
-            self.poetry_content, bg="#151525"  # Darker background for contrast
-        )
-        collection_scroll.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
-
-        # Collection header with decorative elements
-        header_frame = GlassmorphicFrame(
-            collection_scroll.scrollable_frame,
-            bg_color="#202035",
-            border_color="#353555",
-            elevated=True,
-        )
-        header_frame.pack(fill=tk.X, pady=(0, 25), padx=10)
-
-        # Top decorative line
-        tk.Frame(header_frame, height=3, bg="#5a80ff").pack(fill=tk.X)
-
-        # Title with enhanced styling
-        title_label = tk.Label(
-            header_frame,
-            text="✨ Poetry Collection ✨",
-            font=("Georgia", 24, "bold"),  # More elegant, larger font
-            fg="#90b0ff",  # Softer blue for better aesthetics
-            bg="#202035",
-            justify=tk.CENTER,
-        )
-        title_label.pack(pady=(15, 5))
-
-        subtitle_label = tk.Label(
-            header_frame,
-            text=f"A curated collection of {len(poems)} weather-inspired poems",
-            font=("Georgia", 14, "italic"),
-            fg="#a0a0c0",  # Softer color for subtitle
-            bg="#202035",
-            justify=tk.CENTER,
-        )
-        subtitle_label.pack(pady=(0, 15))
-
-        # Bottom decorative line
-        tk.Frame(header_frame, height=3, bg="#5a80ff").pack(fill=tk.X)
-
-        # Display each poem in a separate card with enhanced styling
-        for i, poem in enumerate(poems):
-            # Create poem card with gradient effect
-            poem_card = GlassmorphicFrame(
-                collection_scroll.scrollable_frame,
-                bg_color="#1d1d2b",
-                border_color="#3d3d5d",
-                elevated=True,
-                gradient=True,
-                blur_intensity=15,
-            )
-            poem_card.pack(fill=tk.X, pady=15, padx=10)
-
-            # Poem header with decorative element
-            poem_header = tk.Frame(poem_card, bg="#1d1d2b")
-            poem_header.pack(fill=tk.X, padx=15)
-
-            # Top mini-decoration
-            tk.Frame(poem_header, height=2, bg=GlassmorphicStyle.ACCENT_LIGHT).pack(
-                fill=tk.X, pady=(15, 10)
-            )
-
-            # Poem type and title with enhanced icons
-            if hasattr(poem, "poem_type"):
-                type_icons = {"haiku": "🌸", "phrase": "💫", "limerick": "🎵"}
-                icon = type_icons.get(poem.poem_type, "✨")
-
-                # Use title if exists, else use poem_type
-                if hasattr(poem, "title") and poem.title:
-                    title_text = f"{icon} {poem.title} {icon}"
-                else:
-                    title_text = f"{icon} {poem.poem_type.title()} {icon}"
-            else:
-                title_text = (
-                    poem.title
-                    if hasattr(poem, "title")
-                    else f"✨ Weather Poetry {i+1} ✨"
-                )
-
-            # Elegant title styling
-            title_label = tk.Label(
-                poem_header,
-                text=title_text,
-                font=("Georgia", 18, "bold"),  # More elegant, larger font
-                fg="#80a0ff",  # Softer blue for better aesthetics
-                bg="#1d1d2b",
-                justify=tk.CENTER,
-            )
-            title_label.pack(pady=(0, 10))
-
-            # Poem text
-            poem_text = poem.text if hasattr(poem, "text") else str(poem)
-
-            # Create decorated frame for the poem content
-            poem_content_frame = tk.Frame(
-                poem_card,
-                bg="#252535",
-                bd=1,
-                relief="solid",
-                highlightbackground="#3d3d4d",
-                highlightcolor="#4a9eff",
-                highlightthickness=1,
-            )
-            poem_content_frame.pack(fill=tk.X, padx=15, pady=10)
-
-            # Inner padding frame
-            inner_padding = tk.Frame(poem_content_frame, bg="#252535", padx=15, pady=15)
-            inner_padding.pack(fill=tk.X)
-
-            # Adjust height based on poem type for better display
-            poem_height = 8  # Increased default height for better readability
-            if hasattr(poem, "poem_type"):
-                if poem.poem_type == "haiku":
-                    poem_height = 10
-                elif poem.poem_type == "limerick":
-                    poem_height = 12
-
-            # Text widget with enhanced styling
-            text_widget = tk.Text(
-                inner_padding,
-                font=("Palatino Linotype", 16),  # More elegant, larger font
-                fg="#ffffff",  # Bright white for better contrast
-                bg="#252535",
-                relief="flat",
-                borderwidth=0,
-                wrap=tk.WORD,
-                height=poem_height,
-                padx=10,
-                pady=5,
-                state=tk.DISABLED,
-                cursor="arrow",
-            )
-
-            # Configure text widget appearance
-            text_widget.configure(
-                highlightthickness=0,
-                selectbackground="#6a8eff",  # Softer selection color
-                selectforeground="#ffffff",
-            )
-
-            # Center alignment
-            text_widget.tag_configure("center", justify="center")
-
-            # Insert poem text with proper formatting
-            text_widget.configure(state=tk.NORMAL)
-
-            # Use formatted_text for haikus and limericks
-            if hasattr(poem, "poem_type") and hasattr(poem, "formatted_text"):
-                if poem.poem_type in ["haiku", "limerick"]:
-                    text_widget.insert(tk.END, poem.formatted_text, "center")
-                else:
-                    text_widget.insert(tk.END, poem_text, "center")
-            # Format limerick text with line breaks at / characters
-            elif hasattr(poem, "poem_type") and poem.poem_type == "limerick":
-                limerick_lines = poem_text.split(" / ")
-                formatted_limerick = "\n".join(limerick_lines)
-                text_widget.insert(tk.END, formatted_limerick, "center")
-            else:
-                text_widget.insert(tk.END, poem_text, "center")
-
-            text_widget.configure(state=tk.DISABLED)
-            text_widget.pack(fill=tk.X)
-
-            # Bottom decoration
-            bottom_frame = tk.Frame(poem_card, bg="#1d1d2b")
-            bottom_frame.pack(fill=tk.X, padx=15, pady=(0, 15))
-            tk.Frame(bottom_frame, height=2, bg=GlassmorphicStyle.ACCENT_LIGHT).pack(
-                fill=tk.X, pady=(10, 0)
-            )
-
-        # Play collection completion sound
-        play_sound(SoundType.MAGIC, 0.4)
-
-        self.update_status(
-            f"Poetry collection displayed with enhanced styling! ({len(poems)} poems)"
-        )
-
-    def toggle_temperature_unit(self):
-        """Toggle between Celsius and Fahrenheit."""
-        # Play a quick toggle sound
-        play_sound(SoundType.BUTTON_CLICK, 0.3)
-
-        self.temperature_unit = "F" if self.temperature_unit == "C" else "C"
-        self.update_temp_toggle_text()
-        self.refresh_temperature_displays()
-
-    def update_temp_toggle_text(self):
-        """Update the temperature toggle button text."""
-        if self.temperature_unit == "C":
-            self.temp_toggle_btn.configure(text="°C/°F")
-        else:
-            self.temp_toggle_btn.configure(text="°F/°C")
-
-    def refresh_temperature_displays(self):
-        """Refresh all temperature displays with new unit."""
-        # Refresh main weather card if current weather is displayed
-        if self.current_weather:
-            self.main_weather_card.update_weather(self.current_weather)
-
-        # Refresh forecast if available
-        self.refresh_forecast_temperatures()
-
-        # Refresh comparison if available
-        self.refresh_comparison_temperatures()
-
-    def refresh_forecast_temperatures(self):
-        """Refresh forecast temperature displays."""
-        # Clear and recreate forecast cards if forecast data exists
-        if hasattr(self, "current_forecast_data") and self.current_forecast_data:
-            self.display_forecast(self.current_forecast_data)
-
-    def refresh_comparison_temperatures(self):
-        """Refresh comparison temperature displays."""
-        # Re-display comparison if data is available
-        if hasattr(self, "current_comparison_data") and self.current_comparison_data:
-            self.display_weather_comparison(self.current_comparison_data)
-
-    def convert_temperature(self, temp_celsius: float) -> tuple[float, str]:
-        """Convert temperature to the current unit.
+    def _search_weather_thread(self, city: str) -> None:
+        """Search for weather in separate thread.
 
         Args:
-            temp_celsius: Temperature in Celsius
+            city: City name to search for
+        """
+        try:
+            if self.weather_service:
+                # Get weather data using the weather service
+                weather_data = self.weather_service.get_current_weather(city)
+
+                # Update UI in main thread
+                self.root.after(0, lambda: self._update_weather_display(weather_data))
+
+                # Play success sound
+                play_sound(SoundType.SUCCESS)
+            else:
+                self.root.after(
+                    0, lambda: self.show_error("Weather service not available")
+                )
+
+        except Exception as e:
+            self.logger.error(f"Error searching weather: {e}")
+            error_msg = f"Error getting weather data: {str(e)}"
+            self.root.after(0, lambda: self.show_error(error_msg))
+            play_sound(SoundType.ERROR)
+        finally:
+            self.root.after(0, lambda: self.set_loading_state(False))
+
+    def _update_weather_display(self, weather_data: CurrentWeather) -> None:
+        """Update weather display with new data.
+
+        Args:
+            weather_data: Current weather data
+        """
+        # Check if weather_data is None
+        if weather_data is None:
+            self.logger.warning("Received None weather data, skipping display update")
+            return
+
+        self.current_weather = weather_data
+
+        # Update header
+        if self.header:
+            self.header.update_weather_display(
+                weather_data.temperature,
+                weather_data.condition,
+                self.temperature_controls.get_current_unit().value,
+            )
+
+        # Update temperature controls
+        if self.temperature_controls:
+            self.temperature_controls.set_temperature(
+                weather_data.temperature,
+                feels_like=getattr(weather_data, "feels_like", None),
+                heat_index=getattr(weather_data, "heat_index", None),
+            )
+
+        # Update main dashboard
+        if self.main_dashboard:
+            self.main_dashboard.update_weather_data(weather_data)
+
+        # Create glassmorphic weather card if we have a display area
+        self.create_glassmorphic_weather_card(weather_data)
+
+        # Show notification
+        if self.header:
+            self.header.show_notification(
+                f"Weather updated for {weather_data.location.name}", "success"
+            )
+
+    def refresh_weather(self) -> None:
+        """Refresh current weather data."""
+        if self.current_weather:
+            self.search_weather(self.current_weather.location.name)
+        else:
+            self.show_info("No current weather data to refresh")
+
+    def add_favorite_city(self, city: str) -> None:
+        """Add a city to favorites.
+
+        Args:
+            city: City name to add
+        """
+        if not city.strip():
+            return
+
+        # Check if already in favorites
+        if any(
+            fav.location.name.lower() == city.lower() for fav in self.favorite_cities
+        ):
+            self.show_warning(f"{city} is already in your favorites")
+            return
+
+        # Create a basic location object for the city
+        # Note: This creates a minimal location without coordinates
+        # In a real implementation, you might want to geocode the city name
+        location = Location(name=city, country="", latitude=0.0, longitude=0.0)
+
+        # Add to favorites
+        favorite = FavoriteCity(location=location, added_date=datetime.now())
+        self.favorite_cities.append(favorite)
+
+        # Update main dashboard
+        if self.main_dashboard:
+            self.main_dashboard.update_favorites(self.favorite_cities)
+
+        # Save favorites
+        self.save_favorites()
+
+        # Show notification
+        if self.header:
+            self.header.show_notification(f"{city} added to favorites", "success")
+
+        play_sound(SoundType.SUCCESS)
+
+    def on_temperature_unit_change(self, new_unit: TemperatureUnit) -> None:
+        """Handle temperature unit change.
+
+        Args:
+            new_unit: New temperature unit
+        """
+        # Update header display
+        if self.header and self.current_weather:
+            self.header.update_weather_display(
+                self.current_weather.temperature,
+                self.current_weather.condition,
+                new_unit.value,
+            )
+
+        # Update main dashboard
+        if self.main_dashboard:
+            self.main_dashboard.on_temperature_unit_change(new_unit)
+
+        # Save preference
+        self.config.set("temperature_unit", new_unit.value)
+
+    def on_tab_change(self, tab_name: str) -> None:
+        """Handle tab change in main dashboard.
+
+        Args:
+            tab_name: Name of the selected tab
+        """
+        self.logger.info(f"Tab changed to: {tab_name}")
+
+        # Play tab change sound
+        play_sound(SoundType.BUTTON_CLICK)
+
+        # Update header tagline based on tab
+        taglines = {
+            "current": "Current Weather Conditions",
+            "forecast": "Weather Forecast & Trends",
+            "comparison": "Compare Weather Across Cities",
+            "journal": "Weather Journal & Memories",
+            "activities": "Weather-Based Activity Suggestions",
+            "poetry": "Weather-Inspired Poetry",
+            "voice": "Voice Assistant & Commands",
+            "favorites": "Your Favorite Cities",
+        }
+
+        if self.header and tab_name in taglines:
+            self.header.update_tagline(taglines[tab_name])
+
+    # UI State Management
+    def set_loading_state(self, loading: bool, message: str = "Loading...") -> None:
+        """Set application loading state.
+
+        Args:
+            loading: Whether app is in loading state
+            message: Loading message to display
+        """
+        self.is_loading = loading
+
+        # Update header
+        if self.header:
+            self.header.set_loading_state(loading, message)
+
+        # Update main dashboard
+        if self.main_dashboard:
+            self.main_dashboard.set_loading_state(loading)
+
+        # Update temperature controls
+        if self.temperature_controls:
+            self.temperature_controls.set_loading_state(loading)
+
+    # Dialog methods
+    def show_settings(self) -> None:
+        """Show settings dialog."""
+        # Create settings dialog (placeholder)
+        settings_window = tk.Toplevel(self.root)
+        settings_window.title("Settings")
+        settings_window.geometry("600x400")
+        settings_window.configure(bg=self.glassmorphic_style.BACKGROUND)
+
+        # Center dialog
+        settings_window.transient(self.root)
+        settings_window.grab_set()
+
+        # Add settings content (placeholder)
+        label = tk.Label(
+            settings_window,
+            text="Settings Dialog\n(To be implemented)",
+            font=(
+                self.glassmorphic_style.FONT_FAMILY,
+                self.glassmorphic_style.FONT_SIZE_LARGE,
+                "bold",
+            ),
+            bg=self.glassmorphic_style.BACKGROUND,
+            fg=self.glassmorphic_style.TEXT_PRIMARY,
+        )
+        label.pack(expand=True)
+
+        play_sound(SoundType.BUTTON_CLICK)
+
+    def show_help(self) -> None:
+        """Show help dialog."""
+        help_text = """
+Weather Dashboard Help
+
+🌤️ Current Weather: View real-time weather conditions
+📊 Forecast: See upcoming weather predictions
+🔄 Comparison: Compare weather across multiple cities
+📝 Journal: Record weather-related memories
+🎯 Activities: Get weather-based activity suggestions
+🎭 Poetry: Enjoy weather-inspired poetry
+🎤 Voice: Use voice commands for hands-free control
+⭐ Favorites: Quick access to your favorite cities
+
+Tips:
+• Use the search bar to find weather for any city
+• Click the temperature unit buttons to switch between °F, °C, and K
+• Add cities to favorites for quick access
+• Use voice commands for hands-free operation
+"""
+
+        messagebox.showinfo("Help - Weather Dashboard", help_text)
+        play_sound(SoundType.NOTIFICATION)
+
+    def show_error(self, message: str) -> None:
+        """Show error message.
+
+        Args:
+            message: Error message to display
+        """
+        messagebox.showerror("Error", message)
+        if self.header:
+            self.header.show_notification(message, "error")
+
+    def show_warning(self, message: str) -> None:
+        """Show warning message.
+
+        Args:
+            message: Warning message to display
+        """
+        messagebox.showwarning("Warning", message)
+        if self.header:
+            self.header.show_notification(message, "warning")
+
+    def show_info(self, message: str) -> None:
+        """Show info message.
+
+        Args:
+            message: Info message to display
+        """
+        messagebox.showinfo("Information", message)
+        if self.header:
+            self.header.show_notification(message, "info")
+
+    # Data persistence
+    def load_saved_data(self) -> None:
+        """Load saved application data."""
+        try:
+            # Load favorite cities
+            favorites_data = self.config.get("favorite_cities", [])
+            self.favorite_cities = []
+            for fav in favorites_data:
+                # Create a basic location object
+                location = Location(
+                    name=fav.get("name", ""), country="", latitude=0.0, longitude=0.0
+                )
+                favorite = FavoriteCity(
+                    location=location,
+                    added_date=datetime.fromisoformat(
+                        fav.get("added_date", datetime.now().isoformat())
+                    ),
+                )
+                self.favorite_cities.append(favorite)
+
+            # Load temperature unit preference
+            unit_str = self.config.get("temperature_unit", "F")
+            try:
+                unit = TemperatureUnit(unit_str)
+                if self.temperature_controls:
+                    self.temperature_controls._change_unit(unit)
+            except ValueError:
+                pass  # Use default unit
+
+        except Exception as e:
+            self.logger.error(f"Error loading saved data: {e}")
+
+    def save_favorites(self) -> None:
+        """Save favorite cities to configuration."""
+        try:
+            favorites_data = [
+                {
+                    "name": fav.location.name,
+                    "added_date": (
+                        fav.added_date.isoformat()
+                        if fav.added_date
+                        else datetime.now().isoformat()
+                    ),
+                }
+                for fav in self.favorite_cities
+            ]
+            self.config.set("favorite_cities", favorites_data)
+        except Exception as e:
+            self.logger.error(f"Error saving favorites: {e}")
+
+    # Periodic updates
+    def start_periodic_updates(self) -> None:
+        """Start periodic weather updates."""
+
+        def update_loop():
+            while not self.stop_updates.is_set():
+                try:
+                    # Update every 30 minutes
+                    if self.stop_updates.wait(1800):  # 30 minutes
+                        break
+
+                    # Refresh current weather if available
+                    if self.current_weather and not self.is_loading:
+                        self.root.after(0, self.refresh_weather)
+
+                except Exception as e:
+                    self.logger.error(f"Error in update loop: {e}")
+
+        self.update_thread = threading.Thread(target=update_loop, daemon=True)
+        self.update_thread.start()
+
+    # Event handlers
+    def on_window_resize(self, event) -> None:
+        """Handle window resize event.
+
+        Args:
+            event: Resize event
+        """
+        if event.widget == self.root:
+            # Update responsive layout
+            self.responsive_layout.update_layout()
+
+            # Update component layouts based on new size
+            if self.main_dashboard:
+                self.main_dashboard.update_responsive_layout()
+
+            if self.temperature_controls:
+                self.temperature_controls.update_responsive_layout()
+
+    def on_closing(self) -> None:
+        """Handle application closing."""
+        try:
+            # Stop periodic updates
+            self.stop_updates.set()
+            if self.update_thread and self.update_thread.is_alive():
+                self.update_thread.join(timeout=1)
+
+            # Save current state
+            self.save_favorites()
+
+            # Cleanup components
+            if self.header:
+                self.header.cleanup()
+
+            # Close application
+            self.root.quit()
+            self.root.destroy()
+
+        except Exception as e:
+            self.logger.error(f"Error during cleanup: {e}")
+            self.root.destroy()
+
+    # Interface implementation methods
+    def display_weather(self, weather: CurrentWeather) -> None:
+        """Display weather data (IUserInterface implementation).
+
+        Args:
+            weather: Current weather data
+        """
+        self._update_weather_display(weather)
+
+    def display_forecast(self, forecast: WeatherForecast) -> None:
+        """Display forecast data (IUserInterface implementation).
+
+        Args:
+            forecast: Weather forecast data
+        """
+        self.forecast_data = forecast
+        if self.main_dashboard:
+            self.main_dashboard.update_forecast_data(forecast)
+
+    def display_error(self, error: str) -> None:
+        """Display error message (IUserInterface implementation).
+
+        Args:
+            error: Error message
+        """
+        self.show_error(error)
+
+    def get_user_input(self, prompt: str) -> str:
+        """Get user input (IUserInterface implementation).
+
+        Args:
+            prompt: Input prompt
 
         Returns:
-            Tuple of (converted_temperature, unit_symbol)
+            User input string
         """
-        if self.temperature_unit == "F":
-            temp_fahrenheit = (temp_celsius * 9 / 5) + 32
-            return temp_fahrenheit, "°F"
-        else:
-            return temp_celsius, "°C"
+        return simpledialog.askstring("Input", prompt) or ""
 
-    def get_random_city_weather(self) -> None:
-        """Get weather for a random city for demonstration purposes."""
-        # Play random Mario sound effect for fun!
-        play_sound(SoundType.MAGIC, 0.4)
+    def show_message(self, message: str) -> None:
+        """Show message to user (IUserInterface implementation).
 
-        # List of interesting cities around the world
-        cities = [
-            "Tokyo",
-            "London",
-            "Paris",
-            "New York",
-            "Sydney",
-            "Dubai",
-            "Singapore",
-            "Rome",
-            "Barcelona",
-            "Amsterdam",
-            "Bangkok",
-            "San Francisco",
-            "Toronto",
-            "Berlin",
-            "Vienna",
-            "Prague",
-            "Stockholm",
-            "Copenhagen",
-            "Helsinki",
-            "Reykjavik",
-        ]
+        Args:
+            message: Message to display
+        """
+        self.show_info(message)
 
-        random_city = random.choice(cities)
+    def display_weather_poem(self, poem) -> None:
+        """Display weather poem (IUserInterface implementation).
 
-        # Clear the entry and set the random city
-        self.city_entry.delete(0, tk.END)
-        self.city_entry.insert(0, random_city)
-
-        # Get the weather for the random city
-        self.get_weather_for_city()
-
-    def get_current_location_weather(self):
-        """Get weather for current detected location."""
-        # Play location detection sound - Mario beedoo!
-        play_sound(SoundType.NOTIFICATION, 0.4)
-
+        Args:
+            poem: Weather poem to display
+        """
         try:
-            # Show loading message
-            self.status_label.configure(
-                text="Detecting location...", fg=GlassmorphicStyle.ACCENT
-            )
-            self.root.update()
+            # WeatherPoem already imported at module level
+            from ..services.poetry_service import WeatherPoetryService
 
-            # Call the location weather callback
-            if "get_current_location_weather" in self.callbacks:
-                self.callbacks["get_current_location_weather"]()
+            if isinstance(poem, WeatherPoem):
+                # Format the poem for display
+                poetry_service = WeatherPoetryService()
+                formatted_poem = poetry_service.format_poetry_display(poem)
+
+                # Show in a message dialog with custom title
+                title = f"🎭 Weather Poetry - {poem.poem_type.title()}"
+                messagebox.showinfo(title, formatted_poem)
+
+                # Also update the poetry tab if available
+                if self.main_dashboard and hasattr(self.main_dashboard, "poetry_tab"):
+                    self._update_poetry_tab(formatted_poem)
             else:
-                self.show_error("Location detection service not available")
+                # Handle string poems or other formats
+                messagebox.showinfo("🎭 Weather Poetry", str(poem))
 
         except Exception as e:
-            logging.error(f"Error in location detection: {e}")
-            self.show_error(f"Location detection failed: {str(e)}")
+            self.logger.error(f"Error displaying weather poem: {e}")
+            messagebox.showinfo("🎭 Weather Poetry", str(poem))
 
-    def toggle_auto_refresh(self):
-        """Toggle auto-refresh functionality with Bootstrap styling."""
-        self.auto_refresh = not self.auto_refresh
-        if self.auto_refresh:
-            self.start_auto_refresh()
-            # Update Bootstrap button for active state
-            self.auto_refresh_btn.configure(text="⏱️ ON")
-            # Note: BootstrapButton doesn't support style changes after creation
-            self.update_status("Auto-refresh enabled (5 minutes)")
-        else:
-            self.stop_auto_refresh()
-            # Restore original Bootstrap styling
-            self.auto_refresh_btn.configure(text="⏱️ Auto")
-            # Note: BootstrapButton doesn't support style changes after creation
-            self.update_status("Auto-refresh disabled")
+    def _update_poetry_tab(self, formatted_poem: str) -> None:
+        """Update the poetry tab with new poem content.
 
-    def start_auto_refresh(self):
-        """Start the auto-refresh timer."""
-        self.refresh_current_weather()  # Refresh immediately
-        self.refresh_timer = self.root.after(
-            self.refresh_interval, self.start_auto_refresh
-        )
-
-    def stop_auto_refresh(self):
-        """Stop the auto-refresh timer."""
-        if self.refresh_timer:
-            self.root.after_cancel(self.refresh_timer)
-            self.refresh_timer = None
-
-    def on_close(self):
-        """Clean up and close the application."""
-        self.stop_auto_refresh()  # Stop auto-refresh timer
-
-        # Signal to app controller that we're closing
-        if self.callbacks.get("on_app_exit"):
-            self.callbacks["on_app_exit"]()
-
-        self.root.destroy()
-
-    def show_dashboard(self):
-        """Show the weather visualization dashboard."""
+        Args:
+            formatted_poem: Formatted poem text
+        """
         try:
-            # Update dashboard with current weather data
-            if self.current_weather:
-                self.dashboard.update_weather_data(self.current_weather)
-
-            # Update forecast data if available
-            if self.current_forecast_data:
-                self.dashboard.update_forecast_data(self.current_forecast_data)
-
-            # Show the dashboard
-            self.dashboard.show_dashboard()
-            self.update_status(
-                "Dashboard opened - Use Ctrl+1-4 for charts, Ctrl+D to toggle"
-            )
+            if self.main_dashboard and hasattr(self.main_dashboard, "poetry_tab"):
+                # Clear existing content and add new poem
+                for widget in self.main_dashboard.poetry_tab.winfo_children():
+                    if hasattr(widget, "winfo_children"):
+                        for child in widget.winfo_children():
+                            if (
+                                isinstance(child, tk.Label)
+                                and "poetry" in str(child.cget("text")).lower()
+                            ):
+                                child.config(text=formatted_poem)
+                                break
         except Exception as e:
-            self.logger.error(f"Error opening dashboard: {e}")
-            self.show_error(f"Failed to open dashboard: {str(e)}")
+            self.logger.error(f"Error updating poetry tab: {e}")
 
-
-class ResponsiveLayout:
-    """Helper class for responsive layout management."""
-
-    @staticmethod
-    def create_card_grid(parent, cards_per_row=2, spacing=10):
-        """Create a responsive grid layout for cards."""
-        container = BootstrapFrame(parent)
-        container.pack(fill=tk.BOTH, expand=True, padx=spacing, pady=spacing)
-        return container
-
-    @staticmethod
-    def create_button_toolbar(parent, buttons_config, spacing=5):
-        """Create a modern button toolbar with proper spacing."""
-        toolbar = BootstrapFrame(parent)
-        toolbar.pack(fill=tk.X, pady=spacing)
-
-        for config in buttons_config:
-            btn = BootstrapButton(
-                toolbar,
-                text=config.get("text", ""),
-                icon=config.get("icon", ""),
-                style=config.get("style", "primary"),
-                command=config.get("command", None),
-            )
-            btn.pack(side=tk.LEFT, padx=spacing)
-
-            # Add separator if specified
-            if config.get("separator", False):
-                ttk_bs.Separator(toolbar, orient="vertical").pack(
-                    side=tk.LEFT, fill=tk.Y, padx=spacing
-                )
-
-        return toolbar
-
-    @staticmethod
-    def create_info_card(parent, title, content, icon="ℹ️"):
-        """Create a modern information card with Bootstrap styling."""
-        card = ttk_bs.LabelFrame(parent, text=f"{icon} {title}", padding=15)
-        card.pack(fill=tk.X, pady=10)
-
-        content_label = ttk_bs.Label(
-            card, text=content, font=("Segoe UI", 11), wraplength=400
-        )
-        content_label.pack(anchor=tk.W)
-
-        return card
-
-
-class ModernLayoutMixin:
-    """Mixin to add modern layout capabilities to GUI classes."""
-
-    def create_modern_sidebar(self, parent, width=300):
-        """Create a modern sidebar with Bootstrap styling."""
-        sidebar = BootstrapFrame(parent)
-        sidebar.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 10), pady=10)
-
-        # Add scrolling capability
-        canvas = tk.Canvas(sidebar, width=width, highlightthickness=0)
-        scrollbar = ttk_bs.Scrollbar(sidebar, orient="vertical", command=canvas.yview)
-        scrollable_frame = BootstrapFrame(canvas)
-
-        scrollable_frame.bind(
-            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        scrollbar.pack(side="right", fill="y")
-        canvas.pack(side="left", fill="both", expand=True)
-
-        # Mouse wheel scrolling
-        def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
-
-        canvas.bind("<MouseWheel>", _on_mousewheel)
-
-        return scrollable_frame
-
-    def create_modern_card(self, parent, title, icon="📄"):
-        """Create a modern card layout with Bootstrap styling."""
-        card = ttk_bs.LabelFrame(parent, text=f"{icon} {title}", padding=20)
-        card.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        return card
-
-    def _add_team_data_info(self, parent_frame):
-        """Add team data information to the comparison display."""
+    def run(self) -> None:
+        """Run the GUI application."""
         try:
-            # Check if we have access to team comparison service through callbacks
-            callbacks = getattr(self, "callbacks", {})
-            if "get_team_data_status" in callbacks:
-                team_status = callbacks["get_team_data_status"]()
-
-                # Create team data info frame
-                team_info_frame = GlassmorphicFrame(
-                    parent_frame,
-                    bg_color=GlassmorphicStyle.GLASS_BG_LIGHT,
-                    elevated=True,
-                )
-                team_info_frame.pack(fill=tk.X, padx=20, pady=(10, 20))
-
-                # Team data header
-                header_label = tk.Label(
-                    team_info_frame,
-                    text="📊 Team Data Information",
-                    font=(
-                        GlassmorphicStyle.FONT_FAMILY,
-                        GlassmorphicStyle.FONT_SIZE_MEDIUM,
-                        "bold",
-                    ),
-                    fg=GlassmorphicStyle.ACCENT,
-                    bg=team_info_frame.bg_color,
-                )
-                header_label.pack(pady=(10, 5))
-
-                # Status information
-                if team_status.get("data_loaded", False):
-                    cities_count = team_status.get("cities_available", 0)
-                    status_text = (
-                        f"✅ Team data loaded with {cities_count} cities available"
-                    )
-                    status_color = GlassmorphicStyle.SUCCESS
-
-                    # Show available cities
-                    city_list = team_status.get("city_list", [])
-                    if city_list:
-                        cities_text = f"Available cities: {', '.join(city_list[:5])}"
-                        if len(city_list) > 5:
-                            cities_text += f" (+{len(city_list) - 5} more)"
-
-                        cities_label = tk.Label(
-                            team_info_frame,
-                            text=cities_text,
-                            font=(
-                                GlassmorphicStyle.FONT_FAMILY,
-                                GlassmorphicStyle.FONT_SIZE_SMALL,
-                            ),
-                            fg=GlassmorphicStyle.TEXT_SECONDARY,
-                            bg=team_info_frame.bg_color,
-                            wraplength=600,
-                        )
-                        cities_label.pack(pady=(0, 5))
-
-                    # Show data source information
-                    data_source = team_status.get("data_source", {})
-                    if data_source.get("repository"):
-                        repo_text = f"Data source: {data_source.get('repository', 'GitHub Repository')}"
-                        repo_label = tk.Label(
-                            team_info_frame,
-                            text=repo_text,
-                            font=(
-                                GlassmorphicStyle.FONT_FAMILY,
-                                GlassmorphicStyle.FONT_SIZE_SMALL,
-                            ),
-                            fg=GlassmorphicStyle.TEXT_SECONDARY,
-                            bg=team_info_frame.bg_color,
-                        )
-                        repo_label.pack(pady=(0, 5))
-
-                    # Add refresh button
-                    refresh_button = BootstrapButton(
-                        team_info_frame,
-                        text="🔄 Refresh Team Data",
-                        command=self._refresh_team_data,
-                        bootstyle="outline-info",
-                    )
-                    refresh_button.pack(pady=(5, 10))
-                else:
-                    status_text = "⚠️ Using API fallback - no team data available"
-                    status_color = GlassmorphicStyle.WARNING
-
-                status_label = tk.Label(
-                    team_info_frame,
-                    text=status_text,
-                    font=(
-                        GlassmorphicStyle.FONT_FAMILY,
-                        GlassmorphicStyle.FONT_SIZE_SMALL,
-                    ),
-                    fg=status_color,
-                    bg=team_info_frame.bg_color,
-                )
-                status_label.pack(pady=(0, 10))
-
+            self.logger.info("Starting Weather Dashboard GUI")
+            self.root.mainloop()
         except Exception as e:
-            # Silently handle errors - team data info is optional
-            logging.debug(f"Could not display team data info: {e}")
-            pass
+            self.logger.error(f"Error running GUI: {e}")
+            raise
+        finally:
+            self.logger.info("Weather Dashboard GUI stopped")
 
-    def _refresh_team_data(self):
-        """Refresh team data from GitHub repository."""
-        try:
-            callbacks = getattr(self, "callbacks", {})
-            if "refresh_team_data" in callbacks:
-                callbacks["refresh_team_data"]()
-            else:
-                messagebox.showerror("Error", "Refresh functionality not available")
-        except Exception as e:
-            logging.error(f"Error refreshing team data: {e}")
-            messagebox.showerror("Error", f"Error refreshing team data: {str(e)}")
 
-    # Voice Assistant GUI Methods
-    def update_voice_status(self):
-        """Update voice assistant status display."""
-        try:
-            if hasattr(self, 'callbacks') and 'is_voice_enabled' in self.callbacks:
-                is_enabled = self.callbacks['is_voice_enabled']()
-                if is_enabled:
-                    self.voice_status_label.configure(
-                        text="Voice Assistant: ✅ Enabled",
-                        fg=GlassmorphicStyle.SUCCESS
-                    )
-                else:
-                    self.voice_status_label.configure(
-                        text="Voice Assistant: ❌ Disabled",
-                        fg=GlassmorphicStyle.WARNING
-                    )
-            else:
-                self.voice_status_label.configure(
-                    text="Voice Assistant: ⚠️ Not Available",
-                    fg=GlassmorphicStyle.WARNING
-                )
-        except Exception as e:
-            self.voice_status_label.configure(
-                text="Voice Assistant: ❌ Error",
-                fg=GlassmorphicStyle.ERROR
-            )
-            logging.error(f"Error updating voice status: {e}")
+# WeatherDashboard now imported at top of file
 
-    def process_voice_command_gui(self):
-        """Process voice command from GUI input."""
-        try:
-            command = self.voice_command_entry.get().strip()
-            if not command:
-                messagebox.showwarning("Warning", "Please enter a voice command.")
-                return
 
-            if hasattr(self, 'callbacks') and 'process_voice_command' in self.callbacks:
-                response = self.callbacks['process_voice_command'](command)
-                self.display_voice_response(command, response)
-                self.voice_command_entry.delete(0, tk.END)
-            else:
-                messagebox.showerror("Error", "Voice command processing not available.")
-        except Exception as e:
-            logging.error(f"Error processing voice command: {e}")
-            messagebox.showerror("Error", f"Error processing voice command: {str(e)}")
+def create_gui() -> WeatherDashboardGUI:
+    """Create and return a new GUI instance.
 
-    def reload_voice_config_gui(self):
-        """Reload voice configuration from GUI."""
-        try:
-            if hasattr(self, 'callbacks') and 'reload_voice_configuration' in self.callbacks:
-                self.callbacks['reload_voice_configuration']()
-                self.update_voice_status()
-                messagebox.showinfo("Success", "Voice configuration reloaded successfully.")
-            else:
-                messagebox.showerror("Error", "Voice configuration reload not available.")
-        except Exception as e:
-            logging.error(f"Error reloading voice config: {e}")
-            messagebox.showerror("Error", f"Error reloading voice config: {str(e)}")
+    Returns:
+        WeatherDashboardGUI instance
+    """
+    return WeatherDashboardGUI()
 
-    def show_voice_help_gui(self):
-        """Show voice assistant help information."""
-        try:
-            if hasattr(self, 'callbacks') and 'get_voice_help' in self.callbacks:
-                help_info = self.callbacks['get_voice_help']()
-                self.display_voice_response("help", help_info)
-            else:
-                help_text = """Available Voice Commands:
-• get_weather [city] - Get current weather
-• get_forecast [city] - Get weather forecast
-• get_temperature [city] - Get temperature
-• get_humidity [city] - Get humidity
-• get_wind [city] - Get wind information
-• help - Show this help
-• status - Show voice assistant status"""
-                self.display_voice_response("help", help_text)
-        except Exception as e:
-            logging.error(f"Error showing voice help: {e}")
-            messagebox.showerror("Error", f"Error showing voice help: {str(e)}")
 
-    def display_voice_response(self, command, response):
-        """Display voice command and response in the voice content area."""
-        try:
-            # Clear existing content
-            for widget in self.voice_content.scrollable_frame.winfo_children():
-                widget.destroy()
-
-            # Create response card
-            response_card = GlassmorphicFrame(
-                self.voice_content.scrollable_frame,
-                elevated=True,
-                gradient=True
-            )
-            response_card.pack(fill=tk.X, padx=10, pady=10)
-
-            # Command header
-            command_header = tk.Label(
-                response_card,
-                text=f"🎤 Command: {command}",
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_MEDIUM, "bold"),
-                fg=GlassmorphicStyle.TEXT_PRIMARY,
-                bg=response_card.bg_color,
-            )
-            command_header.pack(anchor=tk.W, padx=15, pady=(15, 5))
-
-            # Response content
-            response_text = tk.Text(
-                response_card,
-                height=10,
-                wrap=tk.WORD,
-                font=(GlassmorphicStyle.FONT_FAMILY, GlassmorphicStyle.FONT_SIZE_SMALL),
-                fg=GlassmorphicStyle.TEXT_SECONDARY,
-                bg=GlassmorphicStyle.GLASS_BG_LIGHT,
-                relief=tk.FLAT,
-                padx=10,
-                pady=10
-            )
-            response_text.pack(fill=tk.BOTH, expand=True, padx=15, pady=(5, 15))
-            response_text.insert(tk.END, response)
-            response_text.configure(state=tk.DISABLED)
-
-        except Exception as e:
-            logging.error(f"Error displaying voice response: {e}")
+if __name__ == "__main__":
+    # Create and run GUI
+    gui = create_gui()
+    gui.run()

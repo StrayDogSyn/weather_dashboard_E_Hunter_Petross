@@ -10,9 +10,14 @@ import asyncio
 import logging
 import threading
 import tkinter as tk
-from datetime import datetime, timedelta
-from tkinter import messagebox, ttk
-from typing import Any, Dict, List, Optional
+from datetime import datetime
+from datetime import timedelta
+from tkinter import messagebox
+from tkinter import ttk
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,10 +25,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
 from ..models.predictive_models import PredictionResult
-from ..services.model_integration_service import (
-    IntegratedForecast,
-    ModelIntegrationService,
-)
+from ..services.model_integration_service import IntegratedForecast
+from ..services.model_integration_service import ModelIntegrationService
+from .components.responsive_layout import ResponsiveSpacing
 
 
 class ForecastVisualizationFrame(ttk.Frame):
@@ -39,6 +43,7 @@ class ForecastVisualizationFrame(ttk.Frame):
         super().__init__(parent)
         self.integration_service = integration_service
         self.logger = logging.getLogger(__name__)
+        # Use ResponsiveSpacing class attributes directly
 
         # Current forecast data
         self.current_forecast = None
@@ -147,7 +152,12 @@ class ForecastVisualizationFrame(ttk.Frame):
         """Create widgets for forecast details display."""
         # Scrollable text area for detailed information
         self.details_scroll_frame = ttk.Frame(self.details_frame)
-        self.details_scroll_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        self.details_scroll_frame.pack(
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
+        )
 
         # Text widget with scrollbar
         self.details_text = tk.Text(
@@ -170,7 +180,9 @@ class ForecastVisualizationFrame(ttk.Frame):
 
         # Export buttons
         self.export_frame = ttk.Frame(self.details_frame)
-        self.export_frame.pack(fill=tk.X, padx=5, pady=5)
+        self.export_frame.pack(
+            fill=tk.X, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
+        )
 
         self.export_json_btn = ttk.Button(
             self.export_frame, text="Export JSON", command=self._export_json
@@ -192,32 +204,77 @@ class ForecastVisualizationFrame(ttk.Frame):
     def _setup_layout(self):
         """Setup the layout of all widgets."""
         # Title
-        self.title_frame.pack(fill=tk.X, padx=10, pady=5)
+        self.title_frame.pack(
+            fill=tk.X, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
+        )
         self.title_label.pack()
 
         # Options
-        self.options_frame.pack(fill=tk.X, padx=10, pady=5)
+        self.options_frame.pack(
+            fill=tk.X, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
+        )
 
         # City input
-        self.city_label.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-        self.city_entry.grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+        self.city_label.grid(
+            row=0,
+            column=0,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
+            sticky=tk.W,
+        )
+        self.city_entry.grid(
+            row=0,
+            column=1,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
+            sticky=tk.W,
+        )
 
         # Days input
-        self.days_label.grid(row=0, column=2, padx=5, pady=5, sticky=tk.W)
-        self.days_spin.grid(row=0, column=3, padx=5, pady=5, sticky=tk.W)
+        self.days_label.grid(
+            row=0,
+            column=2,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
+            sticky=tk.W,
+        )
+        self.days_spin.grid(
+            row=0,
+            column=3,
+            padx=ResponsiveSpacing.SMALL,
+            pady=ResponsiveSpacing.SMALL,
+            sticky=tk.W,
+        )
 
         # ML checkbox
-        self.ml_check.grid(row=0, column=4, padx=10, pady=5, sticky=tk.W)
+        self.ml_check.grid(
+            row=0,
+            column=4,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
+            sticky=tk.W,
+        )
 
         # Buttons
-        self.generate_btn.grid(row=0, column=5, padx=5, pady=5)
-        self.refresh_btn.grid(row=0, column=6, padx=5, pady=5)
+        self.generate_btn.grid(
+            row=0, column=5, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
+        )
+        self.refresh_btn.grid(
+            row=0, column=6, padx=ResponsiveSpacing.SMALL, pady=ResponsiveSpacing.SMALL
+        )
 
         # Forecast display
-        self.forecast_notebook.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        self.forecast_notebook.pack(
+            fill=tk.BOTH,
+            expand=True,
+            padx=ResponsiveSpacing.MEDIUM,
+            pady=ResponsiveSpacing.SMALL,
+        )
 
         # Status bar
-        self.status_frame.pack(fill=tk.X, padx=10, pady=5)
+        self.status_frame.pack(
+            fill=tk.X, padx=ResponsiveSpacing.MEDIUM, pady=ResponsiveSpacing.SMALL
+        )
         self.status_label.pack(side=tk.LEFT)
         self.progress.pack(side=tk.RIGHT, padx=(10, 0))
 
@@ -256,7 +313,7 @@ class ForecastVisualizationFrame(ttk.Frame):
                 self.after(
                     0,
                     lambda: self.status_var.set(
-                        f"Forecast generated for {city} - Confidence: {forecast.confidence_score:.1%}"
+                        f"Forecast generated for {city} - Confidence: {forecast.confidence_score: .1%}"
                     ),
                 )
 
@@ -472,7 +529,7 @@ class ForecastVisualizationFrame(ttk.Frame):
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.0,
                     height + 0.01,
-                    f"{acc:.3f}",
+                    f"{acc: .3f}",
                     ha="center",
                     va="bottom",
                 )
@@ -504,7 +561,7 @@ class ForecastVisualizationFrame(ttk.Frame):
             f"Generated: {self.current_forecast.timestamp.strftime('%Y-%m-%d %H:%M:%S')}"
         )
         details.append(
-            f"Overall Confidence: {self.current_forecast.confidence_score:.1%}"
+            f"Overall Confidence: {self.current_forecast.confidence_score: .1%}"
         )
         details.append("")
 
@@ -527,13 +584,15 @@ class ForecastVisualizationFrame(ttk.Frame):
             details.append("-" * 15)
             for i, pred in enumerate(self.current_forecast.ml_predictions):
                 date = pred.timestamp.strftime("%Y-%m-%d")
-                details.append(f"Day {i+1} ({date}):")
-                details.append(f"  Temperature: {pred.predicted_temperature:.1f}°C")
+                details.append(f"Day {i+1} ({date}): ")
+                details.append(f"  Temperature: {pred.predicted_temperature: .1f}°C")
                 details.append(
-                    f"  Confidence Interval: {pred.confidence_interval[0]:.1f}°C - {pred.confidence_interval[1]:.1f}°C"
+                    f"  Confidence Interval: {pred.confidence_interval[0]: .1f}°C - {pred.confidence_interval[1]: .1f}°C"
                 )
                 details.append(f"  Weather Pattern: {pred.weather_pattern}")
-                details.append(f"  Prediction Accuracy: {pred.prediction_accuracy:.1%}")
+                details.append(
+                    f"  Prediction Accuracy: {pred.prediction_accuracy: .1%}"
+                )
                 details.append(
                     f"  Features Used: {', '.join(pred.features_used[:5])}{'...' if len(pred.features_used) > 5 else ''}"
                 )
@@ -545,7 +604,7 @@ class ForecastVisualizationFrame(ttk.Frame):
         details.append("-" * 14)
         for model in service_status.active_models:
             accuracy = service_status.prediction_accuracy.get(model, 0)
-            details.append(f"  {model}: R² = {accuracy:.3f}")
+            details.append(f"  {model}: R² = {accuracy: .3f}")
         details.append("")
 
         # Service status
@@ -708,7 +767,7 @@ class ForecastVisualizationFrame(ttk.Frame):
         explanation_lines.append("Models Used:")
         for model in explanation["models_used"]:
             explanation_lines.append(
-                f"  • {model['type']} (weight: {model['weight']:.3f})"
+                f"  • {model['type']} (weight: {model['weight']: .3f})"
             )
             explanation_lines.append(
                 f"    Features: {', '.join(model['features_used'][:5])}"
@@ -722,7 +781,7 @@ class ForecastVisualizationFrame(ttk.Frame):
 
         explanation_lines.append("Model Performance:")
         for model_type, metrics in explanation["accuracy_metrics"].items():
-            explanation_lines.append(f"  • {model_type}:")
+            explanation_lines.append(f"  • {model_type}: ")
             explanation_lines.append(f"    R² Score: {metrics['r2_score']}")
             explanation_lines.append(
                 f"    Mean Absolute Error: {metrics['mean_absolute_error']}°C"

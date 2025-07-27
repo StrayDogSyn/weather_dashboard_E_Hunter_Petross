@@ -50,7 +50,7 @@ def setup_environment():
         subprocess.run([str(pip_executable), "install", "-r", str(requirements_file)])
 
     # Install development requirements if they exist
-    dev_requirements = project_root / "requirements-dev.txt"
+    dev_requirements = project_root / "docs" / "development" / "requirements-dev.txt"
     if dev_requirements.exists():
         print("🛠️  Installing development requirements...")
         subprocess.run([str(pip_executable), "install", "-r", str(dev_requirements)])
@@ -83,14 +83,14 @@ def setup_environment():
         )
 
     print("\n✅ Setup completed!")
-    print(f"\n📋 Next steps: ")
-    print(f"1. Activate virtual environment: ")
+    print("\n📋 Next steps: ")
+    print("1. Activate virtual environment: ")
     if os.name == "nt":
         print(f"   {activate_script}")
     else:
         print(f"   source {activate_script}")
-    print(f"2. Edit .env file with your API keys")
-    print(f"3. Run the application: python main.py")
+    print("2. Edit .env file with your API keys")
+    print("3. Run the application: python main.py")
 
 
 if __name__ == "__main__":

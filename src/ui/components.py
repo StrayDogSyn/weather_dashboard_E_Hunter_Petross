@@ -8,11 +8,19 @@ entries, and scrollable containers.
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk
+
 import ttkbootstrap as ttk_bs
-from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
+from ttkbootstrap.constants import DANGER
+from ttkbootstrap.constants import DARK
+from ttkbootstrap.constants import INFO
+from ttkbootstrap.constants import LIGHT
+from ttkbootstrap.constants import PRIMARY
+from ttkbootstrap.constants import SECONDARY
+
+from src.services.sound_service import SoundType
+from src.services.sound_service import play_sound
 
 from .styling import GlassmorphicStyle
-from src.services.sound_service import SoundType, play_sound
 
 
 class GlassmorphicFrame(tk.Frame):
@@ -26,13 +34,19 @@ class GlassmorphicFrame(tk.Frame):
         elevated=False,
         gradient=False,
         blur_intensity=None,
+        padding=None,
         **kwargs,
     ):
-        # Remove blur_intensity from kwargs if it exists to avoid passing it to tkinter
+        # Remove custom parameters from kwargs to avoid passing them to tkinter
         if "blur_intensity" in kwargs:
             blur_intensity = kwargs.pop("blur_intensity")
+        if "padding" in kwargs:
+            padding = kwargs.pop("padding")
 
         super().__init__(parent, **kwargs)
+
+        # Store padding for potential use in layout
+        self.padding = padding or 0
 
         self.bg_color = bg_color or GlassmorphicStyle.GLASS_BG
         self.border_color = border_color or GlassmorphicStyle.GLASS_BORDER
@@ -230,7 +244,7 @@ class ModernEntry(tk.Entry):
             highlightcolor=GlassmorphicStyle.ACCENT,
             highlightthickness=2,
             insertbackground=GlassmorphicStyle.TEXT_PRIMARY,
-            **kwargs
+            **kwargs,
         )
 
         if self.placeholder:

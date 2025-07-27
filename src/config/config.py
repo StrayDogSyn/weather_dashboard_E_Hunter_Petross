@@ -8,9 +8,11 @@ best practices.
 
 import json
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 
 from dotenv import load_dotenv
 
@@ -43,15 +45,27 @@ class APIConfiguration:
     )
 
     # AI API configuration for enhanced poetry generation
+    # Gemini Pro (Primary AI)
+    gemini_api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY", ""))
+    gemini_model: str = field(
+        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-pro")
+    )
+
+    # OpenAI (Fallback AI)
     openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
     ai_model: str = field(
         default_factory=lambda: os.getenv("AI_MODEL", "gpt-3.5-turbo")
     )
+
+    # Shared AI settings
     ai_max_tokens: int = field(
         default_factory=lambda: int(os.getenv("AI_MAX_TOKENS", "150"))
     )
     ai_temperature: float = field(
         default_factory=lambda: float(os.getenv("AI_TEMPERATURE", "0.8"))
+    )
+    ai_fallback_chance: float = field(
+        default_factory=lambda: float(os.getenv("AI_FALLBACK_CHANCE", "0.8"))
     )
 
 
@@ -371,6 +385,83 @@ class ConfigurationManager:
                 else "***"
             )
         return self.config.api.api_key
+
+    def get(self, key: str, default=None):
+        """Get configuration value by key.
+
+        Args:
+            key: Configuration key (supports dot notation like 'ui.theme')
+            default: Default value if key not found
+
+        Returns:
+            Configuration value or default
+        """
+        try:
+            # Handle special user preference keys
+            if key == "temperature_unit":
+                return self.config.temperature_unit
+            elif key == "favorite_cities":
+                return self.config.favorite_cities
+            elif key == "default_city":
+                return self.config.default_city
+
+            # Handle dot notation for nested keys
+            if "." in key:
+                parts = key.split(".")
+                value = self.config
+                for part in parts:
+                    if hasattr(value, part):
+                        value = getattr(value, part)
+                    else:
+                        return default
+                return value
+
+            # Handle direct attribute access
+            if hasattr(self.config, key):
+                return getattr(self.config, key)
+
+            return default
+        except Exception:
+            return default
+
+    def set(self, key: str, value) -> None:
+        """Set configuration value by key.
+
+        Args:
+            key: Configuration key (supports dot notation like 'ui.theme')
+            value: Value to set
+        """
+        try:
+            # Handle special user preference keys
+            if key == "temperature_unit":
+                self.config.temperature_unit = value
+            elif key == "favorite_cities":
+                self.config.favorite_cities = value
+            elif key == "default_city":
+                self.config.default_city = value
+
+            # Handle dot notation for nested keys
+            elif "." in key:
+                parts = key.split(".")
+                obj = self.config
+                for part in parts[:-1]:
+                    if hasattr(obj, part):
+                        obj = getattr(obj, part)
+                    else:
+                        return  # Can't set if path doesn't exist
+
+                if hasattr(obj, parts[-1]):
+                    setattr(obj, parts[-1], value)
+
+            # Handle direct attribute access
+            elif hasattr(self.config, key):
+                setattr(self.config, key, value)
+
+            # Auto-save configuration after setting
+            self.save_configuration()
+
+        except Exception as e:
+            print(f"Error setting configuration key '{key}': {e}")
 
     def save_configuration(self) -> None:
         """Save current configuration to file (excluding sensitive data)."""

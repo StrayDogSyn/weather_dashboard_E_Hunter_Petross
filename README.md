@@ -1,6 +1,6 @@
 # 🌤️ Weather Dashboard - TKinter GUI
 
-> **📋 WEEK 13 SUBMISSION STATUS: ✅ READY**  
+> **📋 WEEK 15 SUBMISSION STATUS: ✅ READY**  
 > All core requirements met, including:  
 > ✅ GitHub Repository Updated  
 > ✅ UI Design Implemented  
@@ -12,7 +12,8 @@
 [![Type Checking](https://img.shields.io/badge/mypy-checked-blue)](http://mypy-lang.org/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/)
 
-A modern weather dashboard application with glassmorphic design, built using Python TKinter. Features comprehensive weather data, capstone functionality, and an intuitive graphical interface.
+A modern weather dashboard application with glassmorphic design, built using Python TKinter. Features comprehensive
+weather data, capstone functionality, and an intuitive graphical interface.
 
 ## 🌟 Capstone Features
 
@@ -41,7 +42,8 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 - **📱 Responsive Layout**: Tabbed interface with intuitive navigation and scrollable panels
 - **🎯 Interactive Elements**: Custom styled buttons with modern hover animations and visual feedback
 - **📊 Data Visualization**: Beautiful weather cards and elegantly styled information displays
-- **📈 Visualization Dashboard**: Interactive charts with hotkeys (Ctrl+1-4) for temperature trends, metrics, forecasts, and humidity/pressure data
+- **📈 Visualization Dashboard**: Interactive charts with hotkeys (Ctrl+1-4) for temperature trends, metrics,
+  forecasts, and humidity/pressure data
 - **✨ Poetry Display**: Artistically rendered weather poems with decorative elements and elegant typography
 - **🔄 Auto-Refresh**: Convenient auto-refresh functionality with status indicators
 
@@ -83,7 +85,9 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
    python main.py
    ```
 
-> **💡 Developer Note**: This project includes comprehensive CI/CD with automated testing, code formatting (Black), linting (flake8), and type checking (mypy). All code changes are automatically validated for quality and cross-platform compatibility.
+> **💡 Developer Note**: This project includes comprehensive CI/CD with automated testing, code formatting (Black),
+> linting (flake8), and type checking (mypy). All code changes are automatically validated for quality and
+> cross-platform compatibility.
 
 ## 🎨 GUI Features
 
@@ -163,36 +167,153 @@ A modern weather dashboard application with glassmorphic design, built using Pyt
 weather_dashboard_E_Hunter_Petross/
 ├── 📄 main.py                    # Main application entry point
 ├── 📄 requirements.txt           # Python dependencies
-├── 📄 requirements-dev.txt       # Development dependencies
-├── 📄 requirements-test.txt      # Testing dependencies
+├── 📁 docs/                      # Documentation folder (organized)
 ├── 📄 pyproject.toml            # Project configuration
+├── 📄 setup.cfg                 # Setup configuration
 ├── 📄 settings.json             # Application settings
 ├── 📁 src/                      # Source code directory
-│   ├── 📄 app_gui.py            # Main GUI controller
-│   ├── 📁 ui/                   # User interface layer
-│   │   ├── 📄 gui_interface.py  # Modern TKinter GUI
-│   │   └── 📄 dashboard.py      # Data visualization
-│   ├── 📁 core/                 # Business logic
-│   ├── 📁 services/             # External integrations
-│   ├── 📁 models/               # Data models
+│   ├── 📁 application/          # Application layer
+│   │   ├── 📄 app_factory.py    # Application factory
+│   │   └── 📄 dependency_container.py # Dependency injection
+│   ├── 📁 business/             # Business interfaces
+│   │   └── 📄 interfaces.py     # Business layer interfaces
+│   ├── 📁 config/               # Configuration management
+│   │   └── 📄 config.py         # Application configuration
+│   ├── 📁 controllers/          # Controller layer
+│   │   └── 📄 gui_controller.py # GUI controller
+│   ├── 📁 core/                 # Business logic layer
+│   │   ├── 📄 activity_service.py      # Activity suggestions
+│   │   ├── 📄 enhanced_comparison_service.py # City comparison
+│   │   ├── 📄 journal_service.py       # Weather journal
+│   │   ├── 📄 preferences.py           # User preferences
+│   │   └── 📄 weather_service.py       # Core weather service
+│   ├── 📁 infrastructure/       # Infrastructure layer
+│   │   ├── 📄 cache_service.py  # Caching infrastructure
+│   │   ├── 📄 config_manager.py # Configuration management
+│   │   └── 📄 storage_service.py # Storage infrastructure
 │   ├── 📁 interfaces/           # Abstract interfaces
-│   ├── 📁 config/               # Configuration
-│   └── 📁 utils/                # Utilities
+│   │   └── 📄 weather_interfaces.py # Service interfaces
+│   ├── 📁 models/               # Domain models
+│   │   ├── 📄 capstone_models.py    # Capstone feature models
+│   │   ├── 📄 database_models.py    # Database models
+│   │   ├── 📄 predictive_models.py  # ML models
+│   │   └── 📄 weather_models.py     # Weather domain models
+│   ├── 📁 presentation/         # Presentation layer
+│   │   ├── 📄 cli_app.py        # CLI application
+│   │   └── 📄 gui_app.py        # GUI application
+│   ├── 📁 services/             # External service integrations
+│   │   ├── 📄 cache_service.py         # Data caching
+│   │   ├── 📄 composite_weather_service.py # Multi-provider service
+│   │   ├── 📄 cortana_voice_service.py # Voice assistant
+│   │   ├── 📄 data_storage.py          # JSON storage
+│   │   ├── 📄 location_service.py      # Geolocation
+│   │   ├── 📄 model_integration_service.py # ML integration
+│   │   ├── 📄 model_training_service.py # ML training
+│   │   ├── 📄 poetry_service.py        # Weather poetry
+│   │   ├── 📄 sound_service.py         # Audio feedback
+│   │   ├── 📄 sql_data_storage.py      # SQL storage
+│   │   ├── 📄 storage_factory.py       # Storage factory
+│   │   ├── 📄 team_data_service.py     # Team collaboration
+│   │   ├── 📄 visualization_service.py # Data visualization
+│   │   ├── 📄 weather_api.py           # OpenWeatherMap API
+│   │   └── 📄 weatherapi_service.py    # WeatherAPI.com
+│   ├── 📁 shared/               # Shared utilities
+│   │   ├── 📄 constants.py      # Application constants
+│   │   └── 📄 exceptions.py     # Custom exceptions
+│   ├── 📁 ui/                   # User interface layer
+│   │   ├── 📁 animations/       # Animation effects
+│   │   │   └── 📄 effects.py    # Animation utilities
+│   │   ├── 📁 components/       # UI components
+│   │   │   ├── 📄 header.py           # Application header
+│   │   │   ├── 📄 main_dashboard.py   # Main dashboard
+│   │   │   ├── 📄 responsive_layout.py # Responsive layout
+│   │   │   ├── 📄 search_panel.py     # Search interface
+│   │   │   ├── 📄 temperature_controls.py # Temperature controls
+│   │   │   ├── 📄 weather_card.py     # Weather display
+│   │   │   └── 📄 weather_icons.py    # Weather icons
+│   │   ├── 📁 dialogs/          # Dialog windows
+│   │   ├── 📁 styles/           # UI styling
+│   │   │   └── 📄 glassmorphic.py # Design system
+│   │   ├── 📁 widgets/          # Reusable widgets
+│   │   │   ├── 📄 enhanced_button.py # Enhanced buttons
+│   │   │   └── 📄 modern_button.py    # Modern buttons
+│   │   ├── 📄 chart_widgets.py  # Chart components
+│   │   ├── 📄 components.py     # Legacy components
+│   │   ├── 📄 dashboard.py      # Dashboard interface
+│   │   ├── 📄 forecast_ui.py    # Forecast interface
+│   │   ├── 📄 gui_interface.py  # Main GUI orchestrator
+│   │   ├── 📄 layout.py         # Layout management
+│   │   ├── 📄 settings_dialog.py # Settings interface
+│   │   ├── 📄 styling.py        # Legacy styling
+│   │   └── 📄 weather_components.py # Weather components
+│   └── 📁 utils/                # Utility functions
+│       ├── 📄 formatters.py     # Data formatting
+│       ├── 📄 sample_data.py    # Sample data
+│       └── 📄 validators.py     # Input validation
+├── 📁 cache/                    # Cache directory
+├── 📁 config/                   # Configuration files
+├── 📁 configs/                  # Additional configurations
+│   └── 📁 cortana/              # Cortana voice assistant
+│       ├── 📄 cli.py            # CLI interface
+│       ├── 📄 config_manager.py # Configuration manager
+│       ├── 📄 cortana_builder.py # Builder utility
+│       ├── 📄 cortana_config.yaml # Configuration file
+│       ├── 📄 manifest.yaml     # Manifest file
+│       ├── 📄 manifest_template.yaml # Template
+│       ├── 📄 schema.json       # JSON schema
+│       ├── 📄 test_config.py    # Configuration tests
+│       ├── 📄 test_cortana_builder.py # Builder tests
+│       ├── 📄 README.md         # Documentation
+│       └── 📄 validation_report.md # Validation report
 ├── 📁 data/                     # Application data
-│   ├── 📄 weather_dashboard.db  # SQLite database
-│   ├── 📁 json_backup/          # Data backups
-│   └── 📁 screenshots/          # UI screenshots
-├── 📁 configs/                  # Configuration files
-│   └── 📁 cortana/              # Cortana voice assistant configuration
-│       ├── 📄 manifest.yaml     # Main configuration file
-│       ├── 📄 schema.json       # JSON schema for validation
-│       ├── 📄 config_manager.py # Configuration management utility
-│       └── 📄 README.md         # Cortana configuration documentation
+│   ├── 📄 favorite_cities.json # Favorite cities
+│   ├── 📄 journal_entries.json # Journal entries
+│   ├── 📄 weather_dashboard.db # SQLite database
+│   ├── 📄 weather_history.json # Weather history
+│   ├── 📁 json_backup/         # Data backups
+│   ├── 📁 screenshots/         # UI screenshots
+│   └── 📁 sounds/              # Audio files
 ├── 📁 docs/                     # Documentation
-│   └── 📄 CORTANA_CONFIGURATION.md # Cortana configuration documentation
-├── 📁 tests/                    # Test suite
+│   ├── 📄 README.md            # Documentation index
+│   ├── 📁 architecture/        # Architecture documentation
+│   │   ├── 📄 architecture.md      # Architecture overview
+│   │   └── 📄 project_structure.md # Project structure
+│   ├── 📁 configuration/       # Configuration documentation
+│   │   ├── 📄 CORTANA_CONFIGURATION.md # Cortana setup
+│   │   ├── 📄 CORTANA_INTEGRATION.md # Cortana integration
+│   │   └── 📄 security.md          # Security guidelines
+│   ├── 📁 deployment/          # Deployment documentation
+│   │   └── 📄 DEPLOYMENT_GUIDE.md  # Deployment guide
+│   ├── 📁 development/         # Development documentation
+│   │   ├── 📄 IMPLEMENTATION_GUIDE.md # Implementation guide
+│   │   ├── 📄 GITHUB_TEAM_DATA_INTEGRATION.md # Team integration
+│   │   ├── 📄 GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md # GUI analysis
+│   │   ├── 📄 SQL_DATABASE.md      # Database documentation
+│   │   ├── 📄 requirements-dev.txt # Development dependencies
+│   └── 📁 reflections/         # Weekly reflections
+│       ├── 📄 Week11_Reflection.md # Week 11 reflection
+│       ├── 📄 Week12_Reflection.md # Week 12 reflection
+│       ├── 📄 Week13_Reflection.md # Week 13 reflection
+│       ├── 📄 Week14_Reflection.md # Week 14 reflection
+│       └── 📄 Week15_Reflection.md # Week 15 reflection
+├── 📁 exports/                  # Export files
 ├── 📁 logs/                     # Application logs
-└── 📁 scripts/                  # Utility scripts
+├── 📁 scripts/                  # Utility scripts
+│   ├── 📄 inspect_database.py  # Database inspection
+│   ├── 📄 pre_commit_check.py  # Pre-commit checks
+│   └── 📄 setup.py            # Setup script
+├── 📁 temp/                     # Temporary files
+└── 📁 tests/                    # Test suite
+    ├── 📄 README.md            # Test documentation
+    ├── 📄 requirements-test.txt # Test dependencies
+    ├── 📄 run_tests.py         # Test runner
+    ├── 📄 settings.json        # Test settings
+    ├── 📄 test_cortana_integration.py # Voice assistant tests
+├── 📄 test_week14_features.py # Advanced features tests
+    ├── 📄 test_validators.py    # Validator tests
+    ├── 📄 test_weather_models.py # Model tests
+    ├── 📄 test_weather_service.py # Service tests
+    └── 📄 test_week14_features.py # Feature tests
 ```
 
 ## 🌟 Capstone Highlights
@@ -262,12 +383,39 @@ python -m pytest tests/test_weather_service.py -v
 
 ## 📚 Documentation
 
-- [Architecture Documentation](docs/architecture.md) - Detailed architecture overview and design principles
-- [Security Guidelines](docs/security.md) - Security best practices and API key management
-- [Project Structure](docs/project_structure.md) - Complete project organization and file structure
-- [Cortana Configuration](docs/CORTANA_CONFIGURATION.md) - Cortana voice assistant setup and configuration
-- [Week 11 Reflection](docs/Week11_Reflection.md) - Capstone project reflection and planning
-- [Works Cited](docs/README.md#-works-cited) - Bibliography of tools, documentation, and educational resources
+### Architecture & Design
+
+- [Architecture Documentation](docs/architecture/architecture.md) - Detailed architecture overview and design principles
+- [Project Structure](docs/architecture/project_structure.md) - Complete project organization and file structure
+
+### Configuration & Setup
+
+- [Security Guidelines](docs/configuration/security.md) - Security best practices and API key management
+- [Cortana Configuration](docs/configuration/CORTANA_CONFIGURATION.md) - Cortana voice assistant setup and configuration
+- [Cortana Integration](docs/configuration/CORTANA_INTEGRATION.md) - Cortana integration details
+
+### Development & Implementation
+
+- [Implementation Guide](docs/development/IMPLEMENTATION_GUIDE.md) - Detailed implementation documentation
+- [GUI Layout Analysis](docs/development/GUI_LAYOUT_ANALYSIS_AND_IMPROVEMENTS.md) - UI design analysis and improvements
+- [GitHub Team Integration](docs/development/GITHUB_TEAM_DATA_INTEGRATION.md) - Team collaboration features
+- [SQL Database Documentation](docs/development/SQL_DATABASE.md) - Database design and implementation
+
+### Deployment
+
+- [Deployment Guide](docs/deployment/DEPLOYMENT_GUIDE.md) - Production deployment instructions
+
+### Weekly Reflections
+
+- [Week 11 Reflection](docs/reflections/Week11_Reflection.md) - Clean architecture and core service implementation
+- [Week 12 Reflection](docs/reflections/Week12_Reflection.md) - Advanced features and data visualization
+- [Week 13 Reflection](docs/reflections/Week13_Reflection.md) - Machine learning integration and analytics
+- [Week 14 Reflection](docs/reflections/Week14_Reflection.md) - Development milestones and reflection
+- [Week 15 Reflection](docs/reflections/Week15_Reflection.md) - Final project reflection
+
+### Complete Documentation Index
+
+- [Documentation Index](docs/README.md) - Complete documentation overview with works cited
 
 ## 🔐 Security
 
@@ -483,21 +631,92 @@ python scripts/cleanup.py
 
 ```text
 weather_dashboard_E_Hunter_Petross/
-├── 📁 src/                 # Main application source code
-│   ├── 📁 config/          # Configuration management
-│   ├── 📁 core/            # Core business logic
-│   ├── 📁 models/          # Data models and structures
-│   ├── 📁 services/        # External service integrations
-│   ├── 📁 ui/              # User interface components
+├── 📁 src/                 # Main application source code (Clean Architecture)
+│   ├── 📁 application/     # Application layer (orchestration)
+│   │   ├── 📄 app_factory.py        # Application factory pattern
+│   │   └── 📄 dependency_container.py # Dependency injection container
+│   ├── 📁 business/        # Business layer interfaces
+│   │   └── 📄 interfaces.py         # Business logic contracts
+│   ├── 📁 controllers/     # Controller layer
+│   │   └── 📄 gui_controller.py     # GUI controller orchestration
+│   ├── 📁 core/            # Core business logic (use cases)
+│   │   ├── 📄 weather_service.py    # Core weather functionality
+│   │   ├── 📄 journal_service.py    # Weather journal features
+│   │   ├── 📄 activity_service.py   # Activity suggestions
+│   │   └── 📄 preferences.py        # User preferences management
+│   ├── 📁 infrastructure/  # Infrastructure layer
+│   │   ├── 📄 cache_service.py      # Caching infrastructure
+│   │   ├── 📄 config_manager.py     # Configuration management
+│   │   └── 📄 storage_service.py    # Data persistence infrastructure
+│   ├── 📁 interfaces/      # Abstract interfaces (ports)
+│   │   └── 📄 weather_interfaces.py # Service abstractions
+│   ├── 📁 models/          # Domain models (entities)
+│   │   ├── 📄 weather_models.py     # Weather domain entities
+│   │   ├── 📄 capstone_models.py    # Capstone feature models
+│   │   └── 📄 database_models.py    # Database models
+│   ├── 📁 presentation/    # Presentation layer
+│   │   ├── 📄 gui_app.py            # GUI application entry
+│   │   └── 📄 cli_app.py            # CLI application entry
+│   ├── 📁 services/        # External service integrations (adapters)
+│   │   ├── 📄 weather_api.py        # OpenWeatherMap integration
+│   │   ├── 📄 poetry_service.py     # AI poetry generation
+│   │   ├── 📄 cortana_voice_service.py # Voice assistant
+│   │   └── 📄 data_storage.py       # Data persistence
+│   ├── 📁 shared/          # Shared utilities
+│   │   ├── 📄 constants.py          # Application constants
+│   │   └── 📄 exceptions.py         # Custom exceptions
+│   ├── 📁 ui/              # User interface components (refactored)
+│   │   ├── 📄 gui_interface.py      # Main GUI orchestrator (649 lines)
+│   │   ├── 📁 styles/               # UI styling system
+│   │   │   └── 📄 glassmorphic.py   # Glassmorphic design system
+│   │   ├── 📁 widgets/              # Reusable UI widgets
+│   │   │   ├── 📄 modern_button.py  # Modern button components
+│   │   │   └── 📄 enhanced_button.py # Enhanced button variants
+│   │   ├── 📁 animations/           # Animation effects
+│   │   │   └── 📄 effects.py        # Animation utilities
+│   │   ├── 📁 components/           # Specialized UI components
+│   │   │   ├── 📄 weather_icons.py    # Weather icon management
+│   │   │   ├── 📄 weather_card.py     # Weather display cards
+│   │   │   ├── 📄 search_panel.py     # Search interface
+│   │   │   ├── 📄 main_dashboard.py   # Dashboard layout
+│   │   │   ├── 📄 header.py           # Application header
+│   │   │   └── 📄 temperature_controls.py # Temperature controls
+│   │   └── 📁 dialogs/              # Dialog windows
 │   └── 📁 utils/           # Utility functions
+│       ├── 📄 formatters.py         # Data formatting utilities
+│       ├── 📄 validators.py         # Input validation
+│       └── 📄 sample_data.py        # Sample data generation
+├── 📁 configs/             # Configuration files
+│   └── 📁 cortana/         # Cortana voice assistant configuration
+├── 📁 data/                # Application data and database
+│   ├── 📄 weather_dashboard.db     # SQLite database
+│   ├── 📁 json_backup/             # Data backups
+│   └── 📁 screenshots/             # UI screenshots
+├── 📁 docs/                # Comprehensive documentation
+│   ├── 📄 architecture.md          # Architecture documentation
+│   ├── 📄 security.md              # Security guidelines
+│   └── 📄 README.md                # Documentation index
 ├── 📁 tests/               # Test suite
-├── 📁 docs/                # Documentation
-├── 📁 data/                # Database and data files
-├── 📁 scripts/             # Development scripts
+│   ├── 📄 test_weather_models.py   # Model tests
+│   ├── 📄 test_weather_service.py  # Service tests
+│   └── 📄 run_tests.py             # Test runner
+├── 📁 scripts/             # Development and utility scripts
+│   ├── 📄 setup.py                 # Project setup
+│   └── 📄 pre_commit_check.py      # Code quality checks
 ├── 🔧 requirements.txt     # Python dependencies
 ├── ⚙️ pyproject.toml       # Project configuration
+├── 📄 main.py              # Application entry point
 └── 📄 README.md           # This file
 ```
+
+### 🏆 **UI Architecture Highlights**
+
+**Major Refactoring Achievement (2025):**
+
+- **82% reduction** in main GUI file size (3,592 → 649 lines)
+- **15+ specialized components** extracted into modular architecture
+- **Enterprise-level design** with clear separation of concerns
+- **Enhanced maintainability** and testability
 
 ### Code Quality
 

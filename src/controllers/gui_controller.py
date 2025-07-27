@@ -10,18 +10,20 @@ import os
 import threading
 from typing import Optional
 
-from src.config.config import config_manager, setup_environment, validate_config
+from src.config.config import config_manager
+from src.config.config import setup_environment
+from src.config.config import validate_config
 from src.core.activity_service import ActivitySuggestionService
 from src.core.enhanced_comparison_service import EnhancedCityComparisonService
 from src.core.journal_service import WeatherJournalService
 from src.core.weather_service import WeatherService
 from src.models.capstone_models import MoodType
 from src.services.cache_service import MemoryCacheService
+from src.services.composite_weather_service import CompositeWeatherService
+from src.services.cortana_voice_service import CortanaVoiceService
 from src.services.data_storage import FileDataStorage
 from src.services.poetry_service import WeatherPoetryService
 from src.services.weather_api import OpenWeatherMapAPI
-from src.services.composite_weather_service import CompositeWeatherService
-from src.services.cortana_voice_service import CortanaVoiceService
 from src.utils.formatters import validate_city_name
 from src.utils.validators import sanitize_input
 
@@ -74,13 +76,16 @@ class WeatherDashboardController:
 
             if weatherapi_api_key:
                 logging.info("Initializing weather service with fallback support")
-                weather_api = CompositeWeatherService(openweather_api_key, weatherapi_api_key)
+                weather_api = CompositeWeatherService(
+                    openweather_api_key, weatherapi_api_key
+                )
             else:
                 logging.info("Initializing weather service with primary API only")
                 weather_api = OpenWeatherMapAPI()
 
             # Use storage factory for appropriate storage implementation
             from src.services.storage_factory import DataStorageFactory
+
             storage = DataStorageFactory.create_storage()
             cache = MemoryCacheService()
 
@@ -88,7 +93,9 @@ class WeatherDashboardController:
             self.weather_service = WeatherService(weather_api, storage, cache)
 
             # Initialize capstone services
-            self.comparison_service = EnhancedCityComparisonService(self.weather_service)
+            self.comparison_service = EnhancedCityComparisonService(
+                self.weather_service
+            )
             self.journal_service = WeatherJournalService(storage)
             self.activity_service = ActivitySuggestionService()
             self.poetry_service = WeatherPoetryService()
@@ -115,7 +122,9 @@ class WeatherDashboardController:
                 city_clean = sanitize_input(city)
 
                 # Check cache first
-                cache_key = self.weather_service.cache.get_cache_key("weather", city_clean, "metric")
+                cache_key = self.weather_service.cache.get_cache_key(
+                    "weather", city_clean, "metric"
+                )
                 cached_weather = self.weather_service.cache.get(cache_key)
 
                 if cached_weather and callback:
@@ -124,7 +133,9 @@ class WeatherDashboardController:
                 # Get fresh data
                 weather = self.weather_service.get_current_weather(city_clean)
                 if callback:
-                    callback(weather, None if weather else "Could not retrieve weather data")
+                    callback(
+                        weather, None if weather else "Could not retrieve weather data"
+                    )
 
             except Exception as e:
                 logging.error(f"Error getting weather: {e}")
@@ -143,7 +154,10 @@ class WeatherDashboardController:
                 city_clean = sanitize_input(city)
                 forecast = self.weather_service.get_weather_forecast(city_clean)
                 if callback:
-                    callback(forecast, None if forecast else "Could not retrieve forecast data")
+                    callback(
+                        forecast,
+                        None if forecast else "Could not retrieve forecast data",
+                    )
             except Exception as e:
                 logging.error(f"Error getting forecast: {e}")
                 if callback:
@@ -165,7 +179,9 @@ class WeatherDashboardController:
 
                 comparison = self.comparison_service.compare_cities(city1, city2)
                 if callback:
-                    callback(comparison, None if comparison else "Could not compare cities")
+                    callback(
+                        comparison, None if comparison else "Could not compare cities"
+                    )
 
             except Exception as e:
                 logging.error(f"Error comparing cities: {e}")
@@ -174,7 +190,9 @@ class WeatherDashboardController:
 
         threading.Thread(target=compare_async, daemon=True).start()
 
-    def create_journal_entry(self, weather, mood: MoodType, notes: str, activities: list):
+    def create_journal_entry(
+        self, weather, mood: MoodType, notes: str, activities: list
+    ):
         """Create a journal entry."""
         if not self.journal_service:
             return None
@@ -318,7 +336,7 @@ class WeatherDashboardController:
                     "cities_available": 0,
                     "city_list": [],
                     "data_loaded": False,
-                    "error": "Team comparison service not available"
+                    "error": "Team comparison service not available",
                 }
         except Exception as e:
             logging.error(f"Error getting team data status: {e}")
@@ -327,13 +345,15 @@ class WeatherDashboardController:
                 "cities_available": 0,
                 "city_list": [],
                 "data_loaded": False,
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_team_cities(self):
         """Get available team cities."""
         try:
-            if self.comparison_service and hasattr(self.comparison_service, 'team_data_service'):
+            if self.comparison_service and hasattr(
+                self.comparison_service, "team_data_service"
+            ):
                 team_service = self.comparison_service.team_data_service
                 cities = team_service.get_available_cities()
 
@@ -347,18 +367,38 @@ class WeatherDashboardController:
                 logging.info(f"Retrieved {len(cities)} cities from team data")
                 return cities
             else:
-                logging.warning("Team data service not available, using fallback cities")
-                return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+                logging.warning(
+                    "Team data service not available, using fallback cities"
+                )
+                return [
+                    "Austin",
+                    "Providence",
+                    "Rawlins",
+                    "Ontario",
+                    "New York",
+                    "Miami",
+                    "New Jersey",
+                ]
 
         except Exception as e:
             logging.error(f"Error getting team cities: {e}")
-            return ["Austin", "Providence", "Rawlins", "Ontario", "New York", "Miami", "New Jersey"]
+            return [
+                "Austin",
+                "Providence",
+                "Rawlins",
+                "Ontario",
+                "New York",
+                "Miami",
+                "New Jersey",
+            ]
 
     def save_session_data(self):
         """Save session data before exit."""
         logging.info("Saving session data before application exit")
         try:
-            if self.weather_service and hasattr(self.weather_service, "_save_favorite_cities"):
+            if self.weather_service and hasattr(
+                self.weather_service, "_save_favorite_cities"
+            ):
                 self.weather_service._save_favorite_cities()
 
             if self.journal_service and hasattr(self.journal_service, "_save_entries"):
@@ -373,18 +413,20 @@ class WeatherDashboardController:
         return self.config_valid and self.weather_service is not None
 
     # Cortana Voice Assistant Methods
-    
+
     def is_voice_enabled(self) -> bool:
         """Check if voice functionality is enabled.
-        
+
         Returns:
             bool: True if voice is enabled, False otherwise
         """
-        return self.cortana_service is not None and self.cortana_service.is_voice_enabled()
-    
+        return (
+            self.cortana_service is not None and self.cortana_service.is_voice_enabled()
+        )
+
     def process_voice_command(self, command: str, city: str = None, callback=None):
         """Process a voice command and return response.
-        
+
         Args:
             command: Voice command to process
             city: Optional city name for weather queries
@@ -395,7 +437,7 @@ class WeatherDashboardController:
             if callback:
                 callback(response, "Voice service not initialized")
             return response
-        
+
         def process_voice_async():
             try:
                 response = self.cortana_service.process_voice_command(command, city)
@@ -404,45 +446,47 @@ class WeatherDashboardController:
                 return response
             except Exception as e:
                 logging.error(f"Error processing voice command: {e}")
-                error_response = "I'm sorry, I encountered an error processing your request."
+                error_response = (
+                    "I'm sorry, I encountered an error processing your request."
+                )
                 if callback:
                     callback(error_response, str(e))
                 return error_response
-        
+
         if callback:
             threading.Thread(target=process_voice_async, daemon=True).start()
         else:
             return process_voice_async()
-    
+
     def get_voice_configuration(self):
         """Get Cortana voice configuration summary.
-        
+
         Returns:
             dict: Configuration summary
         """
         if not self.cortana_service:
             return {"enabled": False, "reason": "Voice service not available"}
-        
+
         return self.cortana_service.get_configuration_summary()
-    
+
     def reload_voice_configuration(self) -> bool:
         """Reload Cortana voice configuration.
-        
+
         Returns:
             bool: True if reload was successful, False otherwise
         """
         if not self.cortana_service:
             return False
-        
+
         return self.cortana_service.reload_configuration()
-    
+
     def get_voice_help(self) -> str:
         """Get voice command help text.
-        
+
         Returns:
             str: Help text for voice commands
         """
         if not self.cortana_service:
             return "Voice assistant is not available."
-        
+
         return self.cortana_service._generate_help_response()

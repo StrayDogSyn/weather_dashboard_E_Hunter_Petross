@@ -63,6 +63,7 @@ backups/
 temp/
 *.tmp
 *.bak
+*_backup.py
 
 # Database files
 *.db
