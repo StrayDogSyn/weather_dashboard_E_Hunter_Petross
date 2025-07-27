@@ -6,11 +6,7 @@ following the Dependency Inversion Principle.
 
 import logging
 import os
-from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import Type
-from typing import TypeVar
+from typing import Any, Dict, Optional, Type, TypeVar
 
 from src.core.activity_service import ActivitySuggestionService
 from src.core.enhanced_comparison_service import EnhancedCityComparisonService
@@ -102,11 +98,12 @@ class DependencyContainer:
 
         # Poetry service
         from ..interfaces.poetry_interfaces import PoetryGenerationConfig
+
         poetry_config = PoetryGenerationConfig(
             api_key="",  # Will be configured later or use environment variable
             model_name="gpt-4",
             max_tokens=500,
-            temperature=0.8
+            temperature=0.8,
         )
         self._singletons["poetry_service"] = WeatherPoetryService(poetry_config)
 
@@ -182,12 +179,14 @@ class DependencyContainer:
             DependencyInjectionError: If type mapping not found
         """
         # Import interface types
-        from ..business.interfaces import IActivitySuggestionService
-        from ..business.interfaces import ICityComparisonService
-        from ..business.interfaces import ICortanaVoiceService
-        from ..business.interfaces import IWeatherJournalService
-        from ..business.interfaces import IWeatherPoetryService
-        from ..business.interfaces import IWeatherService
+        from ..business.interfaces import (
+            IActivitySuggestionService,
+            ICityComparisonService,
+            ICortanaVoiceService,
+            IWeatherJournalService,
+            IWeatherPoetryService,
+            IWeatherService,
+        )
 
         type_mappings = {
             # Concrete types

@@ -2,13 +2,15 @@
 
 from datetime import datetime
 
-from src.models.weather_models import AtmosphericPressure
-from src.models.weather_models import CurrentWeather
-from src.models.weather_models import Location
-from src.models.weather_models import Temperature
-from src.models.weather_models import TemperatureUnit
-from src.models.weather_models import WeatherCondition
-from src.models.weather_models import Wind
+from src.models.weather_models import (
+    AtmosphericPressure,
+    CurrentWeather,
+    Location,
+    Temperature,
+    TemperatureUnit,
+    WeatherCondition,
+    Wind,
+)
 
 
 def get_sample_weather_data(city_name: str = "New York") -> CurrentWeather:

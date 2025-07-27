@@ -5,13 +5,9 @@ responsive design patterns, and improved button placement for the weather dashbo
 """
 
 import tkinter as tk
-from typing import Callable
-from typing import Dict
-from typing import Optional
-from typing import Tuple
+from typing import Callable, Dict, Optional, Tuple
 
-from ..styles.glassmorphic import GlassmorphicFrame
-from ..styles.glassmorphic import GlassmorphicStyle
+from ..styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
 from ..widgets.modern_button import ModernButton
 
 

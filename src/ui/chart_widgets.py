@@ -9,10 +9,7 @@ import logging
 import tkinter as tk
 from datetime import datetime
 from tkinter import ttk
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from typing import Dict, List, Optional, Tuple
 
 try:
     import matplotlib.pyplot as plt
@@ -24,8 +21,7 @@ try:
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
-from src.models.weather_models import CurrentWeather
-from src.models.weather_models import WeatherForecast
+from src.models.weather_models import CurrentWeather, WeatherForecast
 
 from .components.responsive_layout import ResponsiveSpacing
 from .styles.glassmorphic import GlassmorphicFrame

@@ -1,22 +1,13 @@
 """Activity suggestion models and enums."""
 
 import json
-from dataclasses import asdict
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import auto
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from uuid import UUID
-from uuid import uuid4
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import UUID, uuid4
 
-from .base import AIEnhancedModel
-from .base import ExtensibleEnum
-from .base import ModelProtocol
+from .base import AIEnhancedModel, ExtensibleEnum, ModelProtocol
 
 
 class ActivityType(ExtensibleEnum):
@@ -144,7 +135,7 @@ class Activity(AIEnhancedModel, ModelProtocol):
         """Generate AI prompt for activity enhancement."""
         return f"""
         Enhance and create variations for this activity:
-        
+
         Activity: {self.name}
         Description: {self.description}
         Type: {self.activity_type.value}
@@ -152,14 +143,14 @@ class Activity(AIEnhancedModel, ModelProtocol):
         Indoor: {self.indoor}
         Ideal Conditions: {self.ideal_conditions}
         Duration: {self.duration_minutes[0]}-{self.duration_minutes[1]} minutes
-        
+
         Please provide:
         1. 3-5 creative variations of this activity
         2. Specific tips for different weather conditions
         3. Ways to adjust difficulty level
         4. Equipment or preparation suggestions
         5. Safety considerations
-        
+
         Format as practical, actionable advice. Keep each variation under 50 words.
         """
 
@@ -270,22 +261,22 @@ class ActivitySuggestion(AIEnhancedModel, ModelProtocol):
 
         return f"""
         Given the current weather and existing activity suggestions, provide personalized recommendations:
-        
+
         Weather Conditions:
         - Location: {self.location}
         - Weather Context: {self.weather_context}
-        
+
         Current Top Suggestions:
         {', '.join(current_activities)}
-        
+
         User Preferences:
         {json.dumps(self.user_preferences, indent=2) if self.user_preferences else 'No specific preferences provided'}
-        
+
         Please provide:
         1. 3-5 highly personalized activity suggestions
         2. Specific reasons why each activity suits the current weather
         3. Tips for making the most of these weather conditions
         4. Any safety or preparation advice
-        
+
         Keep suggestions practical and weather-appropriate (under 200 words total).
         """

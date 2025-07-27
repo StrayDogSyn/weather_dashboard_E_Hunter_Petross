@@ -4,9 +4,7 @@ This module provides weather condition icons using Unicode characters
 and utilities for selecting appropriate icons based on weather conditions.
 """
 
-from typing import TYPE_CHECKING
-from typing import Optional
-from typing import Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from src.models.weather_models import WeatherCondition
 

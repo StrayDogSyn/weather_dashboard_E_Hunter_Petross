@@ -138,4 +138,6 @@ Before deploying or sharing code:
 
 ## Resources & Attribution
 
-For information about security tools, extensions, and best practices resources used in this project, please refer to the [Works Cited section](README.md#works-cited) in the documentation index.
+For information about security tools, extensions, and best practices resources used in this
+project, please refer to the [Works Cited section](README.md#works-cited) in the documentation
+index.

@@ -1,25 +1,19 @@
 """Core business logic for the Weather Dashboard application."""
 
 import logging
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
 
-from src.interfaces.weather_interfaces import ICacheService
-from src.interfaces.weather_interfaces import IDataStorage
-from src.interfaces.weather_interfaces import IWeatherAPI
-from src.models.weather_models import CurrentWeather
-from src.models.weather_models import FavoriteCity
-from src.models.weather_models import Location
-from src.models.weather_models import WeatherForecast
+from src.interfaces.weather_interfaces import ICacheService, IDataStorage, IWeatherAPI
+from src.models.weather_models import (
+    CurrentWeather,
+    FavoriteCity,
+    Location,
+    WeatherForecast,
+)
 from src.services.location_service import LocationDetectionService
-from src.utils.formatters import clean_city_name
-from src.utils.formatters import validate_city_name
-from src.utils.validators import WeatherDataValidator
-from src.utils.validators import sanitize_input
+from src.utils.formatters import clean_city_name, validate_city_name
+from src.utils.validators import WeatherDataValidator, sanitize_input
 
 # Type aliases
 WeatherData = CurrentWeather

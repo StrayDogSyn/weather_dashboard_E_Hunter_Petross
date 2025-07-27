@@ -1,28 +1,25 @@
 """Weather API service implementation."""
 
 import logging
-from datetime import datetime
-from datetime import timedelta
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Union
 
 import requests
 
 from ..config import config_manager
 from ..interfaces.weather_interfaces import IWeatherAPI
-from ..models import AtmosphericPressure
-from ..models import CurrentWeather
-from ..models import Location
-from ..models import Precipitation
-from ..models import Temperature
-from ..models import TemperatureUnit
-from ..models import WeatherCondition
-from ..models import WeatherForecast
-from ..models import WeatherForecastDay
-from ..models import Wind
+from ..models import (
+    AtmosphericPressure,
+    CurrentWeather,
+    Location,
+    Precipitation,
+    Temperature,
+    TemperatureUnit,
+    WeatherCondition,
+    WeatherForecast,
+    WeatherForecastDay,
+    Wind,
+)
 
 # Type aliases
 WeatherData = CurrentWeather

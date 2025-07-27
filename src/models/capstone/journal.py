@@ -2,23 +2,13 @@
 
 import json
 import logging
-from dataclasses import asdict
-from dataclasses import dataclass
-from dataclasses import field
-from datetime import date
-from datetime import datetime
+from dataclasses import asdict, dataclass, field
+from datetime import date, datetime
 from enum import auto
-from typing import Any
-from typing import ClassVar
-from typing import Dict
-from typing import List
-from typing import Optional
-from uuid import UUID
-from uuid import uuid4
+from typing import Any, ClassVar, Dict, List, Optional
+from uuid import UUID, uuid4
 
-from .base import AIEnhancedModel
-from .base import ExtensibleEnum
-from .base import ModelProtocol
+from .base import AIEnhancedModel, ExtensibleEnum, ModelProtocol
 
 
 class MoodType(ExtensibleEnum):
@@ -266,7 +256,7 @@ class JournalEntry(AIEnhancedModel, ModelProtocol):
         """Generate AI prompt for journal reflection."""
         return f"""
         Analyze this weather journal entry and provide thoughtful insights:
-        
+
         Date: {self.formatted_date}
         Location: {self.location}
         Weather: {self.weather_summary}
@@ -275,13 +265,13 @@ class JournalEntry(AIEnhancedModel, ModelProtocol):
         Weather Impact: {self.weather_impact.value}
         Activities: {', '.join(self.activities) if self.activities else 'None listed'}
         Notes: {self.notes if self.notes else 'No additional notes'}
-        
+
         Please provide:
         1. Insights about the relationship between weather and mood
         2. Patterns you notice in activities and weather conditions
         3. Suggestions for optimizing well-being based on weather
         4. Any interesting observations about this particular day
-        
+
         Keep the response encouraging and insightful (under 200 words).
         """
 

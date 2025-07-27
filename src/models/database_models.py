@@ -15,37 +15,29 @@ Enhancements:
 import json
 import logging
 import os
-from abc import ABC
-from abc import abstractmethod
-from datetime import datetime
-from datetime import timezone
+from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Protocol
-from typing import Union
-from uuid import UUID
-from uuid import uuid4
+from typing import Any, Dict, List, Optional, Protocol, Union
+from uuid import UUID, uuid4
 
-from sqlalchemy import JSON
-from sqlalchemy import Boolean
-from sqlalchemy import Column
-from sqlalchemy import DateTime
-from sqlalchemy import Float
-from sqlalchemy import ForeignKey
-from sqlalchemy import Index
-from sqlalchemy import Integer
-from sqlalchemy import String
-from sqlalchemy import Text
-from sqlalchemy import create_engine
-from sqlalchemy import event
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    create_engine,
+    event,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import relationship
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, relationship, sessionmaker
 from sqlalchemy.sql import func
 
 # Database configuration
@@ -201,19 +193,19 @@ class UserPreferences(Base, AuditMixin, AIEnhancedMixin):  # type: ignore[misc,v
     def generate_ai_insights(self, gemini_api_key: str) -> Dict[str, Any]:
         """Generate AI insights about user preferences and patterns."""
         prompt = f"""Analyze user preferences and behavior patterns:
-        
+
 Activity Types: {self.activity_types}
 Preferred Units: {self.preferred_units}
 Notifications: {self.notifications_enabled}
 Forecast Days: {self.preferred_forecast_days}
 Interaction Data: {json.dumps(self.ai_personalization_data or {}, indent=2)[:1000]}...
-        
+
 Provide insights about:
 1. User behavior patterns
 2. Recommended features or settings
 3. Optimal notification timing
 4. Personalized activity suggestions
-        
+
 Format as JSON with keys: behavior_patterns, feature_recommendations, notification_optimization, activity_suggestions."""
 
         ai_response = self._call_gemini_api(prompt, gemini_api_key)
@@ -363,20 +355,20 @@ class FavoriteCities(Base, AuditMixin, AIEnhancedMixin):  # type: ignore[misc,va
     def generate_ai_insights(self, gemini_api_key: str) -> Dict[str, Any]:
         """Generate AI insights about this favorite city."""
         prompt = f"""Analyze this favorite city and provide insights:
-        
+
 City: {self.display_name}
 Coordinates: {self.coordinates}
 Visit Count: {self.visit_count}
 Last Viewed: {self.last_viewed}
 Alert Preferences: {self.alert_preferences}
 Custom Settings: {self.custom_settings}
-        
+
 Provide insights about:
 1. Best times to visit based on typical weather patterns
 2. Seasonal characteristics and what to expect
 3. Activity recommendations for this location
 4. Weather monitoring suggestions
-        
+
 Format as JSON with keys: best_visit_times, seasonal_info, activity_recommendations, monitoring_tips."""
 
         ai_response = self._call_gemini_api(prompt, gemini_api_key)
@@ -487,18 +479,18 @@ class JournalEntries(Base, AuditMixin, AIEnhancedMixin):  # type: ignore[misc,va
     def analyze_sentiment(self, gemini_api_key: str) -> Dict[str, Any]:
         """Analyze sentiment of journal entry content."""
         prompt = f"""Analyze the sentiment and emotional content of this journal entry:
-        
+
 Title: {self.title}
 Content: {self.content[:1000]}...
 Weather: {self.weather_conditions}
 Activities: {self.activities}
-        
+
 Provide analysis for:
 1. Overall sentiment (positive, negative, neutral)
 2. Emotional tone and intensity
 3. Weather-mood correlation insights
 4. Key themes and topics
-        
+
 Format as JSON with keys: sentiment, emotional_tone, intensity_score, weather_mood_correlation, key_themes."""
 
         ai_response = self._call_gemini_api(prompt, gemini_api_key)
@@ -520,20 +512,20 @@ Format as JSON with keys: sentiment, emotional_tone, intensity_score, weather_mo
     def generate_ai_insights(self, gemini_api_key: str) -> Dict[str, Any]:
         """Generate AI insights about this journal entry."""
         prompt = f"""Provide insights and recommendations based on this journal entry:
-        
+
 Title: {self.title}
 Content: {self.content[:500]}...
 Mood: {self.mood}
 Weather: {self.weather_conditions}
 Activities: {self.activities}
 Sentiment Analysis: {self.sentiment_analysis}
-        
+
 Provide insights about:
 1. Personal growth opportunities
 2. Pattern recognition in mood and activities
 3. Weather impact on wellbeing
 4. Recommendations for future activities
-        
+
 Format as JSON with keys: growth_opportunities, patterns, weather_impact, activity_recommendations."""
 
         ai_response = self._call_gemini_api(prompt, gemini_api_key)

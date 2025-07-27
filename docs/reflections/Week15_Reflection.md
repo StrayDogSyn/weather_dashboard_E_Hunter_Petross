@@ -14,14 +14,14 @@
 - **Status:** Fully implemented
 - **Description:** Users can select any two cities to compare real-time weather data, including temperature, humidity, wind speed, and visual charts. Data is dynamically loaded from the capstone team repository for accuracy and collaboration.
 - **Screenshot:**
-  - ![City Comparison Screenshot](../data/screenshots/Compare_Cities.png)
+  - ![City Comparison Screenshot](../../data/screenshots/Compare_Cities.png)
 
 ### Feature 3: Weather Journal
 
 - **Status:** Fully implemented
 - **Description:** Users can log daily weather and mood entries, review their history, and export journal data for further analysis or sharing. The journal supports both text and visual summaries.
 - **Screenshot:**
-  - ![Weather Journal Screenshot](../data/screenshots/Journal.png)
+  - ![Weather Journal Screenshot](../../data/screenshots/Journal.png)
 
 ## Personal Enhancement Progress
 
@@ -34,13 +34,14 @@
   - Privacy-focused voice processing with on-device operation
   - Comprehensive configuration validation and security auditing
   - Enhanced weather poetry generation with multiple styles
-  - ![Poetry Generator Screenshot](../data/screenshots/Poetry_Feature.png)
+  - ![Poetry Generator Screenshot](../../data/screenshots/Poetry_Feature.png)
 
 ## Status Update
 
 ✅ **PROJECT STATUS: COMPLETE**
 
 **All Capstone Requirements Fulfilled:**
+
 - ✅ Feature 2 (City Comparison): Fully implemented with real-time data comparison and visual charts
 - ✅ Feature 3 (Weather Journal): Complete with entry logging, history review, and data export
 - ✅ Personal Enhancement: Cortana Voice Assistant integration with comprehensive voice command processing
@@ -48,6 +49,7 @@
 - ✅ Additional Features: SQL database integration, CI/CD pipeline, comprehensive documentation
 
 **Technical Achievements:**
+
 - Complete voice assistant integration with privacy-focused configuration
 - Professional-grade UI with accessibility features
 - Robust error handling and user feedback systems

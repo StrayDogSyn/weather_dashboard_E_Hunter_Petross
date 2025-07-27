@@ -10,19 +10,22 @@ import tkinter as tk
 from typing import Optional
 
 from ..application.dependency_container import DependencyContainer
-from ..business.interfaces import IActivitySuggestionService
-from ..business.interfaces import ICityComparisonService
-from ..business.interfaces import ICortanaVoiceService
-from ..business.interfaces import IWeatherJournalService
-from ..business.interfaces import IWeatherPoetryService
-from ..business.interfaces import IWeatherService
-from ..shared.constants import DEFAULT_WINDOW_HEIGHT
-from ..shared.constants import DEFAULT_WINDOW_WIDTH
-from ..shared.constants import MIN_WINDOW_HEIGHT
-from ..shared.constants import MIN_WINDOW_WIDTH
-from ..shared.constants import REFRESH_INTERVAL
-from ..shared.exceptions import UIError
-from ..shared.exceptions import WeatherDashboardError
+from ..business.interfaces import (
+    IActivitySuggestionService,
+    ICityComparisonService,
+    ICortanaVoiceService,
+    IWeatherJournalService,
+    IWeatherPoetryService,
+    IWeatherService,
+)
+from ..shared.constants import (
+    DEFAULT_WINDOW_HEIGHT,
+    DEFAULT_WINDOW_WIDTH,
+    MIN_WINDOW_HEIGHT,
+    MIN_WINDOW_WIDTH,
+    REFRESH_INTERVAL,
+)
+from ..shared.exceptions import UIError, WeatherDashboardError
 
 
 class WeatherDashboardGUIApp:

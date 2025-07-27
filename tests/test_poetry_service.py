@@ -28,12 +28,12 @@ from src.core.exceptions import ServiceError, ValidationError
 
 class TestPoetryCache:
     """Test cases for PoetryCache."""
-    
+
     @pytest.fixture
     def cache(self):
         """Create a poetry cache instance."""
         return PoetryCache(max_size=10, ttl_minutes=1)
-    
+
     @pytest.fixture
     def sample_request(self):
         """Create a sample poetry request."""
@@ -44,7 +44,7 @@ class TestPoetryCache:
             style=PoetryStyle.HAIKU,
             mood=PoetryMood.JOYFUL
         )
-    
+
     @pytest.fixture
     def sample_response(self):
         """Create a sample poetry response."""
@@ -59,47 +59,47 @@ class TestPoetryCache:
             generator="test",
             metadata={"test": True}
         )
-    
+
     @pytest.mark.asyncio
     async def test_cache_miss(self, cache, sample_request):
         """Test cache miss scenario."""
         result = await cache.get(sample_request)
         assert result is None
-    
+
     @pytest.mark.asyncio
     async def test_cache_hit(self, cache, sample_request, sample_response):
         """Test cache hit scenario."""
         # Set cache entry
         await cache.set(sample_request, sample_response)
-        
+
         # Retrieve from cache
         result = await cache.get(sample_request)
-        
+
         assert result is not None
         assert result.poem == sample_response.poem
         assert result.style == sample_response.style
         assert result.location == sample_response.location
-    
+
     @pytest.mark.asyncio
     async def test_cache_expiry(self, sample_request, sample_response):
         """Test cache entry expiry."""
         # Create cache with very short TTL
         cache = PoetryCache(max_size=10, ttl_minutes=0.01)  # ~0.6 seconds
-        
+
         # Set cache entry
         await cache.set(sample_request, sample_response)
-        
+
         # Should hit immediately
         result = await cache.get(sample_request)
         assert result is not None
-        
+
         # Wait for expiry
         await asyncio.sleep(1)
-        
+
         # Should miss after expiry
         result = await cache.get(sample_request)
         assert result is None
-    
+
     @pytest.mark.asyncio
     async def test_cache_lru_eviction(self, cache, sample_response):
         """Test LRU eviction when cache is full."""
@@ -113,7 +113,7 @@ class TestPoetryCache:
                 mood=PoetryMood.JOYFUL
             )
             await cache.set(request, sample_response)
-        
+
         # Add one more entry (should evict oldest)
         new_request = PoetryRequest(
             location="New City",
@@ -123,7 +123,7 @@ class TestPoetryCache:
             mood=PoetryMood.JOYFUL
         )
         await cache.set(new_request, sample_response)
-        
+
         # First entry should be evicted
         first_request = PoetryRequest(
             location="City 0",
@@ -134,24 +134,24 @@ class TestPoetryCache:
         )
         result = await cache.get(first_request)
         assert result is None
-        
+
         # New entry should be present
         result = await cache.get(new_request)
         assert result is not None
-    
+
     @pytest.mark.asyncio
     async def test_cache_clear(self, cache, sample_request, sample_response):
         """Test cache clearing."""
         # Set cache entry
         await cache.set(sample_request, sample_response)
-        
+
         # Verify entry exists
         result = await cache.get(sample_request)
         assert result is not None
-        
+
         # Clear cache
         await cache.clear()
-        
+
         # Verify entry is gone
         result = await cache.get(sample_request)
         assert result is None
@@ -159,12 +159,12 @@ class TestPoetryCache:
 
 class TestTemplatePoetryGenerator:
     """Test cases for TemplatePoetryGenerator."""
-    
+
     @pytest.fixture
     def generator(self):
         """Create a template poetry generator."""
         return TemplatePoetryGenerator()
-    
+
     @pytest.fixture
     def sample_request(self):
         """Create a sample poetry request."""
@@ -175,18 +175,18 @@ class TestTemplatePoetryGenerator:
             style=PoetryStyle.HAIKU,
             mood=PoetryMood.JOYFUL
         )
-    
+
     @pytest.mark.asyncio
     async def test_generate_haiku(self, generator, sample_request):
         """Test haiku generation from templates."""
         response = await generator.generate_poem(sample_request)
-        
+
         assert response.poem is not None
         assert len(response.poem) > 0
         assert response.style == PoetryStyle.HAIKU
         assert response.generator == "template"
         assert response.metadata["template_used"] is True
-    
+
     @pytest.mark.asyncio
     async def test_generate_limerick(self, generator):
         """Test limerick generation from templates."""
@@ -197,14 +197,14 @@ class TestTemplatePoetryGenerator:
             style=PoetryStyle.LIMERICK,
             mood=PoetryMood.JOYFUL
         )
-        
+
         response = await generator.generate_poem(request)
-        
+
         assert response.poem is not None
         assert len(response.poem) > 0
         assert response.style == PoetryStyle.LIMERICK
         assert response.generator == "template"
-    
+
     @pytest.mark.asyncio
     async def test_fallback_poem(self, generator):
         """Test fallback poem generation for unknown conditions."""
@@ -215,9 +215,9 @@ class TestTemplatePoetryGenerator:
             style=PoetryStyle.FREE_VERSE,
             mood=PoetryMood.JOYFUL
         )
-        
+
         response = await generator.generate_poem(request)
-        
+
         assert response.poem is not None
         assert len(response.poem) > 0
         assert "Test City" in response.poem
@@ -225,7 +225,7 @@ class TestTemplatePoetryGenerator:
 
 class TestAzureOpenAIPoetryGenerator:
     """Test cases for AzureOpenAIPoetryGenerator."""
-    
+
     @pytest.fixture
     def config(self):
         """Create a test configuration."""
@@ -236,7 +236,7 @@ class TestAzureOpenAIPoetryGenerator:
             temperature=0.7,
             max_tokens=200
         )
-    
+
     @pytest.fixture
     def sample_request(self):
         """Create a sample poetry request."""
@@ -247,7 +247,7 @@ class TestAzureOpenAIPoetryGenerator:
             style=PoetryStyle.HAIKU,
             mood=PoetryMood.JOYFUL
         )
-    
+
     def test_invalid_config(self):
         """Test generator creation with invalid config."""
         with pytest.raises(ValidationError):
@@ -255,7 +255,7 @@ class TestAzureOpenAIPoetryGenerator:
                 azure_openai_endpoint="",
                 azure_openai_key=""
             ))
-    
+
     @pytest.mark.asyncio
     @patch('src.services.poetry_service.AsyncAzureOpenAI')
     async def test_successful_generation(self, mock_client_class, config, sample_request):
@@ -263,23 +263,23 @@ class TestAzureOpenAIPoetryGenerator:
         # Mock the OpenAI client
         mock_client = AsyncMock()
         mock_client_class.return_value = mock_client
-        
+
         # Mock the response
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = "Beautiful haiku\nGenerated by AI model\nWeather poetry"
         mock_response.usage.total_tokens = 50
-        
+
         mock_client.chat.completions.create.return_value = mock_response
-        
+
         # Create generator and test
         generator = AzureOpenAIPoetryGenerator(config)
         response = await generator.generate_poem(sample_request)
-        
+
         assert response.poem == "Beautiful haiku\nGenerated by AI model\nWeather poetry"
         assert response.generator == "azure_openai"
         assert response.metadata["tokens_used"] == 50
-    
+
     @pytest.mark.asyncio
     @patch('src.services.poetry_service.AsyncAzureOpenAI')
     async def test_api_error_handling(self, mock_client_class, config, sample_request):
@@ -287,20 +287,20 @@ class TestAzureOpenAIPoetryGenerator:
         # Mock the OpenAI client to raise an error
         mock_client = AsyncMock()
         mock_client_class.return_value = mock_client
-        
+
         from openai import APIError
         mock_client.chat.completions.create.side_effect = APIError("API Error")
-        
+
         # Create generator and test
         generator = AzureOpenAIPoetryGenerator(config)
-        
+
         with pytest.raises(ServiceError):
             await generator.generate_poem(sample_request)
 
 
 class TestPoetryService:
     """Test cases for PoetryService."""
-    
+
     @pytest.fixture
     def config(self):
         """Create a test configuration."""
@@ -310,12 +310,12 @@ class TestPoetryService:
             model_name="gpt-4",
             use_ai_generation=True
         )
-    
+
     @pytest.fixture
     def service(self, config):
         """Create a poetry service instance."""
         return PoetryService(config)
-    
+
     @pytest.fixture
     def sample_request(self):
         """Create a sample poetry request."""
@@ -326,7 +326,7 @@ class TestPoetryService:
             style=PoetryStyle.HAIKU,
             mood=PoetryMood.JOYFUL
         )
-    
+
     def test_request_validation(self, service):
         """Test request validation."""
         # Test empty location
@@ -338,7 +338,7 @@ class TestPoetryService:
                 style=PoetryStyle.HAIKU,
                 mood=PoetryMood.JOYFUL
             ))
-        
+
         # Test invalid temperature
         with pytest.raises(ValidationError, match="Temperature must be between"):
             service._validate_request(PoetryRequest(
@@ -348,16 +348,16 @@ class TestPoetryService:
                 style=PoetryStyle.HAIKU,
                 mood=PoetryMood.JOYFUL
             ))
-    
+
     @pytest.mark.asyncio
     async def test_generate_multiple_poems_validation(self, service, sample_request):
         """Test validation for multiple poem generation."""
         with pytest.raises(ValidationError, match="Count must be between 1 and 10"):
             await service.generate_multiple_poems(sample_request, count=0)
-        
+
         with pytest.raises(ValidationError, match="Count must be between 1 and 10"):
             await service.generate_multiple_poems(sample_request, count=15)
-    
+
     @pytest.mark.asyncio
     @patch('src.services.poetry_service.AzureOpenAIPoetryGenerator')
     async def test_ai_generation_with_fallback(self, mock_ai_generator_class, service, sample_request):
@@ -366,20 +366,20 @@ class TestPoetryService:
         mock_ai_generator = AsyncMock()
         mock_ai_generator.generate_poem.side_effect = ServiceError("AI failed")
         mock_ai_generator_class.return_value = mock_ai_generator
-        
+
         # Should fallback to template generation
         response = await service.generate_poetry(sample_request)
-        
+
         assert response is not None
         assert response.generator == "template"
-    
+
     @pytest.mark.asyncio
     async def test_cache_integration(self, service, sample_request):
         """Test caching integration."""
         # Mock both generators to return predictable results
         with patch.object(service.ai_generator, 'generate_poem') as mock_ai, \
-             patch.object(service.template_generator, 'generate_poem') as mock_template:
-            
+             patch.object(service.template_generator, 'generate_poem'):
+
             mock_response = PoetryResponse(
                 poem="Test poem",
                 style=sample_request.style,
@@ -391,16 +391,16 @@ class TestPoetryService:
                 generator="test",
                 metadata={}
             )
-            
+
             mock_ai.return_value = mock_response
-            
+
             # First call should generate
             response1 = await service.generate_poetry(sample_request)
             assert mock_ai.called
-            
+
             # Reset mock
             mock_ai.reset_mock()
-            
+
             # Second call should use cache
             response2 = await service.generate_poetry(sample_request)
             assert not mock_ai.called  # Should not call AI again
@@ -409,7 +409,7 @@ class TestPoetryService:
 
 class TestFactoryFunction:
     """Test cases for the factory function."""
-    
+
     def test_create_poetry_service(self):
         """Test poetry service creation via factory function."""
         service = create_poetry_service(
@@ -418,7 +418,7 @@ class TestFactoryFunction:
             model_name="gpt-4",
             use_ai_generation=True
         )
-        
+
         assert isinstance(service, PoetryService)
         assert service.config.azure_openai_endpoint == "https://test.openai.azure.com/"
         assert service.config.azure_openai_key == "test-key"
@@ -429,7 +429,7 @@ class TestFactoryFunction:
 # Integration test
 class TestPoetryServiceIntegration:
     """Integration tests for the complete poetry service."""
-    
+
     @pytest.mark.asyncio
     @pytest.mark.integration
     async def test_end_to_end_template_generation(self):
@@ -440,7 +440,7 @@ class TestPoetryServiceIntegration:
             azure_openai_key="test-key",
             use_ai_generation=False
         )
-        
+
         request = PoetryRequest(
             location="Integration Test City",
             weather_condition="clear",
@@ -448,9 +448,9 @@ class TestPoetryServiceIntegration:
             style=PoetryStyle.HAIKU,
             mood=PoetryMood.PEACEFUL
         )
-        
+
         response = await service.generate_poetry(request)
-        
+
         assert response is not None
         assert response.poem is not None
         assert len(response.poem) > 0

@@ -2,23 +2,14 @@
 
 import json
 import logging
-from abc import ABC
-from abc import abstractmethod
-from dataclasses import asdict
-from dataclasses import dataclass
-from dataclasses import field
+from abc import ABC, abstractmethod
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from uuid import UUID
-from uuid import uuid4
+from typing import Any, Dict, List, Optional, Tuple
+from uuid import UUID, uuid4
 
 from ..weather_models import CurrentWeather
-from .base import AIEnhancedModel
-from .base import ModelProtocol
+from .base import AIEnhancedModel, ModelProtocol
 
 
 class ComparisonStrategy(ABC):
@@ -338,26 +329,26 @@ class WeatherComparison(AIEnhancedModel, ModelProtocol):
         """Generate AI prompt for weather comparison analysis."""
         return f"""
         Analyze and compare the weather between these two cities:
-        
+
         City 1: {self.city1_weather.location.display_name}
         - Temperature: {self.city1_weather.temperature.to_celsius():.1f}°C
         - Condition: {self.city1_weather.condition.value}
         - Humidity: {self.city1_weather.humidity}%
         - Wind: {self.city1_weather.wind.speed} km/h
-        
+
         City 2: {self.city2_weather.location.display_name}
         - Temperature: {self.city2_weather.temperature.to_celsius():.1f}°C
         - Condition: {self.city2_weather.condition.value}
         - Humidity: {self.city2_weather.humidity}%
         - Wind: {self.city2_weather.wind.speed} km/h
-        
+
         Strategy: {self.strategy.get_strategy_name()}
-        
+
         Provide a brief, insightful comparison focusing on:
         1. Which city has more favorable conditions and why
         2. Best activities for each city's current weather
         3. Any notable weather patterns or differences
-        
+
         Keep the response concise but informative (under 150 words).
         """
 

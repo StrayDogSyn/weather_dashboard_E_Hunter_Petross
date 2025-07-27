@@ -1,15 +1,9 @@
 """Weather service interfaces for the Weather Dashboard application."""
 
-from abc import ABC
-from abc import abstractmethod
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional
 
-from ..models.weather_models import CurrentWeather
-from ..models.weather_models import Location
-from ..models.weather_models import WeatherForecast
+from ..models.weather_models import CurrentWeather, Location, WeatherForecast
 
 # Type aliases for cleaner interfaces
 WeatherData = CurrentWeather

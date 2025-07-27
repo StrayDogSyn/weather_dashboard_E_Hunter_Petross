@@ -11,18 +11,16 @@ Compatible with: Bot Framework, Azure Cognitive Services
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Union
+from typing import Any, Dict, List, Optional, Union
 
-from .glassmorphic_themes import GlassButton
-from .glassmorphic_themes import GlassmorphicStyleManager
-from .glassmorphic_themes import GlassPanel
-from .glassmorphic_themes import GlassTheme
-from .glassmorphic_themes import GlassWidget
-from .glassmorphic_themes import WeatherGlassCard
+from .glassmorphic_themes import (
+    GlassButton,
+    GlassmorphicStyleManager,
+    GlassPanel,
+    GlassTheme,
+    GlassWidget,
+    WeatherGlassCard,
+)
 
 
 class DashboardThemeIntegrator:
@@ -307,7 +305,7 @@ class DashboardThemeIntegrator:
 
         # Get the container for child widgets
         panel_container = panel.get_container()
-        
+
         # Title
         title_label = tk.Label(
             panel_container,
@@ -319,7 +317,8 @@ class DashboardThemeIntegrator:
 
         # Theme buttons
         button_frame = tk.Frame(
-            panel_container, **GlassWidget(self.style_manager).get_glass_frame_config("primary")
+            panel_container,
+            **GlassWidget(self.style_manager).get_glass_frame_config("primary"),
         )
         button_frame.pack(fill=tk.X, padx=10, pady=(0, 10))
 
@@ -438,7 +437,7 @@ class GlassmorphicDashboardExample:
         # Main container
         main_container = GlassPanel(self.root, self.style_manager, elevated=True)
         main_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
+
         # Get the container for child widgets
         container = main_container.get_container()
 

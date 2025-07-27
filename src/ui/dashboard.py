@@ -3,18 +3,16 @@
 import logging
 import tkinter as tk
 from tkinter import ttk
-from typing import Dict
-from typing import Optional
+from typing import Dict, Optional
 
-from src.models.weather_models import CurrentWeather
-from src.models.weather_models import WeatherForecast
+from src.models.weather_models import CurrentWeather, WeatherForecast
 from src.services.visualization_service import WeatherVisualizationService
-from src.ui.components.responsive_layout import ResponsiveLayoutManager
-from src.ui.components.responsive_layout import ResponsiveSpacing
-from src.ui.styles.glassmorphic import GlassmorphicFrame
-from src.ui.styles.glassmorphic import GlassmorphicStyle
-from src.ui.widgets.enhanced_button import ButtonFactory
-from src.ui.widgets.enhanced_button import EnhancedButton
+from src.ui.components.responsive_layout import (
+    ResponsiveLayoutManager,
+    ResponsiveSpacing,
+)
+from src.ui.styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
+from src.ui.widgets.enhanced_button import ButtonFactory, EnhancedButton
 
 
 class WeatherDashboard:

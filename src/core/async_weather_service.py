@@ -1,17 +1,22 @@
 """Async Weather Service - Refactored with proper async/await patterns."""
 
 import asyncio
+import json
 import logging
+from dataclasses import asdict
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
-import json
-from dataclasses import asdict
 
 import aiohttp
 from pydantic import BaseModel, ValidationError
 
-from src.interfaces.weather_interfaces import ICacheService, IDataStorage
-from src.models.weather_models import CurrentWeather, FavoriteCity, Location, WeatherForecast
+from src.interfaces.weather_interfaces import IAsyncWeatherAPI, ICacheService, IDataStorage
+from src.models.weather_models import (
+    CurrentWeather,
+    FavoriteCity,
+    Location,
+    WeatherForecast,
+)
 from src.services.location_service import LocationDetectionService
 from src.utils.formatters import clean_city_name, validate_city_name
 from src.utils.validators import WeatherDataValidator, sanitize_input
@@ -24,36 +29,37 @@ LocationData = Location
 
 class WeatherAPIError(Exception):
     """Custom exception for weather API errors."""
+
     pass
 
 
 class RetryConfig:
     """Configuration for retry logic with exponential backoff."""
-    
+
     def __init__(
         self,
         max_retries: int = 3,
         base_delay: float = 1.0,
         max_delay: float = 60.0,
-        backoff_factor: float = 2.0
+        backoff_factor: float = 2.0,
     ):
         self.max_retries = max_retries
         self.base_delay = base_delay
         self.max_delay = max_delay
         self.backoff_factor = backoff_factor
-    
+
     def get_delay(self, attempt: int) -> float:
         """Calculate delay for given attempt with exponential backoff."""
-        delay = self.base_delay * (self.backoff_factor ** attempt)
+        delay = self.base_delay * (self.backoff_factor**attempt)
         return min(delay, self.max_delay)
 
 
 class WeatherDataSchema(BaseModel):
     """Pydantic schema for validating weather API responses."""
-    
+
     class Config:
         extra = "allow"  # Allow extra fields from API
-    
+
     # Required fields for current weather
     name: str
     sys: Dict[str, Any]
@@ -61,7 +67,7 @@ class WeatherDataSchema(BaseModel):
     main: Dict[str, float]
     weather: List[Dict[str, Any]]
     dt: int
-    
+
     # Optional fields
     wind: Optional[Dict[str, Any]] = None
     rain: Optional[Dict[str, Any]] = None
@@ -71,10 +77,10 @@ class WeatherDataSchema(BaseModel):
 
 class ForecastDataSchema(BaseModel):
     """Pydantic schema for validating forecast API responses."""
-    
+
     class Config:
         extra = "allow"
-    
+
     city: Dict[str, Any]
     list: List[Dict[str, Any]]
     cnt: int
@@ -84,11 +90,11 @@ class AsyncWeatherService:
     """Async weather service with proper error handling and retry logic."""
 
     def __init__(
-        self, 
-        weather_api: 'IAsyncWeatherAPI', 
-        storage: IDataStorage, 
+        self,
+        weather_api: IAsyncWeatherAPI,
+        storage: IDataStorage,
         cache: ICacheService,
-        retry_config: Optional[RetryConfig] = None
+        retry_config: Optional[RetryConfig] = None,
     ):
         """
         Initialize async weather service.
@@ -105,17 +111,14 @@ class AsyncWeatherService:
         self.validator = WeatherDataValidator()
         self.location_service = LocationDetectionService()
         self.retry_config = retry_config or RetryConfig()
-        
+
         # Load favorite cities
         self.favorite_cities: List[FavoriteCity] = self._load_favorite_cities()
-        
+
         logging.info("Async weather service initialized")
 
     async def get_current_weather(
-        self, 
-        city: str, 
-        units: str = "metric", 
-        use_cache: bool = True
+        self, city: str, units: str = "metric", use_cache: bool = True
     ) -> Optional[WeatherData]:
         """
         Get current weather for a city with caching and retry logic.
@@ -145,12 +148,10 @@ class AsyncWeatherService:
 
         # Fetch from API with retry logic
         logging.info(f"Fetching current weather for {city}")
-        
+
         try:
             weather_data = await self._retry_api_call(
-                self.weather_api.get_current_weather,
-                city,
-                units
+                self.weather_api.get_current_weather, city, units
             )
 
             if weather_data:
@@ -171,7 +172,7 @@ class AsyncWeatherService:
             else:
                 logging.error(f"Failed to retrieve weather for {city}")
                 return None
-                
+
         except WeatherAPIError as e:
             logging.error(f"Weather API error for {city}: {e}")
             return None
@@ -180,11 +181,7 @@ class AsyncWeatherService:
             return None
 
     async def get_weather_forecast(
-        self, 
-        city: str, 
-        days: int = 5, 
-        units: str = "metric", 
-        use_cache: bool = True
+        self, city: str, days: int = 5, units: str = "metric", use_cache: bool = True
     ) -> Optional[ForecastData]:
         """
         Get weather forecast for a city with caching and retry logic.
@@ -219,13 +216,10 @@ class AsyncWeatherService:
 
         # Fetch from API with retry logic
         logging.info(f"Fetching {days}-day forecast for {city}")
-        
+
         try:
             forecast_data = await self._retry_api_call(
-                self.weather_api.get_forecast,
-                city,
-                days,
-                units
+                self.weather_api.get_forecast, city, days, units
             )
 
             if forecast_data:
@@ -243,7 +237,7 @@ class AsyncWeatherService:
             else:
                 logging.error(f"Failed to retrieve forecast for {city}")
                 return None
-                
+
         except WeatherAPIError as e:
             logging.error(f"Weather API error for forecast {city}: {e}")
             return None
@@ -277,12 +271,10 @@ class AsyncWeatherService:
 
         # Search via API with retry logic
         logging.info(f"Searching locations for: {query}")
-        
+
         try:
             locations = await self._retry_api_call(
-                self.weather_api.search_locations,
-                query,
-                limit
+                self.weather_api.search_locations, query, limit
             )
 
             # Cache results
@@ -290,7 +282,7 @@ class AsyncWeatherService:
                 self.cache.set(cache_key, locations, ttl=3600)  # 1 hour
 
             return locations or []
-            
+
         except WeatherAPIError as e:
             logging.error(f"Weather API error searching locations for {query}: {e}")
             return []
@@ -299,9 +291,7 @@ class AsyncWeatherService:
             return []
 
     async def get_current_location_weather(
-        self, 
-        units: str = "metric", 
-        use_cache: bool = True
+        self, units: str = "metric", use_cache: bool = True
     ) -> Optional[WeatherData]:
         """
         Get weather for current detected location with async location detection.
@@ -342,18 +332,20 @@ class AsyncWeatherService:
             logging.info(
                 f"Fetching current weather for {city_name} at coordinates ({latitude}, {longitude})"
             )
-            
+
             weather_data = await self._retry_api_call(
                 self.weather_api.get_current_weather_by_coordinates,
                 latitude,
                 longitude,
-                units
+                units,
             )
 
             if weather_data:
                 # Validate data
                 if not self._validate_weather_data(weather_data):
-                    logging.error(f"Invalid weather data received for coordinates ({latitude}, {longitude})")
+                    logging.error(
+                        f"Invalid weather data received for coordinates ({latitude}, {longitude})"
+                    )
                     return None
 
                 # Cache the result
@@ -377,27 +369,27 @@ class AsyncWeatherService:
     async def _retry_api_call(self, func, *args, **kwargs):
         """
         Execute API call with exponential backoff retry logic.
-        
+
         Args:
             func: Async function to call
             *args: Function arguments
             **kwargs: Function keyword arguments
-            
+
         Returns:
             Function result
-            
+
         Raises:
             WeatherAPIError: If all retries fail
         """
         last_exception = None
-        
+
         for attempt in range(self.retry_config.max_retries + 1):
             try:
                 result = await func(*args, **kwargs)
                 if attempt > 0:
                     logging.info(f"API call succeeded on attempt {attempt + 1}")
                 return result
-                
+
             except aiohttp.ClientTimeout as e:
                 last_exception = e
                 if attempt < self.retry_config.max_retries:
@@ -408,7 +400,7 @@ class AsyncWeatherService:
                     )
                     await asyncio.sleep(delay)
                     continue
-                    
+
             except aiohttp.ClientError as e:
                 last_exception = e
                 if attempt < self.retry_config.max_retries:
@@ -419,22 +411,24 @@ class AsyncWeatherService:
                     )
                     await asyncio.sleep(delay)
                     continue
-                    
+
             except Exception as e:
                 last_exception = e
                 logging.error(f"Unexpected error in API call: {e}")
                 break
-        
+
         # All retries failed
-        raise WeatherAPIError(f"API call failed after {self.retry_config.max_retries + 1} attempts: {last_exception}")
+        raise WeatherAPIError(
+            f"API call failed after {self.retry_config.max_retries + 1} attempts: {last_exception}"
+        )
 
     def _validate_weather_data(self, weather_data: WeatherData) -> bool:
         """
         Validate weather data against expected schema.
-        
+
         Args:
             weather_data: Weather data to validate
-            
+
         Returns:
             True if valid, False otherwise
         """
@@ -442,27 +436,27 @@ class AsyncWeatherService:
             # Check required fields
             if not weather_data or not weather_data.location:
                 return False
-                
+
             if not weather_data.temperature or weather_data.temperature.value is None:
                 return False
-                
+
             if not weather_data.condition:
                 return False
-                
+
             # Validate temperature range (reasonable bounds)
             temp_value = weather_data.temperature.value
             if temp_value < -100 or temp_value > 70:  # Celsius bounds
                 logging.warning(f"Temperature out of reasonable range: {temp_value}°C")
                 return False
-                
+
             # Validate humidity
             if weather_data.humidity is not None:
                 if weather_data.humidity < 0 or weather_data.humidity > 100:
                     logging.warning(f"Humidity out of range: {weather_data.humidity}%")
                     return False
-                    
+
             return True
-            
+
         except Exception as e:
             logging.error(f"Error validating weather data: {e}")
             return False
@@ -470,10 +464,10 @@ class AsyncWeatherService:
     def _validate_forecast_data(self, forecast_data: ForecastData) -> bool:
         """
         Validate forecast data against expected schema.
-        
+
         Args:
             forecast_data: Forecast data to validate
-            
+
         Returns:
             True if valid, False otherwise
         """
@@ -481,22 +475,22 @@ class AsyncWeatherService:
             # Check required fields
             if not forecast_data or not forecast_data.location:
                 return False
-                
+
             if not forecast_data.forecast_days or len(forecast_data.forecast_days) == 0:
                 return False
-                
+
             # Validate each forecast day
             for day in forecast_data.forecast_days:
                 if not day.date or not day.temperature_high or not day.temperature_low:
                     return False
-                    
+
                 # Check temperature consistency
                 if day.temperature_high.value < day.temperature_low.value:
                     logging.warning(f"High temp lower than low temp on {day.date}")
                     return False
-                    
+
             return True
-            
+
         except Exception as e:
             logging.error(f"Error validating forecast data: {e}")
             return False
@@ -504,33 +498,30 @@ class AsyncWeatherService:
     async def _get_current_location_async(self):
         """
         Async wrapper for location detection.
-        
+
         Returns:
             Location data tuple or None
         """
         # Run location detection in thread pool since it's sync
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None, 
-            self.location_service.get_current_location
+            None, self.location_service.get_current_location
         )
 
     async def _save_weather_history(self, weather_data: WeatherData) -> None:
         """
         Async save weather data to history for analytics.
-        
+
         Args:
             weather_data: Weather data to save
         """
         try:
             # Run storage operations in thread pool since they're sync
             loop = asyncio.get_event_loop()
-            
+
             # Load existing history
             history = await loop.run_in_executor(
-                None,
-                self.storage.load_data,
-                "weather_history.json"
+                None, self.storage.load_data, "weather_history.json"
             ) or {"entries": []}
 
             # Add new entry
@@ -556,10 +547,7 @@ class AsyncWeatherService:
 
             # Save back to storage
             await loop.run_in_executor(
-                None,
-                self.storage.save_data,
-                history,
-                "weather_history.json"
+                None, self.storage.save_data, history, "weather_history.json"
             )
 
         except Exception as e:
@@ -568,7 +556,7 @@ class AsyncWeatherService:
     def _load_favorite_cities(self) -> List[FavoriteCity]:
         """
         Load favorite cities from storage (sync for initialization).
-        
+
         Returns:
             List of favorite cities
         """
@@ -616,14 +604,16 @@ class AsyncWeatherService:
             return []
 
     # Additional async methods for favorites management
-    async def add_favorite_city_async(self, city: str, nickname: Optional[str] = None) -> bool:
+    async def add_favorite_city_async(
+        self, city: str, nickname: Optional[str] = None
+    ) -> bool:
         """
         Async version of add favorite city.
-        
+
         Args:
             city: City name
             nickname: Optional nickname
-            
+
         Returns:
             True if successful
         """
@@ -661,7 +651,7 @@ class AsyncWeatherService:
     async def _save_favorite_cities_async(self) -> bool:
         """
         Async save favorite cities to storage.
-        
+
         Returns:
             True if successful
         """
@@ -690,12 +680,9 @@ class AsyncWeatherService:
             # Run storage operation in thread pool
             loop = asyncio.get_event_loop()
             success = await loop.run_in_executor(
-                None,
-                self.storage.save_data,
-                data,
-                "favorite_cities.json"
+                None, self.storage.save_data, data, "favorite_cities.json"
             )
-            
+
             if success:
                 logging.debug("Favorite cities saved")
             return success
@@ -717,32 +704,36 @@ class AsyncWeatherService:
             Dictionary mapping city names to weather data
         """
         results = {}
-        
+
         # Use asyncio.gather for concurrent requests
         tasks = []
         city_names = []
-        
+
         for favorite in self.favorite_cities:
             city_name = favorite.location.name
             task = self.get_current_weather(city_name, units)
             tasks.append(task)
             city_names.append(favorite.display_name)
-        
+
         if tasks:
             weather_results = await asyncio.gather(*tasks, return_exceptions=True)
-            
-            for i, (city_name, weather_data) in enumerate(zip(city_names, weather_results)):
+
+            for i, (city_name, weather_data) in enumerate(
+                zip(city_names, weather_results)
+            ):
                 if isinstance(weather_data, Exception):
-                    logging.error(f"Error getting weather for {city_name}: {weather_data}")
+                    logging.error(
+                        f"Error getting weather for {city_name}: {weather_data}"
+                    )
                     results[city_name] = None
                 else:
                     results[city_name] = weather_data
-                    
+
                     # Mark as viewed
                     if weather_data and i < len(self.favorite_cities):
                         self.favorite_cities[i].mark_viewed()
-            
+
             if self.favorite_cities:
                 await self._save_favorite_cities_async()
-        
+
         return results

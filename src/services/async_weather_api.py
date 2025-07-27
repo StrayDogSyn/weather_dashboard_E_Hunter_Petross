@@ -12,13 +12,13 @@ from pydantic import BaseModel, ValidationError
 from src.interfaces.weather_interfaces import IAsyncWeatherAPI
 from src.models.weather_models import (
     CurrentWeather,
+    ForecastDay,
     Location,
+    Precipitation,
+    Temperature,
     WeatherCondition,
     WeatherForecast,
-    ForecastDay,
-    Temperature,
     Wind,
-    Precipitation,
 )
 from src.utils.formatters import clean_city_name, validate_city_name
 from src.utils.validators import sanitize_input
@@ -39,10 +39,10 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         self.base_url = "https://api.openweathermap.org/data/2.5"
         self.geo_url = "https://api.openweathermap.org/geo/1.0"
         self.timeout = aiohttp.ClientTimeout(total=timeout)
-        
+
         # Session will be created when needed
         self._session: Optional[aiohttp.ClientSession] = None
-        
+
         logging.info("Async OpenWeatherMap API initialized")
 
     async def __aenter__(self):
@@ -63,7 +63,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                 ttl_dns_cache=300,  # DNS cache TTL
                 use_dns_cache=True,
             )
-            
+
             self._session = aiohttp.ClientSession(
                 connector=connector,
                 timeout=self.timeout,
@@ -97,7 +97,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             return None
 
         city = clean_city_name(city)
-        
+
         params = {
             "q": city,
             "appid": self.api_key,
@@ -105,13 +105,13 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         }
 
         url = f"{self.base_url}/weather"
-        
+
         try:
             data = await self._make_request(url, params)
             if data:
                 return self._parse_current_weather(data, units)
             return None
-            
+
         except Exception as e:
             logging.error(f"Error getting current weather for {city}: {e}")
             return None
@@ -139,7 +139,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             return None
 
         city = clean_city_name(city)
-        
+
         # Use 5-day forecast endpoint (free tier) or 16-day if available
         if days <= 5:
             endpoint = "forecast"
@@ -156,13 +156,13 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         }
 
         url = f"{self.base_url}/{endpoint}"
-        
+
         try:
             data = await self._make_request(url, params)
             if data:
                 return self._parse_forecast(data, units, days)
             return None
-            
+
         except Exception as e:
             logging.error(f"Error getting forecast for {city}: {e}")
             return None
@@ -183,7 +183,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             return []
 
         query = sanitize_input(query.strip())
-        
+
         params = {
             "q": query,
             "limit": min(limit, 10),  # API limit
@@ -191,13 +191,13 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         }
 
         url = f"{self.geo_url}/direct"
-        
+
         try:
             data = await self._make_request(url, params)
             if data and isinstance(data, list):
                 return self._parse_locations(data)
             return []
-            
+
         except Exception as e:
             logging.error(f"Error searching locations for {query}: {e}")
             return []
@@ -219,11 +219,11 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         if not (-90 <= latitude <= 90):
             logging.error(f"Invalid latitude: {latitude}")
             return None
-            
+
         if not (-180 <= longitude <= 180):
             logging.error(f"Invalid longitude: {longitude}")
             return None
-        
+
         params = {
             "lat": latitude,
             "lon": longitude,
@@ -232,15 +232,17 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         }
 
         url = f"{self.base_url}/weather"
-        
+
         try:
             data = await self._make_request(url, params)
             if data:
                 return self._parse_current_weather(data, units)
             return None
-            
+
         except Exception as e:
-            logging.error(f"Error getting weather for coordinates ({latitude}, {longitude}): {e}")
+            logging.error(
+                f"Error getting weather for coordinates ({latitude}, {longitude}): {e}"
+            )
             return None
 
     async def get_forecast_by_coordinates(
@@ -261,15 +263,15 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         if not (-90 <= latitude <= 90):
             logging.error(f"Invalid latitude: {latitude}")
             return None
-            
+
         if not (-180 <= longitude <= 180):
             logging.error(f"Invalid longitude: {longitude}")
             return None
-            
+
         if not (1 <= days <= 16):
             logging.error(f"Invalid forecast days: {days}")
             return None
-        
+
         # Use 5-day forecast endpoint (free tier) or 16-day if available
         if days <= 5:
             endpoint = "forecast"
@@ -287,18 +289,22 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
         }
 
         url = f"{self.base_url}/{endpoint}"
-        
+
         try:
             data = await self._make_request(url, params)
             if data:
                 return self._parse_forecast(data, units, days)
             return None
-            
+
         except Exception as e:
-            logging.error(f"Error getting forecast for coordinates ({latitude}, {longitude}): {e}")
+            logging.error(
+                f"Error getting forecast for coordinates ({latitude}, {longitude}): {e}"
+            )
             return None
 
-    async def _make_request(self, url: str, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    async def _make_request(
+        self, url: str, params: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """
         Make async HTTP request with proper error handling.
 
@@ -310,13 +316,10 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             JSON response data or None if error
         """
         await self._ensure_session()
-        
+
         try:
-            query_string = urlencode(params)
-            full_url = f"{url}?{query_string}"
-            
             logging.debug(f"Making request to: {url}")
-            
+
             async with self._session.get(url, params=params) as response:
                 # Check for HTTP errors
                 if response.status == 401:
@@ -331,30 +334,32 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                 elif response.status >= 400:
                     logging.error(f"HTTP error {response.status}: {response.reason}")
                     return None
-                
+
                 # Parse JSON response
                 try:
                     data = await response.json()
                     logging.debug(f"Received response with {len(str(data))} characters")
                     return data
-                    
+
                 except aiohttp.ContentTypeError as e:
                     logging.error(f"Invalid JSON response: {e}")
                     return None
-                    
+
         except aiohttp.ClientTimeout:
             logging.error(f"Request timeout for {url}")
             return None
-            
+
         except aiohttp.ClientError as e:
             logging.error(f"Client error for {url}: {e}")
             return None
-            
+
         except Exception as e:
             logging.error(f"Unexpected error for {url}: {e}")
             return None
 
-    def _parse_current_weather(self, data: Dict[str, Any], units: str) -> Optional[CurrentWeather]:
+    def _parse_current_weather(
+        self, data: Dict[str, Any], units: str
+    ) -> Optional[CurrentWeather]:
         """
         Parse current weather data from API response.
 
@@ -383,14 +388,16 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
 
             # Parse optional fields
             wind = self._parse_wind(data.get("wind", {}))
-            precipitation = self._parse_precipitation(data.get("rain", {}), data.get("snow", {}))
-            
+            precipitation = self._parse_precipitation(
+                data.get("rain", {}), data.get("snow", {})
+            )
+
             # Parse other fields
             humidity = data.get("main", {}).get("humidity")
             pressure = data.get("main", {}).get("pressure")
             visibility = data.get("visibility")
             uv_index = data.get("uvi")  # Not available in current weather endpoint
-            
+
             # Parse timestamp
             timestamp = None
             if "dt" in data:
@@ -413,7 +420,9 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             logging.error(f"Error parsing current weather data: {e}")
             return None
 
-    def _parse_forecast(self, data: Dict[str, Any], units: str, days: int) -> Optional[WeatherForecast]:
+    def _parse_forecast(
+        self, data: Dict[str, Any], units: str, days: int
+    ) -> Optional[WeatherForecast]:
         """
         Parse forecast data from API response.
 
@@ -456,7 +465,9 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             logging.error(f"Error parsing forecast data: {e}")
             return None
 
-    def _parse_forecast_days(self, forecast_list: List[Dict[str, Any]], units: str, days: int) -> List[ForecastDay]:
+    def _parse_forecast_days(
+        self, forecast_list: List[Dict[str, Any]], units: str, days: int
+    ) -> List[ForecastDay]:
         """
         Parse forecast days from API forecast list.
 
@@ -485,12 +496,16 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                 if current_date and entry_date != current_date:
                     if len(forecast_days) < days:
                         forecast_day = self._create_forecast_day(
-                            current_date, daily_temps, daily_conditions, 
-                            daily_precipitation, daily_wind, units
+                            current_date,
+                            daily_temps,
+                            daily_conditions,
+                            daily_precipitation,
+                            daily_wind,
+                            units,
                         )
                         if forecast_day:
                             forecast_days.append(forecast_day)
-                    
+
                     # Reset for new day
                     daily_temps = []
                     daily_conditions = []
@@ -527,8 +542,12 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             # Process last day
             if current_date and len(forecast_days) < days and daily_temps:
                 forecast_day = self._create_forecast_day(
-                    current_date, daily_temps, daily_conditions, 
-                    daily_precipitation, daily_wind, units
+                    current_date,
+                    daily_temps,
+                    daily_conditions,
+                    daily_precipitation,
+                    daily_wind,
+                    units,
                 )
                 if forecast_day:
                     forecast_days.append(forecast_day)
@@ -540,13 +559,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             return []
 
     def _create_forecast_day(
-        self, 
-        date, 
-        temps, 
-        conditions, 
-        precipitation_data, 
-        wind_data, 
-        units
+        self, date, temps, conditions, precipitation_data, wind_data, units
     ) -> Optional[ForecastDay]:
         """
         Create a ForecastDay from collected daily data.
@@ -601,7 +614,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                 total_snow = sum(
                     snow.get("3h", 0) for _, snow in precipitation_data if snow
                 )
-                
+
                 if total_rain > 0 or total_snow > 0:
                     precipitation = Precipitation(
                         rain_mm=total_rain,
@@ -669,7 +682,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             List of Location objects
         """
         locations = []
-        
+
         try:
             for item in data:
                 name = item.get("name")
@@ -682,7 +695,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                     display_parts.append(item["state"])
                 if "country" in item:
                     display_parts.append(item["country"])
-                
+
                 display_name = ", ".join(display_parts)
 
                 location = Location(
@@ -691,7 +704,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                     latitude=item.get("lat", 0.0),
                     longitude=item.get("lon", 0.0),
                 )
-                
+
                 locations.append(location)
 
         except Exception as e:
@@ -699,7 +712,9 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
 
         return locations
 
-    def _parse_condition(self, weather_list: List[Dict[str, Any]]) -> Optional[WeatherCondition]:
+    def _parse_condition(
+        self, weather_list: List[Dict[str, Any]]
+    ) -> Optional[WeatherCondition]:
         """
         Parse weather condition from API response.
 
@@ -715,7 +730,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                 return None
 
             weather_data = weather_list[0]  # Use first weather entry
-            
+
             return WeatherCondition(
                 value=weather_data.get("main", "Unknown"),
                 description=weather_data.get("description", ""),
@@ -726,7 +741,9 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             logging.error(f"Error parsing weather condition: {e}")
             return None
 
-    def _parse_temperature(self, main_data: Dict[str, Any], units: str) -> Optional[Temperature]:
+    def _parse_temperature(
+        self, main_data: Dict[str, Any], units: str
+    ) -> Optional[Temperature]:
         """
         Parse temperature data from API response.
 
@@ -744,7 +761,7 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
                 return None
 
             temp_unit = self._get_temp_unit(units)
-            
+
             return Temperature(
                 value=float(temp_value),
                 unit=temp_unit,
@@ -783,7 +800,9 @@ class AsyncOpenWeatherMapAPI(IAsyncWeatherAPI):
             logging.error(f"Error parsing wind data: {e}")
             return None
 
-    def _parse_precipitation(self, rain_data: Dict[str, Any], snow_data: Dict[str, Any]) -> Optional[Precipitation]:
+    def _parse_precipitation(
+        self, rain_data: Dict[str, Any], snow_data: Dict[str, Any]
+    ) -> Optional[Precipitation]:
         """
         Parse precipitation data from API response.
 

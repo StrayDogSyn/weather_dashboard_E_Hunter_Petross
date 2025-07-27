@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Weather Dashboard has been updated to import team weather data directly from the GitHub repository: **StrayDogSyn/New_Team_Dashboard**. This enables the Compare Cities feature to use real collaborative data from team members instead of relying solely on API calls.
+The Weather Dashboard has been updated to import team weather data directly from the GitHub
+repository: **StrayDogSyn/New_Team_Dashboard**. This enables the Compare Cities feature to use
+real collaborative data from team members instead of relying solely on API calls.
 
 ## Key Features
 

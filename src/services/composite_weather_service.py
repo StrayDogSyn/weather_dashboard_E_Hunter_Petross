@@ -6,13 +6,10 @@ Primary: OpenWeatherMap, Fallback: WeatherAPI.com
 """
 
 import logging
-from typing import List
-from typing import Optional
+from typing import List, Optional
 
 from ..interfaces.weather_interfaces import IWeatherAPI
-from ..models.weather_models import CurrentWeather
-from ..models.weather_models import Location
-from ..models.weather_models import WeatherForecast
+from ..models.weather_models import CurrentWeather, Location, WeatherForecast
 from .weather_api import OpenWeatherMapAPI
 from .weatherapi_service import WeatherAPIService
 

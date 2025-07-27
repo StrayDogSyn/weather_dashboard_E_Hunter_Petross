@@ -9,16 +9,9 @@ import logging
 import re
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
-from typing import Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from ..business.interfaces import ICacheService
-from ..business.interfaces import IStorageService
-from ..business.interfaces import IWeatherService
+from ..business.interfaces import ICacheService, IStorageService, IWeatherService
 
 
 class CommandType(Enum):
