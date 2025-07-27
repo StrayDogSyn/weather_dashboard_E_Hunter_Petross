@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document provides an overview of the Cortana voice assistant configuration that has been set up for the Weather Dashboard project. The configuration follows best practices for voice assistants and provides a flexible framework for customization.
+This document provides an overview of the Cortana voice assistant configuration that has been
+set up for the Weather Dashboard project. The configuration follows best practices for voice
+assistants and provides a flexible framework for customization.
 
 ## Configuration Structure
 
@@ -61,7 +63,9 @@ The configuration is organized into the following sections:
 
 ## Security Audit
 
-The configuration manager performs a security audit on the requested scopes to ensure they follow the principle of least privilege. High-risk scopes are flagged with warnings, and overly broad scopes are rejected.
+The configuration manager performs a security audit on the requested scopes to ensure they
+follow the principle of least privilege. High-risk scopes are flagged with warnings, and overly
+broad scopes are rejected.
 
 ## Usage
 
@@ -118,7 +122,9 @@ The Cortana configuration follows these best practices:
 
 ## Integration with Weather Dashboard
 
-To integrate Cortana with the Weather Dashboard application, you can import the `ConfigManager` class and use it to load the Cortana configuration. This will allow the Weather Dashboard to use Cortana's voice assistant capabilities for features such as:
+To integrate Cortana with the Weather Dashboard application, you can import the `ConfigManager`
+class and use it to load the Cortana configuration. This will allow the Weather Dashboard to use
+Cortana's voice assistant capabilities for features such as:
 
 - Voice-based weather queries
 - Reading weather forecasts aloud
@@ -137,4 +143,6 @@ Possible future enhancements to the Cortana configuration include:
 
 ## Conclusion
 
-The Cortana voice assistant configuration provides a solid foundation for integrating voice capabilities into the Weather Dashboard application. It follows best practices for security, privacy, and usability, and provides a flexible framework for customization.
+The Cortana voice assistant configuration provides a solid foundation for integrating voice
+capabilities into the Weather Dashboard application. It follows best practices for security,
+privacy, and usability, and provides a flexible framework for customization.

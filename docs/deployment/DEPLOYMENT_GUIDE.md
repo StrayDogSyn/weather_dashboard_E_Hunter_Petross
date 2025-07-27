@@ -7,6 +7,7 @@ This guide demonstrates how to deploy the enhanced Cortana Voice Service in a pr
 ## Prerequisites
 
 ### Azure Services Required
+
 - Azure Bot Service
 - Azure Cognitive Services (Speech)
 - Azure App Service or Azure Functions
@@ -15,6 +16,7 @@ This guide demonstrates how to deploy the enhanced Cortana Voice Service in a pr
 - Application Insights
 
 ### Development Tools
+
 - Visual Studio 2022 or VS Code
 - Bot Framework Emulator
 - Azure CLI
@@ -482,12 +484,14 @@ app.MapHealthChecks("/health");
 ## Security Considerations
 
 ### Authentication and Authorization
+
 - Use Azure AD for bot authentication
 - Implement rate limiting for API calls
 - Validate all user inputs
 - Use managed identities for Azure services
 
 ### Data Protection
+
 - Encrypt sensitive data at rest
 - Use HTTPS for all communications
 - Implement proper logging without exposing PII
@@ -496,12 +500,14 @@ app.MapHealthChecks("/health");
 ## Performance Optimization
 
 ### Caching Strategy
+
 - Cache weather data for 5-10 minutes
 - Cache speech synthesis results
 - Use Redis for distributed caching
 - Implement cache warming for popular locations
 
 ### Scaling Considerations
+
 - Use Azure App Service auto-scaling
 - Implement connection pooling
 - Optimize database queries

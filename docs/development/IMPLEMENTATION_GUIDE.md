@@ -5,6 +5,7 @@ This guide provides step-by-step instructions for implementing the responsive la
 ## Overview
 
 The improvements focus on:
+
 - **Responsive Layout Management**: Adaptive layouts for different screen sizes
 - **Enhanced Button Components**: Better visual feedback and accessibility
 - **Standardized Spacing System**: Consistent spacing throughout the application
@@ -381,6 +382,7 @@ class MainDashboard:
 ### Manual Testing Steps
 
 1. **Responsive Layout Testing**:
+
    ```python
    # Test different window sizes
    root.geometry("400x600")  # Mobile simulation

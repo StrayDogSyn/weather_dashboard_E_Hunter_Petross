@@ -2,7 +2,9 @@
 
 ## Overview
 
-This document describes the enhanced Cortana Voice Assistant integration for the Weather Dashboard, implementing Bot Framework-inspired patterns and advanced Natural Language Understanding (NLU) capabilities.
+This document describes the enhanced Cortana Voice Assistant integration for the Weather
+Dashboard, implementing Bot Framework-inspired patterns and advanced Natural Language
+Understanding (NLU) capabilities.
 
 ## Architecture
 
@@ -71,23 +73,27 @@ await cortana.configure_voice_settings({
 ## Supported Commands
 
 ### Weather Queries
+
 - "What's the weather in [city]?"
 - "Get current weather for [location]"
 - "How's the weather today?"
 - "What's the temperature in [city]?"
 
 ### Forecast Requests
+
 - "Get forecast for [city]"
 - "What's the weather like tomorrow?"
 - "Show me the 5-day forecast"
 - "Will it rain this weekend?"
 
 ### Location Management
+
 - "Set my default location to [city]"
 - "Change my location to [city]"
 - "What's my current location?"
 
 ### Help and Information
+
 - "Help"
 - "What can you do?"
 - "Show me available commands"
@@ -97,6 +103,7 @@ await cortana.configure_voice_settings({
 ### Voice Profiles
 
 Available voice profiles:
+
 - `en-US_Standard` - US English (default)
 - `en-US_Neural` - US English with neural voice
 - `en-GB_Standard` - British English
@@ -152,6 +159,7 @@ python test_cortana_integration.py
 ```
 
 The test covers:
+
 - Basic voice command processing
 - Conversation context management
 - Voice settings configuration
@@ -161,12 +169,14 @@ The test covers:
 ## Error Handling
 
 ### Graceful Degradation
+
 - Falls back to text responses if TTS fails
 - Provides suggestions for unrecognized commands
 - Handles network timeouts gracefully
 - Maintains conversation state during errors
 
 ### User-Friendly Messages
+
 - Clear error explanations
 - Helpful suggestions for command correction
 - Context-aware error responses
@@ -174,11 +184,13 @@ The test covers:
 ## Performance Optimization
 
 ### Caching Strategy
+
 - Weather data cached for 5 minutes
 - User preferences cached for 1 hour
 - Voice synthesis results cached for 24 hours
 
 ### Response Time Targets
+
 - Voice command processing: < 2 seconds
 - Weather data retrieval: < 1 second
 - Speech synthesis: < 3 seconds
@@ -193,6 +205,7 @@ The test covers:
 ## Future Enhancements
 
 ### Planned Features
+
 1. **Azure Speech Services Integration**
    - Real STT/TTS implementation
    - Custom voice models
@@ -224,6 +237,7 @@ The test covers:
 ## Integration Points
 
 ### Weather Service Interface
+
 ```python
 class IWeatherAPI:
     async def get_current_weather_async(self, location: str) -> CurrentWeather
@@ -231,6 +245,7 @@ class IWeatherAPI:
 ```
 
 ### Cache Service Interface
+
 ```python
 class ICacheService:
     async def get_async(self, key: str) -> Any
@@ -238,6 +253,7 @@ class ICacheService:
 ```
 
 ### Storage Service Interface
+
 ```python
 class IStorageService:
     async def store_user_preference_async(self, key: str, value: Any) -> None
@@ -247,12 +263,14 @@ class IStorageService:
 ## Monitoring and Diagnostics
 
 ### Logging
+
 - Command processing metrics
 - Error rates and types
 - Response time tracking
 - User interaction patterns
 
 ### Health Checks
+
 - Service availability monitoring
 - API endpoint health
 - Cache performance metrics

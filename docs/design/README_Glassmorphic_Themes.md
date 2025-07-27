@@ -7,6 +7,7 @@ This document provides a comprehensive guide to the glassmorphic color schemes i
 ## 🎨 Color Scheme Philosophy
 
 Our glassmorphic design follows modern UI/UX principles with:
+
 - **Translucent backgrounds** that create depth and visual hierarchy
 - **Subtle blur effects** simulated through color blending
 - **High contrast text** for accessibility and readability
@@ -16,6 +17,7 @@ Our glassmorphic design follows modern UI/UX principles with:
 ## 🌈 Available Themes
 
 ### 1. Midnight Forest (Primary Theme)
+
 **Perfect for:** Evening use, professional environments, reduced eye strain
 
 ```python
@@ -29,12 +31,14 @@ Text Primary: #E5E5E5
 ```
 
 **Visual Characteristics:**
+
 - Deep black backgrounds with subtle hunter green glass panels
 - Silver accents for interactive elements
 - Excellent contrast for text readability
 - Calming, professional appearance
 
 ### 2. Silver Mist (Secondary Theme)
+
 **Perfect for:** Daytime use, bright environments, modern aesthetics
 
 ```python
@@ -48,12 +52,14 @@ Text Primary: #F0F0F0
 ```
 
 **Visual Characteristics:**
+
 - Brighter silver-tinted glass surfaces
 - Hunter green used for accent highlights
 - Enhanced brightness for daylight viewing
 - Clean, minimalist appearance
 
 ### 3. Forest Shadow (Accent Theme)
+
 **Perfect for:** High contrast needs, accessibility, dramatic presentation
 
 ```python
@@ -67,6 +73,7 @@ Text Primary: #F0F0F0
 ```
 
 **Visual Characteristics:**
+
 - Maximum contrast for accessibility
 - Bold hunter green glass elements
 - Enhanced silver highlights
@@ -77,11 +84,13 @@ Text Primary: #F0F0F0
 ### Quick Start
 
 1. **Run the Demo:**
+
    ```bash
    python demo_glassmorphic_dashboard.py
    ```
 
 2. **Basic Integration:**
+
    ```python
    from src.ui.styles.glassmorphic_themes import GlassmorphicStyleManager, GlassTheme
    from src.ui.styles.theme_integration import DashboardThemeIntegrator
@@ -95,6 +104,7 @@ Text Primary: #F0F0F0
    ```
 
 3. **Create Glass Components:**
+
    ```python
    # Weather card with adaptive colors
    weather_card = integrator.create_weather_card_from_data(
@@ -118,6 +128,7 @@ Text Primary: #F0F0F0
 ### Advanced Features
 
 #### Weather-Adaptive Colors
+
 The system automatically adjusts colors based on temperature:
 
 ```python
@@ -130,6 +141,7 @@ Cold (<10°C): Silver-tinted glass (#2A2A2A)
 ```
 
 #### Dynamic Theme Switching
+
 ```python
 # Switch themes programmatically
 style_manager.switch_theme(GlassTheme.SILVER_MIST)
@@ -152,6 +164,7 @@ integrator.apply_adaptive_weather_theme(temperature=25, condition='Sunny')
 ### Usage Examples
 
 #### Creating a Weather Card
+
 ```python
 weather_card = WeatherGlassCard(
     parent,
@@ -161,6 +174,7 @@ weather_card = WeatherGlassCard(
 ```
 
 #### Creating Action Buttons
+
 ```python
 # Primary action button (hunter green)
 action_btn = GlassButton(
@@ -180,6 +194,7 @@ secondary_btn = GlassButton(
 ```
 
 #### Creating Elevated Panels
+
 ```python
 forecast_panel = GlassPanel(
     parent,
@@ -192,6 +207,7 @@ forecast_panel = GlassPanel(
 ## 🎨 Color Specifications
 
 ### Hunter Green Palette
+
 ```css
 Primary: #355E3B
 Light: #4A7C59
@@ -201,6 +217,7 @@ Focus: #6AB77A
 ```
 
 ### Silver Palette
+
 ```css
 Primary: #C0C0C0
 Light: #E5E5E5
@@ -209,6 +226,7 @@ Bright: #F0F0F0
 ```
 
 ### Glass Effect Simulation
+
 ```css
 /* Approximated glass backgrounds for Tkinter */
 Glass Primary: rgba(20, 40, 30, 0.15) → #1a2820
@@ -219,16 +237,19 @@ Glass Accent: rgba(192, 192, 192, 0.08) → #1f1f1f
 ## 🔍 Accessibility Features
 
 ### Contrast Ratios
+
 - **Text on Glass:** Minimum 4.5:1 contrast ratio
 - **Interactive Elements:** Minimum 3:1 contrast ratio
 - **Focus Indicators:** High contrast borders and backgrounds
 
 ### Color Blind Support
+
 - Hunter green and silver provide sufficient contrast
 - Temperature-based adaptations use multiple visual cues
 - Text labels accompany all color-coded information
 
 ### Keyboard Navigation
+
 - All interactive elements support keyboard focus
 - Focus indicators use high-contrast borders
 - Tab order follows logical visual hierarchy
@@ -236,12 +257,14 @@ Glass Accent: rgba(192, 192, 192, 0.08) → #1f1f1f
 ## 🚀 Performance Considerations
 
 ### Optimization Techniques
+
 1. **Color Caching:** Pre-calculated color blends stored in memory
 2. **Lazy Loading:** Theme resources loaded only when needed
 3. **Efficient Updates:** Only modified widgets refresh during theme changes
 4. **Memory Management:** Automatic cleanup of unused theme resources
 
 ### Best Practices
+
 ```python
 # Efficient theme switching
 def switch_theme_efficiently(new_theme):
@@ -259,11 +282,13 @@ def apply_weather_theme_cached(temperature):
 ## 📱 Responsive Design
 
 ### Adaptive Layouts
+
 - Glass panels automatically adjust opacity based on content density
 - Text sizes scale with window dimensions
 - Interactive elements maintain minimum touch targets
 
 ### Multi-DPI Support
+
 - Vector-based design elements scale cleanly
 - Font sizes adjust for high-DPI displays
 - Border and spacing calculations use relative units
@@ -271,6 +296,7 @@ def apply_weather_theme_cached(temperature):
 ## 🔧 Customization Guide
 
 ### Creating Custom Themes
+
 ```python
 # Define custom color palette
 custom_palette = ColorPalette(
@@ -285,6 +311,7 @@ style_manager._palettes[GlassTheme.CUSTOM] = custom_palette
 ```
 
 ### Extending Glass Components
+
 ```python
 class CustomGlassWidget(GlassWidget):
     def __init__(self, parent, style_manager):
@@ -304,18 +331,21 @@ class CustomGlassWidget(GlassWidget):
 ### Common Issues
 
 1. **Colors not updating after theme switch:**
+
    ```python
    # Solution: Ensure refresh is called
    integrator.refresh_all_widgets()
    ```
 
 2. **Glass effect not visible:**
+
    ```python
    # Solution: Check background color contrast
    # Ensure sufficient difference between background and glass colors
    ```
 
 3. **Performance issues with many widgets:**
+
    ```python
    # Solution: Use batch updates
    with style_manager.batch_update():
@@ -323,6 +353,7 @@ class CustomGlassWidget(GlassWidget):
    ```
 
 ### Debug Mode
+
 ```python
 # Enable debug logging
 style_manager.debug_mode = True
@@ -335,12 +366,14 @@ print(f"Applied widgets: {len(integrator._applied_widgets)}")
 ## 📚 API Reference
 
 ### Core Classes
+
 - `GlassmorphicStyleManager`: Main theme management
 - `DashboardThemeIntegrator`: Widget integration utilities
 - `ColorPalette`: Color scheme definitions
 - `GlassWidget`: Base widget class
 
 ### Key Methods
+
 - `switch_theme(theme)`: Change active theme
 - `get_weather_adapted_colors(temp)`: Get temperature-based colors
 - `apply_theme_to_window(window)`: Apply theme to root window
@@ -349,6 +382,7 @@ print(f"Applied widgets: {len(integrator._applied_widgets)}")
 ## 🎉 Examples and Demos
 
 ### Running Examples
+
 ```bash
 # Main glassmorphic dashboard demo
 python demo_glassmorphic_dashboard.py
@@ -359,7 +393,9 @@ python -m src.ui.styles.theme_integration
 ```
 
 ### Integration with Existing Code
+
 See `theme_integration.py` for examples of:
+
 - Converting existing Tkinter widgets to glass components
 - Applying themes to existing applications
 - Creating new glassmorphic interfaces

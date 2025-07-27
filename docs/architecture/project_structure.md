@@ -27,6 +27,7 @@ weather_dashboard_E_Hunter_Petross/
 │   └── 📄 Week13_Reflection.md  # Latest progress reflection
 ├── 📁 src/                      # Source code directory
 │   ├── 📄 __init__.py
+│   ├── 📄 app_gui.py            # Main GUI application controller
 │   ├── 📁 ui/                   # User interface layer (refactored architecture)
 │   │   ├── 📄 __init__.py
 │   │   ├── 📄 gui_interface.py  # Main GUI orchestrator (649 lines, 82% reduction)
@@ -116,12 +117,14 @@ weather_dashboard_E_Hunter_Petross/
 Transformed a monolithic GUI file into a modular, enterprise-level architecture:
 
 #### **Before Refactoring**
+
 - Single `gui_interface.py`: **3,592 lines**
 - Multiple responsibilities in one file
 - Difficult to maintain and test
 - Poor code reusability
 
 #### **After Refactoring**
+
 - Main `gui_interface.py`: **649 lines** (82% reduction)
 - **15+ specialized components** extracted
 - Clear separation of concerns
@@ -130,15 +133,19 @@ Transformed a monolithic GUI file into a modular, enterprise-level architecture:
 ### 🧩 **New Component Architecture**
 
 #### **Styles Layer** (`src/ui/styles/`)
+
 - `glassmorphic.py` - Comprehensive design system with color schemes, fonts, and styling utilities
 
 #### **Widgets Layer** (`src/ui/widgets/`)
+
 - `modern_button.py` - Custom button components with glassmorphic styling and animations
 
 #### **Animations Layer** (`src/ui/animations/`)
+
 - `effects.py` - Animation helper utilities for fade, pulse, glow, and transition effects
 
 #### **Components Layer** (`src/ui/components/`)
+
 - `weather_icons.py` - Weather icon management with Unicode characters
 - `weather_card.py` - Comprehensive weather display component
 - `search_panel.py` - City search interface with autocomplete
@@ -240,4 +247,5 @@ The project is now clean, focused, and ready for professional use or demonstrati
 
 ## Resources & Attribution
 
-For a complete list of development tools, libraries, and learning resources used in this project, please refer to the [Works Cited section](README.md#works-cited) in the documentation index.
+For a complete list of development tools, libraries, and learning resources used in this project,
+please refer to the [Works Cited section](README.md#works-cited) in the documentation index.

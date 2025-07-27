@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Weather Dashboard implements Clean Architecture principles with clear separation of concerns, providing a maintainable and extensible codebase for a modern TKinter GUI application with comprehensive weather features.
+The Weather Dashboard implements Clean Architecture principles with clear separation of concerns,
+providing a maintainable and extensible codebase for a modern TKinter GUI application with
+comprehensive weather features.
 
 ## Architecture Principles
 
@@ -19,6 +21,7 @@ The Weather Dashboard implements Clean Architecture principles with clear separa
 weather_dashboard_E_Hunter_Petross/
 ├── src/                          # Source code with clean architecture
 │   ├── __init__.py              # Main package initialization
+│   ├── app_gui.py               # Main GUI application controller
 │   ├── config/                  # Configuration management
 │   │   ├── __init__.py
 │   │   └── config.py           # Environment-based configuration
@@ -142,8 +145,8 @@ weather_dashboard_E_Hunter_Petross/
 - `src/ui/animations/`: Animation effects and transitions
 - `src/ui/components/`: Specialized UI components (weather cards, search panels, headers)
 - `src/ui/dialogs/`: Dialog windows and modal interfaces
-- `src/presentation/gui_app.py`: Clean architecture GUI application with dependency injection
-- `main.py`: Application entry point with clean architecture factory pattern
+- `src/app_gui.py`: GUI application controller/orchestrator
+- `main.py`: Application entry point with GUI launcher
 
 ## Key Features Implemented
 
@@ -204,15 +207,18 @@ weather_dashboard_E_Hunter_Petross/
 
 ### **Major Refactoring Achievement**
 
-The UI layer underwent a comprehensive refactoring that transformed a monolithic GUI file into a modular, enterprise-level architecture:
+The UI layer underwent a comprehensive refactoring that transformed a monolithic GUI file
+into a modular, enterprise-level architecture:
 
 #### **Before Refactoring**
+
 - Single `gui_interface.py` file: **3,592 lines**
 - Multiple responsibilities in one file
 - Difficult to maintain and test
 - Poor code reusability
 
 #### **After Refactoring**
+
 - Main `gui_interface.py` file: **649 lines** (82% reduction)
 - **15+ specialized components** extracted into dedicated modules
 - Clear separation of concerns
@@ -221,18 +227,22 @@ The UI layer underwent a comprehensive refactoring that transformed a monolithic
 ### **New UI Component Architecture**
 
 #### **Styles Layer** (`src/ui/styles/`)
+
 - `glassmorphic.py`: Comprehensive design system with color schemes, fonts, and styling utilities
 - Centralized theme management and visual consistency
 
 #### **Widgets Layer** (`src/ui/widgets/`)
+
 - `modern_button.py`: Custom button components with glassmorphic styling and animations
 - Reusable UI controls with consistent behavior
 
 #### **Animations Layer** (`src/ui/animations/`)
+
 - `effects.py`: Animation helper utilities for fade, pulse, glow, and transition effects
 - Centralized animation management
 
 #### **Components Layer** (`src/ui/components/`)
+
 - `weather_icons.py`: Weather icon management with Unicode characters and smart selection
 - `weather_card.py`: Comprehensive weather display component with animations
 - `search_panel.py`: City search interface with autocomplete and favorites
@@ -243,21 +253,25 @@ The UI layer underwent a comprehensive refactoring that transformed a monolithic
 ### **Architecture Benefits Achieved**
 
 #### **Single Responsibility Principle**
+
 - Each component has one clear purpose
 - Easy to understand and modify individual components
 - Simplified debugging and testing
 
 #### **Dependency Injection**
+
 - Components receive dependencies through constructors
 - Easy mocking and testing
 - Loose coupling between components
 
 #### **Event-Driven Architecture**
+
 - Components communicate through events
 - Decoupled component interactions
 - Flexible component composition
 
 #### **Type Safety**
+
 - Comprehensive type hints throughout
 - Better IDE support and error detection
 - Improved code reliability
@@ -337,8 +351,11 @@ The clean architecture makes it easy to add:
 - Export functionality for journal data
 - Weather widget integration
 
-This implementation provides a solid foundation for a professional weather dashboard application that can grow and evolve while maintaining clean code principles.
+This implementation provides a solid foundation for a professional weather dashboard application
+that can grow and evolve while maintaining clean code principles.
 
 ## Resources & Attribution
 
-For a complete list of tools, libraries, frameworks, and learning resources used in developing this architecture, please refer to the [Works Cited section](README.md#works-cited) in the documentation index.
+For a complete list of tools, libraries, frameworks, and learning resources used in developing
+this architecture, please refer to the [Works Cited section](README.md#works-cited) in the
+documentation index.
