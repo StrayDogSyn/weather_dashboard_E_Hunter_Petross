@@ -18,7 +18,7 @@ LocationData = Location
 
 
 class IWeatherAPI(ABC):
-    """Interface for weather API services."""
+    """Interface for weather API services (synchronous)."""
 
     @abstractmethod
     def get_current_weather(
@@ -90,6 +90,92 @@ class IWeatherAPI(ABC):
     ) -> Optional[ForecastData]:
         """
         Get weather forecast for specific coordinates.
+
+        Args:
+            latitude: Latitude coordinate
+            longitude: Longitude coordinate
+            days: Number of days for forecast
+            units: Temperature units
+
+        Returns:
+            ForecastData or None if error
+        """
+        pass
+
+
+class IAsyncWeatherAPI(ABC):
+    """Interface for async weather API services."""
+
+    @abstractmethod
+    async def get_current_weather(
+        self, city: str, units: str = "metric"
+    ) -> Optional[WeatherData]:
+        """
+        Get current weather for a city asynchronously.
+
+        Args:
+            city: City name
+            units: Temperature units (metric, imperial, standard)
+
+        Returns:
+            WeatherData or None if error
+        """
+        pass
+
+    @abstractmethod
+    async def get_forecast(
+        self, city: str, days: int = 5, units: str = "metric"
+    ) -> Optional[ForecastData]:
+        """
+        Get weather forecast for a city asynchronously.
+
+        Args:
+            city: City name
+            days: Number of days for forecast
+            units: Temperature units
+
+        Returns:
+            ForecastData or None if error
+        """
+        pass
+
+    @abstractmethod
+    async def search_locations(self, query: str, limit: int = 5) -> List[LocationData]:
+        """
+        Search for locations by name asynchronously.
+
+        Args:
+            query: Search query
+            limit: Maximum number of results
+
+        Returns:
+            List of LocationData
+        """
+        pass
+
+    @abstractmethod
+    async def get_current_weather_by_coordinates(
+        self, latitude: float, longitude: float, units: str = "metric"
+    ) -> Optional[WeatherData]:
+        """
+        Get current weather for specific coordinates asynchronously.
+
+        Args:
+            latitude: Latitude coordinate
+            longitude: Longitude coordinate
+            units: Temperature units (metric, imperial, standard)
+
+        Returns:
+            WeatherData or None if error
+        """
+        pass
+
+    @abstractmethod
+    async def get_forecast_by_coordinates(
+        self, latitude: float, longitude: float, days: int = 5, units: str = "metric"
+    ) -> Optional[ForecastData]:
+        """
+        Get weather forecast for specific coordinates asynchronously.
 
         Args:
             latitude: Latitude coordinate
