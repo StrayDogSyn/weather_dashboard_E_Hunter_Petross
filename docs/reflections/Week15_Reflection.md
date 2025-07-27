@@ -14,14 +14,14 @@
 - **Status:** Fully implemented
 - **Description:** Users can select any two cities to compare real-time weather data, including temperature, humidity, wind speed, and visual charts. Data is dynamically loaded from the capstone team repository for accuracy and collaboration.
 - **Screenshot:**
-  - ![City Comparison Screenshot](../data/screenshots/Compare_Cities.png)
+  - ![City Comparison Screenshot](../../../data/screenshots/Compare_Cities.png)
 
 ### Feature 3: Weather Journal
 
 - **Status:** Fully implemented
 - **Description:** Users can log daily weather and mood entries, review their history, and export journal data for further analysis or sharing. The journal supports both text and visual summaries.
 - **Screenshot:**
-  - ![Weather Journal Screenshot](../data/screenshots/Journal.png)
+  - ![Weather Journal Screenshot](../../../data/screenshots/Journal.png)
 
 ## Personal Enhancement Progress
 
@@ -34,7 +34,7 @@
   - Privacy-focused voice processing with on-device operation
   - Comprehensive configuration validation and security auditing
   - Enhanced weather poetry generation with multiple styles
-  - ![Poetry Generator Screenshot](../data/screenshots/Poetry_Feature.png)
+  - ![Poetry Generator Screenshot](../../../data/screenshots/Poetry_Feature.png)
 
 ## Status Update
 
