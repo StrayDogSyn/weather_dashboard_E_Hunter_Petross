@@ -7,11 +7,14 @@ animations, and detailed weather information presentation.
 import tkinter as tk
 from datetime import datetime
 from tkinter import ttk
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from ...models.weather_models import WeatherData
 from ..animations.effects import AnimationHelper
-from ..styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
+from ..styles.glassmorphic import GlassmorphicFrame
+from ..styles.glassmorphic import GlassmorphicStyle
 from .responsive_layout import ResponsiveSpacing
 from .weather_icons import WeatherIcons
 

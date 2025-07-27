@@ -15,12 +15,21 @@ import os
 import sys
 import threading
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
-from ..business.interfaces import ICacheService, ICortanaVoiceService, IStorageService
+from ..business.interfaces import ICacheService
+from ..business.interfaces import ICortanaVoiceService
+from ..business.interfaces import IStorageService
 from ..interfaces.weather_interfaces import IWeatherAPI
-from ..models.weather_models import CurrentWeather, WeatherForecast
-from .voice_command_processor import CommandResponse, VoiceCommandProcessor
+from ..models.weather_models import CurrentWeather
+from ..models.weather_models import WeatherForecast
+from .voice_command_processor import CommandResponse
+from .voice_command_processor import VoiceCommandProcessor
 
 # Add configs directory to path for importing ConfigManager
 sys.path.append(str(Path(__file__).parent.parent.parent / "configs" / "cortana"))

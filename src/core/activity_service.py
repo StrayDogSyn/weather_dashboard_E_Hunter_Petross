@@ -5,15 +5,17 @@ This service provides activity suggestions based on current weather conditions.
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Tuple
 
-from ..models.capstone_models import (
-    Activity,
-    ActivityFactory,
-    ActivitySuggestion,
-    ActivityType,
-)
-from ..models.weather_models import CurrentWeather, WeatherCondition
+from ..models.capstone_models import Activity
+from ..models.capstone_models import ActivityFactory
+from ..models.capstone_models import ActivitySuggestion
+from ..models.capstone_models import ActivityType
+from ..models.weather_models import CurrentWeather
+from ..models.weather_models import WeatherCondition
 
 
 class ActivitySuggestionService:

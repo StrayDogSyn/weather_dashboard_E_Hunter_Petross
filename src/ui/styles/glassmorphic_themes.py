@@ -9,11 +9,14 @@ Author: Cortana Builder Assistant
 Compatible with: Bot Framework, Azure Cognitive Services
 """
 
-import tkinter as tk
-from typing import Dict, Any, Optional, Tuple
-from enum import Enum
-from dataclasses import dataclass
 import colorsys
+import tkinter as tk
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Tuple
 
 
 class GlassTheme(Enum):

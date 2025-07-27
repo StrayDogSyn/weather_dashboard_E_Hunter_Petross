@@ -14,7 +14,8 @@
       "Bash(powershell:*)",
       "Bash(mkdir:*)",
       "Bash(mv:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

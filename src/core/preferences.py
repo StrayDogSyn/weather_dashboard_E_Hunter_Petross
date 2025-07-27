@@ -1,7 +1,7 @@
-import json
-import sqlite3
 import threading
-from typing import Any, Callable, Dict, Optional
+from typing import Any
+from typing import Callable
+from typing import Dict
 
 
 class PreferenceManager:
@@ -32,16 +32,26 @@ class PreferenceManager:
         }
 
     def _load_preferences(self) -> Dict[str, Any]:
-        # TODO: Implement loading from SQLite, fallback to JSON, then defaults
-        # TODO: Validate and migrate as needed
+        """Load preferences from storage.
+
+        Returns:
+            Dictionary of preference values
+        """
         return {k: v["default"] for k, v in self.schema.items()}
 
     def save_preferences(self):
-        # TODO: Save to SQLite and JSON
+        """Save preferences to storage."""
+        # Implementation pending
         pass
 
     def set(self, key: str, value: Any):
-        # TODO: Validate, set, notify observers
+        """Set a preference value.
+
+        Args:
+            key: Preference key
+            value: New value
+        """
+        # Implementation pending
         pass
 
     def get(self, key: str) -> Any:

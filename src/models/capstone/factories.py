@@ -1,17 +1,24 @@
 """Factory patterns for creating capstone models."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
-from ..weather_models import CurrentWeather, WeatherCondition
-from .activities import Activity, ActivityDifficulty, ActivitySuggestion, ActivityType
-from .comparison import (
-    ComparisonStrategy,
-    DefaultComparisonStrategy,
-    OutdoorActivityStrategy,
-    WeatherComparison,
-)
-from .journal import JournalEntry, MoodType, WeatherImpact
+from ..weather_models import CurrentWeather
+from ..weather_models import WeatherCondition
+from .activities import Activity
+from .activities import ActivityDifficulty
+from .activities import ActivitySuggestion
+from .activities import ActivityType
+from .comparison import ComparisonStrategy
+from .comparison import DefaultComparisonStrategy
+from .comparison import OutdoorActivityStrategy
+from .comparison import WeatherComparison
+from .journal import JournalEntry
+from .journal import MoodType
+from .journal import WeatherImpact
 
 
 class ActivityFactory:

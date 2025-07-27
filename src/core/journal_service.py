@@ -4,14 +4,17 @@ Weather Journal Service for Weather Dashboard.
 This service provides functionality to create and manage weather journal entries.
 """
 
-import json
 import logging
-import os
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional
+from datetime import date
+from datetime import datetime
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from ..interfaces.weather_interfaces import IDataStorage
-from ..models.capstone_models import JournalEntry, MoodType
+from ..models.capstone_models import JournalEntry
+from ..models.capstone_models import MoodType
 from ..models.weather_models import CurrentWeather
 
 

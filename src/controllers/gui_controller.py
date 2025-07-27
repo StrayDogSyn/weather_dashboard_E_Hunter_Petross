@@ -10,7 +10,9 @@ import os
 import threading
 from typing import Optional
 
-from src.config.config import config_manager, setup_environment, validate_config
+from src.config.config import config_manager
+from src.config.config import setup_environment
+from src.config.config import validate_config
 from src.core.activity_service import ActivitySuggestionService
 from src.core.enhanced_comparison_service import EnhancedCityComparisonService
 from src.core.journal_service import WeatherJournalService

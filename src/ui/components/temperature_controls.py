@@ -7,13 +7,20 @@ and temperature-related utilities with glassmorphic styling.
 import tkinter as tk
 from enum import Enum
 from tkinter import ttk
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from ..animations.effects import AnimationHelper
-from ..styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
+from ..styles.glassmorphic import GlassmorphicFrame
+from ..styles.glassmorphic import GlassmorphicStyle
 from ..widgets.enhanced_button import ButtonFactory
-from ..widgets.modern_button import IconButton, ModernButton
-from .responsive_layout import ResponsiveLayoutManager, ResponsiveSpacing
+from ..widgets.modern_button import IconButton
+from ..widgets.modern_button import ModernButton
+from .responsive_layout import ResponsiveLayoutManager
+from .responsive_layout import ResponsiveSpacing
 
 
 class TemperatureUnit(Enum):

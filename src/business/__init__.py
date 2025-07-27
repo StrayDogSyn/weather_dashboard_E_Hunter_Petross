@@ -4,26 +4,16 @@ This package contains all business logic, domain models, and service interfaces
 following Domain-Driven Design (DDD) principles and clean architecture.
 """
 
-from .interfaces import (
-    IActivitySuggestionService,
-    ICacheService,
-    ICityComparisonService,
-    ICortanaVoiceService,
-    IStorageService,
-    IWeatherJournalService,
-    IWeatherPoetryService,
-    IWeatherService,
-)
+from .interfaces import IActivitySuggestionService
+from .interfaces import ICacheService
+from .interfaces import ICityComparisonService
+from .interfaces import ICortanaVoiceService
+from .interfaces import IStorageService
+from .interfaces import IWeatherJournalService
+from .interfaces import IWeatherPoetryService
+from .interfaces import IWeatherService
 
 # Service implementations are in the core package
-# from .services import (
-#     ActivitySuggestionService,
-#     CityComparisonService,
-#     CortanaVoiceService,
-#     WeatherJournalService,
-#     WeatherPoetryService,
-#     WeatherService,
-# )
 
 __all__ = [
     # Interfaces

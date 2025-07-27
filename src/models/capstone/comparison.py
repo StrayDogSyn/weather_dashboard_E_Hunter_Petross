@@ -2,14 +2,23 @@
 
 import json
 import logging
-from abc import ABC, abstractmethod
-from dataclasses import asdict, dataclass, field
+from abc import ABC
+from abc import abstractmethod
+from dataclasses import asdict
+from dataclasses import dataclass
+from dataclasses import field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
-from uuid import UUID, uuid4
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from uuid import UUID
+from uuid import uuid4
 
 from ..weather_models import CurrentWeather
-from .base import AIEnhancedModel, ModelProtocol
+from .base import AIEnhancedModel
+from .base import ModelProtocol
 
 
 class ComparisonStrategy(ABC):

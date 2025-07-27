@@ -6,7 +6,8 @@ This module contains reusable UI components for the weather dashboard applicatio
 from .header import ApplicationHeader
 from .main_dashboard import MainDashboard
 from .search_panel import SearchPanel
-from .temperature_controls import TemperatureControls, TemperatureUnit
+from .temperature_controls import TemperatureControls
+from .temperature_controls import TemperatureUnit
 from .weather_card import WeatherCard
 from .weather_icons import WeatherIcons
 

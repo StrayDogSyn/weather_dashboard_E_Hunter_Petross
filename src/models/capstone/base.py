@@ -2,10 +2,15 @@
 
 import json
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
+from abc import abstractmethod
 from dataclasses import asdict
 from enum import Enum
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Protocol
 from uuid import UUID
 
 import google.generativeai as genai

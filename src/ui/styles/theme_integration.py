@@ -11,15 +11,18 @@ Compatible with: Bot Framework, Azure Cognitive Services
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Dict, Any, Optional, List, Union
-from .glassmorphic_themes import (
-    GlassmorphicStyleManager,
-    GlassTheme,
-    GlassWidget,
-    WeatherGlassCard,
-    GlassButton,
-    GlassPanel,
-)
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+
+from .glassmorphic_themes import GlassButton
+from .glassmorphic_themes import GlassmorphicStyleManager
+from .glassmorphic_themes import GlassPanel
+from .glassmorphic_themes import GlassTheme
+from .glassmorphic_themes import GlassWidget
+from .glassmorphic_themes import WeatherGlassCard
 
 
 class DashboardThemeIntegrator:

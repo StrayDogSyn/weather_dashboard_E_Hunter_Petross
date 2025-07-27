@@ -11,7 +11,8 @@ from tkinter import messagebox
 
 import ttkbootstrap as ttk_bs
 
-from .components import BootstrapButton, BootstrapFrame
+from .components import BootstrapButton
+from .components import BootstrapFrame
 from .styles.glassmorphic import GlassmorphicFrame
 from .styling import GlassmorphicStyle
 

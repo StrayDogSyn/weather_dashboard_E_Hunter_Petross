@@ -1,13 +1,22 @@
 """Activity suggestion models and enums."""
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict
+from dataclasses import dataclass
+from dataclasses import field
 from datetime import datetime
 from enum import auto
-from typing import Any, Dict, List, Optional, Tuple
-from uuid import UUID, uuid4
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from uuid import UUID
+from uuid import uuid4
 
-from .base import AIEnhancedModel, ExtensibleEnum, ModelProtocol
+from .base import AIEnhancedModel
+from .base import ExtensibleEnum
+from .base import ModelProtocol
 
 
 class ActivityType(ExtensibleEnum):

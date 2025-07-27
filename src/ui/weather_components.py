@@ -11,7 +11,9 @@ from typing import Optional
 from src.models.weather_models import CurrentWeather
 
 from .styles.glassmorphic import GlassmorphicFrame
-from .styling import AnimationHelper, GlassmorphicStyle, WeatherIcons
+from .styling import AnimationHelper
+from .styling import GlassmorphicStyle
+from .styling import WeatherIcons
 
 
 class WeatherCard(GlassmorphicFrame):

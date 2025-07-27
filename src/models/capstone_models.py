@@ -5,7 +5,7 @@ This module provides backward compatibility imports from the new modular structu
 The models have been split into domain-specific modules for better maintainability:
 
 - base: Core interfaces and AI-enhanced models
-- comparison: Weather comparison models and strategies  
+- comparison: Weather comparison models and strategies
 - journal: Weather journaling and mood tracking
 - activities: Activity suggestions and management
 - poetry: Weather poetry generation
@@ -18,24 +18,29 @@ For new code, import directly from the specific modules in the capstone package.
 from .capstone import *
 
 # Explicit imports to maintain the same interface
-from .capstone.activities import (
-    Activity,
-    ActivityDifficulty,
-    ActivityRequirements,
-    ActivitySuggestion,
-    ActivityType,
-    SeasonalPreference,
-)
-from .capstone.base import AIEnhancedModel, ExtensibleEnum, ModelProtocol
-from .capstone.comparison import (
-    ComparisonStrategy,
-    DefaultComparisonStrategy,
-    OutdoorActivityStrategy,
-    WeatherComparison,
-)
-from .capstone.factories import ActivityFactory, WeatherComparisonBuilder
-from .capstone.journal import JournalEntry, MoodType, WeatherImpact, WeatherMoodCorrelation
-from .capstone.poetry import PoemMetadata, PoemType, TemperatureRange, WeatherPoem
+from .capstone.activities import Activity
+from .capstone.activities import ActivityDifficulty
+from .capstone.activities import ActivityRequirements
+from .capstone.activities import ActivitySuggestion
+from .capstone.activities import ActivityType
+from .capstone.activities import SeasonalPreference
+from .capstone.base import AIEnhancedModel
+from .capstone.base import ExtensibleEnum
+from .capstone.base import ModelProtocol
+from .capstone.comparison import ComparisonStrategy
+from .capstone.comparison import DefaultComparisonStrategy
+from .capstone.comparison import OutdoorActivityStrategy
+from .capstone.comparison import WeatherComparison
+from .capstone.factories import ActivityFactory
+from .capstone.factories import WeatherComparisonBuilder
+from .capstone.journal import JournalEntry
+from .capstone.journal import MoodType
+from .capstone.journal import WeatherImpact
+from .capstone.journal import WeatherMoodCorrelation
+from .capstone.poetry import PoemMetadata
+from .capstone.poetry import PoemType
+from .capstone.poetry import TemperatureRange
+from .capstone.poetry import WeatherPoem
 
 # Maintain exact same exports as before
 __all__ = [
@@ -45,7 +50,7 @@ __all__ = [
     "ExtensibleEnum",
     # Enums
     "ActivityType",
-    "MoodType", 
+    "MoodType",
     "WeatherImpact",
     "ActivityDifficulty",
     "SeasonalPreference",
@@ -54,7 +59,7 @@ __all__ = [
     # Models
     "WeatherComparison",
     "WeatherMoodCorrelation",
-    "JournalEntry", 
+    "JournalEntry",
     "Activity",
     "ActivitySuggestion",
     "WeatherPoem",
@@ -62,7 +67,7 @@ __all__ = [
     "ActivityRequirements",
     # Strategies
     "ComparisonStrategy",
-    "DefaultComparisonStrategy", 
+    "DefaultComparisonStrategy",
     "OutdoorActivityStrategy",
     # Factories
     "ActivityFactory",

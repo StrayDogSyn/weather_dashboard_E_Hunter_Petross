@@ -6,7 +6,10 @@ accessibility features, and integration with the responsive layout system.
 
 import tkinter as tk
 from tkinter import ttk
-from typing import Any, Callable, Dict, Optional
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import Optional
 
 from ..components.responsive_layout import ResponsiveSpacing
 from ..styles.glassmorphic import GlassmorphicStyle

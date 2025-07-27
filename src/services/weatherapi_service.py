@@ -6,24 +6,25 @@ This service provides a fallback when the primary OpenWeatherMap API fails.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import requests
 
 from ..config import config_manager
 from ..interfaces.weather_interfaces import IWeatherAPI
-from ..models.weather_models import (
-    AtmosphericPressure,
-    CurrentWeather,
-    Location,
-    Precipitation,
-    Temperature,
-    TemperatureUnit,
-    WeatherCondition,
-    WeatherForecast,
-    WeatherForecastDay,
-    Wind,
-)
+from ..models.weather_models import AtmosphericPressure
+from ..models.weather_models import CurrentWeather
+from ..models.weather_models import Location
+from ..models.weather_models import Precipitation
+from ..models.weather_models import Temperature
+from ..models.weather_models import TemperatureUnit
+from ..models.weather_models import WeatherCondition
+from ..models.weather_models import WeatherForecast
+from ..models.weather_models import WeatherForecastDay
+from ..models.weather_models import Wind
 
 
 class WeatherAPIService(IWeatherAPI):

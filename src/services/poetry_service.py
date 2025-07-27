@@ -9,14 +9,17 @@ import json
 import logging
 import random
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import google.generativeai as genai
 import requests
 
 from ..config import config_manager
 from ..models.capstone_models import WeatherPoem
-from ..models.weather_models import CurrentWeather, WeatherCondition
+from ..models.weather_models import CurrentWeather
+from ..models.weather_models import WeatherCondition
 
 
 class WeatherPoetryService:

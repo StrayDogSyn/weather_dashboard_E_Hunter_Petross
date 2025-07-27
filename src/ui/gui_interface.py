@@ -15,41 +15,48 @@ import logging
 import threading
 import tkinter as tk
 from datetime import datetime
-from tkinter import messagebox, simpledialog, ttk
-from typing import Any, Callable, Dict, List, Optional
+from tkinter import messagebox
+from tkinter import simpledialog
+from tkinter import ttk
+from typing import Any
+from typing import Callable
+from typing import Dict
+from typing import List
+from typing import Optional
 
 import ttkbootstrap as ttk_bs
-from ttkbootstrap.constants import DANGER, DARK, INFO, LIGHT, PRIMARY, SECONDARY
+from ttkbootstrap.constants import DANGER
+from ttkbootstrap.constants import DARK
+from ttkbootstrap.constants import INFO
+from ttkbootstrap.constants import LIGHT
+from ttkbootstrap.constants import PRIMARY
+from ttkbootstrap.constants import SECONDARY
 
 from src.config.config import config_manager
 from src.interfaces.weather_interfaces import IUserInterface
-from src.models.capstone_models import (
-    ActivitySuggestion,
-    JournalEntry,
-    MoodType,
-    WeatherComparison,
-    WeatherPoem,
-)
-from src.models.weather_models import (
-    CurrentWeather,
-    FavoriteCity,
-    Location,
-    WeatherForecast,
-)
-from src.services.sound_service import (
-    SoundType,
-    get_sound_service,
-    play_sound,
-    play_weather_sound,
-)
+from src.models.capstone_models import ActivitySuggestion
+from src.models.capstone_models import JournalEntry
+from src.models.capstone_models import MoodType
+from src.models.capstone_models import WeatherComparison
+from src.models.capstone_models import WeatherPoem
+from src.models.weather_models import CurrentWeather
+from src.models.weather_models import FavoriteCity
+from src.models.weather_models import Location
+from src.models.weather_models import WeatherForecast
+from src.services.sound_service import SoundType
+from src.services.sound_service import get_sound_service
+from src.services.sound_service import play_sound
+from src.services.sound_service import play_weather_sound
 
 from .animations.effects import AnimationHelper
 from .components import ModernEntry
 from .components.header import ApplicationHeader
 from .components.main_dashboard import MainDashboard
-from .components.responsive_layout import ResponsiveLayoutManager, ResponsiveSpacing
+from .components.responsive_layout import ResponsiveLayoutManager
+from .components.responsive_layout import ResponsiveSpacing
 from .components.search_panel import SearchPanel
-from .components.temperature_controls import TemperatureControls, TemperatureUnit
+from .components.temperature_controls import TemperatureControls
+from .components.temperature_controls import TemperatureUnit
 from .components.weather_card import WeatherCard
 from .components.weather_icons import WeatherIcons
 
@@ -57,18 +64,18 @@ from .components.weather_icons import WeatherIcons
 from .dashboard import WeatherDashboard
 
 # Import refactored components
-from .styles.glassmorphic import GlassmorphicFrame, GlassmorphicStyle
-from .styles.glassmorphic_themes import (
-    GlassmorphicStyleManager,
-    GlassTheme,
-    GlassWidget,
-    WeatherGlassCard,
-    GlassButton,
-    GlassPanel,
-)
+from .styles.glassmorphic import GlassmorphicFrame
+from .styles.glassmorphic import GlassmorphicStyle
+from .styles.glassmorphic_themes import GlassButton
+from .styles.glassmorphic_themes import GlassmorphicStyleManager
+from .styles.glassmorphic_themes import GlassPanel
+from .styles.glassmorphic_themes import GlassTheme
+from .styles.glassmorphic_themes import GlassWidget
+from .styles.glassmorphic_themes import WeatherGlassCard
 from .styles.theme_integration import DashboardThemeIntegrator
 from .widgets.enhanced_button import ButtonFactory
-from .widgets.modern_button import IconButton, ModernButton
+from .widgets.modern_button import IconButton
+from .widgets.modern_button import ModernButton
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -112,10 +119,10 @@ class WeatherDashboardGUI(IUserInterface):
         # Initialize glassmorphic theme system
         self.theme_manager = GlassmorphicStyleManager(GlassTheme.MIDNIGHT_FOREST)
         self.theme_integrator = DashboardThemeIntegrator(self.theme_manager)
-        
+
         # Apply theme to main window
         self.theme_integrator.apply_theme_to_window(self.root)
-        
+
         # Initialize responsive layout manager after root window is created
         self.responsive_layout = ResponsiveLayoutManager(self.root)
 
@@ -246,10 +253,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create main content area with glassmorphic panel
         main_content = GlassPanel(
-            self.root, 
-            self.theme_manager, 
-            panel_type="default", 
-            elevated=True
+            self.root, self.theme_manager, panel_type="default", elevated=True
         )
         main_content.grid(
             row=1,
@@ -300,7 +304,7 @@ class WeatherDashboardGUI(IUserInterface):
 
         # Create theme selector
         self.create_theme_selector(main_content)
-        
+
         # Apply entrance animations
         self.animation_helper.slide_in(self.header, direction="down")
         self.animation_helper.fade_in(main_content)
@@ -315,14 +319,12 @@ class WeatherDashboardGUI(IUserInterface):
             self.container = container
 
             # Import interface types
-            from ..business.interfaces import (
-                IActivitySuggestionService,
-                ICityComparisonService,
-                ICortanaVoiceService,
-                IWeatherJournalService,
-                IWeatherPoetryService,
-                IWeatherService,
-            )
+            from ..business.interfaces import IActivitySuggestionService
+            from ..business.interfaces import ICityComparisonService
+            from ..business.interfaces import ICortanaVoiceService
+            from ..business.interfaces import IWeatherJournalService
+            from ..business.interfaces import IWeatherPoetryService
+            from ..business.interfaces import IWeatherService
 
             # Inject services
             self.weather_service = container.get_service(IWeatherService)
@@ -373,77 +375,72 @@ class WeatherDashboardGUI(IUserInterface):
         try:
             # Create theme control panel
             theme_panel = GlassPanel(
-                parent, 
-                self.theme_manager, 
-                panel_type="accent", 
-                elevated=False
+                parent, self.theme_manager, panel_type="accent", elevated=False
             )
-            theme_panel.grid(
-                row=0, 
-                column=2, 
-                sticky="ns", 
-                padx=10, 
-                pady=10
-            )
-            
+            theme_panel.grid(row=0, column=2, sticky="ns", padx=10, pady=10)
+
             # Theme selector title
             title_label = tk.Label(
                 theme_panel,
                 text="🎨 Themes",
                 font=("Segoe UI", 12, "bold"),
-                **GlassWidget(self.theme_manager).get_glass_label_config("accent")
+                **GlassWidget(self.theme_manager).get_glass_label_config("accent"),
             )
             title_label.pack(pady=(15, 10))
-            
+
             # Theme buttons
             themes = [
                 (GlassTheme.MIDNIGHT_FOREST, "🌲 Midnight Forest"),
                 (GlassTheme.SILVER_MIST, "🌫️ Silver Mist"),
-                (GlassTheme.FOREST_SHADOW, "🌑 Forest Shadow")
+                (GlassTheme.FOREST_SHADOW, "🌑 Forest Shadow"),
             ]
-            
+
             for theme, display_name in themes:
                 btn = GlassButton(
                     theme_panel,
                     self.theme_manager,
                     text=display_name,
                     command=lambda t=theme: self.switch_theme(t),
-                    style="accent" if theme == self.theme_manager.current_theme else "default"
+                    style=(
+                        "accent"
+                        if theme == self.theme_manager.current_theme
+                        else "default"
+                    ),
                 )
                 btn.pack(fill=tk.X, padx=10, pady=2)
-                
+
         except Exception as e:
             self.logger.error(f"Failed to create theme selector: {e}")
-    
+
     def switch_theme(self, theme: GlassTheme) -> None:
         """Switch to a different glassmorphic theme."""
         try:
             self.theme_manager.switch_theme(theme)
             self.theme_integrator = DashboardThemeIntegrator(self.theme_manager)
-            
+
             # Apply new theme to window
             self.theme_integrator.apply_theme_to_window(self.root)
-            
+
             # Refresh UI components with new theme
             self.refresh_theme_ui()
-            
+
             self.logger.info(f"Switched to theme: {theme.value}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to switch theme: {e}")
-    
+
     def refresh_theme_ui(self) -> None:
         """Refresh UI components with current theme."""
         try:
             # This would typically recreate UI components with new theme
             # For now, we'll just update the palette reference
             palette = self.theme_manager.get_current_palette()
-            
+
             # Update root window background
             self.root.configure(bg=palette.background)
-            
+
             self.logger.info("UI theme refreshed")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to refresh theme UI: {e}")
 
@@ -512,26 +509,28 @@ class WeatherDashboardGUI(IUserInterface):
             target=self._search_weather_thread, args=(city,), daemon=True
         )
         search_thread.start()
-    
+
     def create_glassmorphic_weather_card(self, weather_data) -> None:
         """Create a glassmorphic weather card from weather data."""
         try:
             # Convert weather data to dictionary format for the card
-            location = getattr(weather_data, 'location', None)
-            city_name = location.name if location else 'Unknown'
-            
+            location = getattr(weather_data, "location", None)
+            city_name = location.name if location else "Unknown"
+
             weather_dict = {
                 "city": city_name,
-                "temperature": getattr(weather_data, 'temperature', 0),
-                "condition": getattr(weather_data, 'condition', 'Unknown'),
-                "humidity": getattr(weather_data, 'humidity', 0),
-                "wind_speed": getattr(weather_data, 'wind_speed', 0)
+                "temperature": getattr(weather_data, "temperature", 0),
+                "condition": getattr(weather_data, "condition", "Unknown"),
+                "humidity": getattr(weather_data, "humidity", 0),
+                "wind_speed": getattr(weather_data, "wind_speed", 0),
             }
-            
+
             # This would be used to create weather cards in a dedicated display area
             # For now, we'll log the creation
-            self.logger.info(f"Glassmorphic weather card data prepared for {weather_dict['city']}")
-            
+            self.logger.info(
+                f"Glassmorphic weather card data prepared for {weather_dict['city']}"
+            )
+
         except Exception as e:
             self.logger.error(f"Failed to create glassmorphic weather card: {e}")
 
@@ -596,7 +595,7 @@ class WeatherDashboardGUI(IUserInterface):
         # Update main dashboard
         if self.main_dashboard:
             self.main_dashboard.update_weather_data(weather_data)
-        
+
         # Create glassmorphic weather card if we have a display area
         self.create_glassmorphic_weather_card(weather_data)
 

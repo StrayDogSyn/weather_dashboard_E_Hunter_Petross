@@ -15,15 +15,25 @@ Enhancements:
 """
 
 import logging
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from abc import ABC
+from abc import abstractmethod
+from dataclasses import dataclass
+from dataclasses import field
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 from enum import Enum
 from pathlib import Path
 
 # For static type checking and type hints
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
-from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from uuid import UUID
+from uuid import uuid4
 
 if TYPE_CHECKING:
     from sklearn.ensemble import GradientBoostingRegressor as _GradientBoostingRegressor
@@ -43,11 +53,16 @@ import pandas as pd
 
 # ML Libraries
 try:
-    from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+    from sklearn.ensemble import GradientBoostingRegressor
+    from sklearn.ensemble import RandomForestRegressor
     from sklearn.linear_model import LinearRegression
-    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-    from sklearn.model_selection import cross_val_score, train_test_split
-    from sklearn.preprocessing import LabelEncoder, StandardScaler
+    from sklearn.metrics import mean_absolute_error
+    from sklearn.metrics import mean_squared_error
+    from sklearn.metrics import r2_score
+    from sklearn.model_selection import cross_val_score
+    from sklearn.model_selection import train_test_split
+    from sklearn.preprocessing import LabelEncoder
+    from sklearn.preprocessing import StandardScaler
 
     SKLEARN_AVAILABLE = True
 except ImportError:
@@ -1002,7 +1017,9 @@ class WeatherPatternClassifier:
         y_pred = self.model.predict(X_test_scaled)
 
         # Calculate performance metrics
-        from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+        from sklearn.metrics import mean_absolute_error
+        from sklearn.metrics import mean_squared_error
+        from sklearn.metrics import r2_score
 
         mae = mean_absolute_error(y_test_encoded, y_pred)
         mse = mean_squared_error(y_test_encoded, y_pred)

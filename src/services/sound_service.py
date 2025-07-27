@@ -11,7 +11,9 @@ import logging
 import os
 import threading
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 PYGAME_AVAILABLE = importlib.util.find_spec("pygame") is not None
 WINSOUND_AVAILABLE = importlib.util.find_spec("winsound") is not None

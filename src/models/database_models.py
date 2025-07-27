@@ -15,29 +15,37 @@ Enhancements:
 import json
 import logging
 import os
-from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from abc import ABC
+from abc import abstractmethod
+from datetime import datetime
+from datetime import timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, Union
-from uuid import UUID, uuid4
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Protocol
+from typing import Union
+from uuid import UUID
+from uuid import uuid4
 
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    Text,
-    create_engine,
-    event,
-)
+from sqlalchemy import JSON
+from sqlalchemy import Boolean
+from sqlalchemy import Column
+from sqlalchemy import DateTime
+from sqlalchemy import Float
+from sqlalchemy import ForeignKey
+from sqlalchemy import Index
+from sqlalchemy import Integer
+from sqlalchemy import String
+from sqlalchemy import Text
+from sqlalchemy import create_engine
+from sqlalchemy import event
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import Session, relationship, sessionmaker
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import relationship
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 
 # Database configuration

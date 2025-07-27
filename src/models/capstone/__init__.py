@@ -14,24 +14,29 @@ Modules:
 """
 
 # Import all public classes for backward compatibility
-from .activities import (
-    Activity,
-    ActivityDifficulty,
-    ActivityRequirements,
-    ActivitySuggestion,
-    ActivityType,
-    SeasonalPreference,
-)
-from .base import AIEnhancedModel, ExtensibleEnum, ModelProtocol
-from .comparison import (
-    ComparisonStrategy,
-    DefaultComparisonStrategy,
-    OutdoorActivityStrategy,
-    WeatherComparison,
-)
-from .factories import ActivityFactory, WeatherComparisonBuilder
-from .journal import JournalEntry, MoodType, WeatherImpact, WeatherMoodCorrelation
-from .poetry import PoemMetadata, PoemType, TemperatureRange, WeatherPoem
+from .activities import Activity
+from .activities import ActivityDifficulty
+from .activities import ActivityRequirements
+from .activities import ActivitySuggestion
+from .activities import ActivityType
+from .activities import SeasonalPreference
+from .base import AIEnhancedModel
+from .base import ExtensibleEnum
+from .base import ModelProtocol
+from .comparison import ComparisonStrategy
+from .comparison import DefaultComparisonStrategy
+from .comparison import OutdoorActivityStrategy
+from .comparison import WeatherComparison
+from .factories import ActivityFactory
+from .factories import WeatherComparisonBuilder
+from .journal import JournalEntry
+from .journal import MoodType
+from .journal import WeatherImpact
+from .journal import WeatherMoodCorrelation
+from .poetry import PoemMetadata
+from .poetry import PoemType
+from .poetry import TemperatureRange
+from .poetry import WeatherPoem
 
 # Maintain backward compatibility
 __all__ = [

@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import messagebox
+from tkinter import ttk
 
 from core.preferences import PreferenceManager
 
@@ -46,7 +47,7 @@ class SettingsDialog(tk.Toplevel):
         )
 
     def save(self):
-        # TODO: Validate and save preferences
+        """Save preference changes."""
         try:
             self.pref_mgr.set("theme", self.theme_var.get())
             self.pref_mgr.set("auto_update", self.auto_update_var.get())

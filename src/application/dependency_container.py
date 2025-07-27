@@ -6,7 +6,11 @@ following the Dependency Inversion Principle.
 
 import logging
 import os
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any
+from typing import Dict
+from typing import Optional
+from typing import Type
+from typing import TypeVar
 
 from src.core.activity_service import ActivitySuggestionService
 from src.core.enhanced_comparison_service import EnhancedCityComparisonService
@@ -171,14 +175,12 @@ class DependencyContainer:
             DependencyInjectionError: If type mapping not found
         """
         # Import interface types
-        from ..business.interfaces import (
-            IActivitySuggestionService,
-            ICityComparisonService,
-            ICortanaVoiceService,
-            IWeatherJournalService,
-            IWeatherPoetryService,
-            IWeatherService,
-        )
+        from ..business.interfaces import IActivitySuggestionService
+        from ..business.interfaces import ICityComparisonService
+        from ..business.interfaces import ICortanaVoiceService
+        from ..business.interfaces import IWeatherJournalService
+        from ..business.interfaces import IWeatherPoetryService
+        from ..business.interfaces import IWeatherService
 
         type_mappings = {
             # Concrete types

@@ -5,7 +5,6 @@ This module contains all styling-related classes including weather icons,
 glassmorphic design styles, and animation helpers.
 """
 
-import tkinter as tk
 from typing import Optional
 
 

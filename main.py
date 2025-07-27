@@ -62,7 +62,7 @@ def setup_environment() -> None:
 
 def main() -> None:
     """Main entry point for the application."""
-    print("🌤️ Weather Dashboard - Clean Architecture")
+    print("Weather Dashboard - Clean Architecture")
     print("=" * 50)
 
     try:

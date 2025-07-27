@@ -3,7 +3,9 @@
 import logging
 import time
 from threading import Lock
-from typing import Any, Dict, Optional
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 from ..interfaces.weather_interfaces import ICacheService
 
