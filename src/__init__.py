@@ -1,17 +1,8 @@
-"""Weather Dashboard Application Package.
+"""Weather Dashboard - Modern Python Application
 
-A professional-level, secure, and modular weather dashboard application
-following clean architecture and separation of concerns principles.
+A professional weather dashboard built with CustomTkinter and modern Python practices.
+Features real-time weather data, interactive charts, and a sleek terminal-inspired UI.
 """
 
 __version__ = "1.0.0"
-__author__ = "E Hunter Petross"
-__description__ = "A comprehensive weather dashboard with secure API integration"
-
-# Import main application components
-try:
-    from .app_gui import WeatherDashboardGUI
-
-    __all__ = ["WeatherDashboardGUI"]
-except ImportError:
-    __all__ = []
+__author__ = "Weather Dashboard Team"
