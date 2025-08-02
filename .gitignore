@@ -56,14 +56,23 @@ Thumbs.db
 # Application specific
 weather_dashboard.log
 *.log
-logs/
-cache/
+logs/*.log
+logs/*.txt
+data/cache/
 exports/
 backups/
 temp/
 *.tmp
 *.bak
 *_backup.py
+
+# New directory structure
+src/utils/temp/
+src/database/migrations/
+scripts/temp/
+data/exports/
+data/backups/
+data/temp/
 
 # Database files
 *.db
@@ -82,9 +91,40 @@ configs/cortana/
 settings.json
 config.ini
 secrets.json
+api_keys.json
+credentials.json
+
+# User-specific configuration
+user_preferences.json
+user_settings.json
+window_config.json
 
 # API response cache
 *.cache
+
+# Spotify authentication and cache files
+.cache-*
+spotify_cache/
+*.spotify_cache
+.spotify_token
+spotify_credentials.json
+
+# Audio engine files
+audio_cache/
+*.wav
+*.mp3
+*.ogg
+*.flac
+audio_temp/
+playlist_cache/
+
+# Pygame and SDL files
+pygame.log
+SDL_*
+
+# Audio visualization cache
+visualization_cache/
+spectrum_data/
 
 # Testing
 .pytest_cache/
@@ -132,3 +172,54 @@ celerybeat.pid
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Development and build artifacts
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+node_modules/
+
+# IDE and editor files
+.vscode/settings.json
+.idea/workspace.xml
+*.swp
+*.swo
+
+# Performance and profiling
+profile_results/
+*.prof
+*.pstats
+
+# Documentation builds
+docs/_build/
+site/
+
+# Large files and media
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.zip
+*.tar.gz
+*.rar
+
+# Temporary files
+*.tmp
+*.temp
+*~
+.#*
+
+# System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Keep directory structure but ignore contents
+logs/*
+!logs/.gitkeep
+data/cache/*
+!data/cache/.gitkeep

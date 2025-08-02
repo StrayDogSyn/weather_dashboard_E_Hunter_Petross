@@ -1,5 +1,7 @@
-"""UI package for the Weather Dashboard application."""
+"""UI Package - Modern Weather Dashboard Interface
 
-from .gui_interface import WeatherDashboardGUI
+Contains all user interface components and styling for the weather dashboard.
+"""
 
-__all__ = ["WeatherDashboardGUI"]
+__version__ = "1.0.0"
+__author__ = "Weather Dashboard Team"

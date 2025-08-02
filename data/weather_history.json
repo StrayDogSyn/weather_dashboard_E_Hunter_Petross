@@ -118,7 +118,14 @@
       "temperature": 23.98,
       "condition": "haze",
       "timestamp": "2025-07-27T00:01:25"
+    },
+    {
+      "city": "New York",
+      "country": "US",
+      "temperature": 26.26,
+      "condition": "clouds",
+      "timestamp": "2025-08-02T15:59:47"
     }
   ],
-  "last_updated": "2025-07-27T00:04:52.315281"
+  "last_updated": "2025-08-02T16:04:42.937226"
 }

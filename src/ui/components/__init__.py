@@ -1,32 +1,42 @@
-"""UI Components module for Weather Dashboard.
+"""UI Components Package
 
-This module contains reusable UI components for the weather dashboard application.
+This package contains reusable UI components for the weather dashboard.
 """
 
-from .header import ApplicationHeader
-from .main_dashboard import MainDashboard
-from .search_panel import SearchPanel
-from .temperature_controls import TemperatureControls
-from .temperature_controls import TemperatureUnit
-from .weather_card import WeatherCard
-from .weather_icons import WeatherIcons
-
-# Import ModernEntry from the parent components.py if it exists
-try:
-    from ..components import ModernEntry
-except ImportError:
-    # Create a placeholder if the import fails
-    class ModernEntry:
-        pass
-
+# from .weather_card import WeatherCard  # Module not found
+# from .forecast_panel import ForecastPanel  # Module not found
+# from .chart_panel import ChartPanel  # Module not found
+from .city_comparison_panel import CityComparisonPanel
+from .ml_comparison_panel import MLComparisonPanel
+from .animation_manager import AnimationManager, ShimmerEffect, MicroInteractions, LoadingSkeleton
+from .weather_effects import WeatherBackgroundManager, ParticleSystem, TemperatureGradient, StatusMessageManager
+from .error_manager import ErrorManager, ErrorCard, NotificationToast, ErrorLevel
+from .status_manager import StatusMessageManager, TooltipManager, StatusType
+from .visual_polish import VisualPolishManager, GlassMorphism, ShadowSystem, KeyboardShortcuts, SpacingGrid
 
 __all__ = [
-    "WeatherIcons",
-    "WeatherCard",
-    "SearchPanel",
-    "ApplicationHeader",
-    "TemperatureControls",
-    "TemperatureUnit",
-    "MainDashboard",
-    "ModernEntry",
+    # 'WeatherCard',  # Module not found
+    # 'ForecastPanel',  # Module not found
+    # 'ChartPanel',  # Module not found
+    'CityComparisonPanel',
+    'MLComparisonPanel',
+    'AnimationManager',
+    'ShimmerEffect',
+    'MicroInteractions',
+    'LoadingSkeleton',
+    'WeatherBackgroundManager',
+    'ParticleSystem',
+    'TemperatureGradient',
+    'StatusMessageManager',
+    'ErrorManager',
+    'ErrorCard',
+    'NotificationToast',
+    'ErrorLevel',
+    'TooltipManager',
+    'StatusType',
+    'VisualPolishManager',
+    'GlassMorphism',
+    'ShadowSystem',
+    'KeyboardShortcuts',
+    'SpacingGrid'
 ]
