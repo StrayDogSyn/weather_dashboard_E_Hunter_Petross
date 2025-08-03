@@ -1,14 +1,12 @@
-# 🌤️ Advanced Weather Dashboard with AI Analytics
+# 🌤️ Professional Weather Dashboard
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
-[![Code Quality](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-[![AI Powered](https://img.shields.io/badge/AI-Powered-purple.svg)](https://github.com/)
 
-A modern weather dashboard application featuring **AI-powered analytics**, **machine learning insights**, and **dynamic theme system**. Built with Python and CustomTkinter, offering real-time weather data, advanced visualizations, ML-driven city comparisons, and intelligent weather pattern analysis.
+A modern, professional weather dashboard application built with Python and CustomTkinter. Features real-time weather data, interactive maps, AI-powered analytics, and a dynamic theme system.
 
-> **📋 Status**: ✅ Production Ready | 🤖 AI-Enhanced | 🎨 Multi-Theme | 🔬 ML Analytics | 🛠️ Advanced Architecture
+> **📋 Status**: ✅ Production Ready | 🎨 Multi-Theme | 🔬 ML Analytics | 🛠️ Clean Architecture
 
 **Author**: E Hunter Petross | **Project**: Weather Dashboard Capstone | **Technology**: Python, CustomTkinter, OpenWeatherMap API
 
@@ -16,78 +14,49 @@ A modern weather dashboard application featuring **AI-powered analytics**, **mac
 
 ![Weather Dashboard Screenshot](assets/images/Main.png)
 
-## ✨ Features
+## ✨ Core Features
 
-### 🤖 AI-Powered Analytics (NEW)
+### 🌤️ Weather Data & Display
 
-- **🔬 ML Weather Analysis**: Advanced machine learning algorithms for weather pattern recognition
-- **📊 Similarity Analysis**: AI-driven city weather similarity calculations with heatmap visualizations
-- **🎯 Weather Clustering**: Intelligent grouping of cities by weather patterns using K-means clustering
-- **📈 Radar Charts**: Multi-dimensional weather profile comparisons with normalized metrics
-- **💡 Smart Insights**: AI-generated recommendations and weather pattern explanations
-- **📋 Detailed Reports**: Comprehensive analysis exports with clustering and similarity data
-- **🎨 Theme-Integrated Charts**: All visualizations adapt to selected theme automatically
+- **Real-time weather conditions** for any city worldwide
+- **5-day detailed forecasts** with hourly breakdowns
+- **Enhanced weather metrics** including humidity, wind speed, pressure, and UV index
+- **Temperature unit conversion** (Celsius/Fahrenheit) with persistent preferences
+- **Location search** with autocomplete and recent searches
+- **Weather alerts** and severe weather notifications
+- **Air quality data** with health recommendations
+- **Astronomical information** including sunrise, sunset, and moon phases
 
-### 🎯 Enhanced Activity Service (NEW)
+### 🗺️ Interactive Maps
 
-- **🤖 AI-Powered Suggestions**: Intelligent activity recommendations using OpenAI and Google Gemini APIs
-- **💰 Cost Filtering**: Filter activities by budget levels ($, $$, $$$)
-- **♿ Accessibility Options**: Easy, Moderate, and Difficult accessibility levels
-- **⏱️ Duration Matching**: Flexible duration filtering (short, medium, long)
-- **🎒 Equipment Requirements**: Smart equipment matching (none, minimal, basic, advanced)
-- **🌤️ Weather-Specific Activities**: Tailored suggestions for sunny, rainy, cold, and mild conditions
-- **🔄 Fallback System**: Robust offline suggestions when AI services are unavailable
-- **⚡ Intelligent Caching**: 1-hour cache duration with smart invalidation
-- **🎯 Quick Suggestions**: Instant activity recommendations for immediate needs
+- **Weather layer visualization** with temperature, precipitation, and wind data
+- **Regional weather panels** for comprehensive area coverage
+- **Radar simulation** for precipitation tracking
+- **Map location search** with coordinate support
+- **Weather station data** integration
 
-### 🌤️ Weather Data
+### 🧠 AI-Powered Analytics
 
-- **Real-time conditions** for any city worldwide with enhanced accuracy
-- **5-day forecasts** with detailed hourly data and extended metrics
-- **Favorite locations** with intelligent quick access and search
-- **Temperature units** (Celsius/Fahrenheit toggle) with persistent preferences
-- **Location detection** for automatic local weather updates
-- **🆕 Enhanced Features**: Air quality data, UV index, astronomical information, weather alerts
+- **ML Weather Analysis**: Machine learning algorithms for weather pattern recognition
+- **City Comparison**: AI-driven similarity analysis with heatmap visualizations
+- **Weather Clustering**: Intelligent grouping of cities by weather patterns
+- **Radar Charts**: Multi-dimensional weather profile comparisons
+- **Smart Insights**: AI-generated recommendations and pattern explanations
 
-### 🗺️ Interactive Weather Maps (NEW)
+### 🎯 Activity Recommendations
 
-- **🌡️ Temperature Heat Maps**: Real-time temperature visualization with customizable opacity
-- **🌧️ Precipitation Radar**: Live precipitation data with intensity mapping
-- **💨 Wind Speed Vectors**: Wind direction and speed visualization
-- **🌫️ Cloud Coverage**: Real-time cloud layer visualization
-- **📊 Atmospheric Pressure**: Pressure system mapping and analysis
-- **🏠 Weather Stations**: Interactive weather station data points
-- **⚠️ Weather Alerts**: Severe weather warnings and notifications
-- **🛠️ Map Tools**: Drawing tools, location controls, and measurement utilities
-- **💾 Map Export**: Save interactive maps as HTML files for sharing
-- **🆕 Advanced Search**: Autocomplete, recent searches, intelligent favorites management
-- **🆕 Multi-location Support**: Compare weather across unlimited cities with ML insights
+- **AI-Powered Suggestions**: Intelligent activity recommendations using OpenAI and Google Gemini APIs
+- **Weather-Specific Activities**: Tailored suggestions for different weather conditions
+- **Advanced Filtering**: Cost, accessibility, duration, and equipment filtering
+- **Fallback System**: Robust offline suggestions when AI services are unavailable
+- **Smart Caching**: Intelligent caching with proper invalidation
 
-### 📊 Advanced Visualization & Analytics
-
-- **Interactive charts** with keyboard shortcuts (Ctrl+1-4) and theme integration
-- **Weather trends** and historical data analysis with ML predictions
-- **City comparison** with AI-powered similarity scoring and clustering
-- **ML Visualizations**: Heatmaps, scatter plots, radar charts, and cluster analysis
-- **Data export** capabilities with comprehensive ML analysis reports
-- **Real-time chart updates** with theme-synchronized styling
-
-### 🎨 Dynamic Theme System (NEW)
+### 🎨 Dynamic Theme System
 
 - **6 Professional Themes**: Matrix, Cyberpunk, Arctic, Solar, Terminal, Midnight
 - **Live Theme Switching**: Instant theme changes without restart
 - **Chart Theme Integration**: All visualizations automatically adapt to selected theme
 - **Consistent Styling**: Unified color schemes across all components
-- **Theme-Aware ML Charts**: Machine learning visualizations with dynamic theming
-
-### 🎨 Enhanced User Experience
-
-- **Modern Multi-Theme UI** with 6 professional themes and live switching
-- **Responsive design** that adapts to window size and theme changes
-- **Voice assistant** integration (Cortana) for accessibility
-- **Weather journal** with mood tracking and AI insights
-- **Activity suggestions** based on conditions and ML analysis
-- **AI-generated poetry** inspired by weather patterns
 
 ### 🔧 Technical Features
 
@@ -98,65 +67,7 @@ A modern weather dashboard application featuring **AI-powered analytics**, **mac
 - **Intelligent caching** with configurable TTL
 - **Custom exceptions** for structured error handling
 - **Comprehensive logging** with rotating file handlers
-- **Code quality** tools (Black, isort, flake8, autoflake)
-- **Development tools** and automated cleanup scripts
 - **Cross-platform** compatibility
-- **🆕 Enhanced Services**: Rate limiting, advanced caching, error recovery
-- **🆕 Progressive Loading**: Basic data first, enhanced details after
-- **🆕 Offline Support**: Cached data display when network unavailable
-- **🆕 Robust Configuration**: Fixed ConfigService with proper property access
-- **🆕 Exception Handling**: Specific exception handling replacing generic catches
-
-> 📖 **Project Structure**: This is a streamlined weather dashboard with clean architecture and modular design
-
-## 🔧 Recent Improvements
-
-### 🤖 AI & Machine Learning Integration (Latest)
-
-- **✅ ML Weather Service**: Complete machine learning service with clustering, similarity analysis, and pattern recognition
-- **✅ Advanced Visualizations**: Heatmaps, scatter plots, radar charts, and cluster analysis with theme integration
-- **✅ Weather Clustering**: K-means clustering algorithm for intelligent city grouping by weather patterns
-- **✅ Similarity Analysis**: Cosine similarity calculations with detailed correlation insights
-- **✅ AI Insights Generation**: Automated analysis reports with recommendations and pattern explanations
-- **✅ Theme-Integrated Charts**: All ML visualizations automatically adapt to selected theme
-- **✅ Export Capabilities**: Comprehensive data export with ML analysis results
-
-### 🎯 Enhanced Activity Service (Latest)
-
-- **✅ AI Integration**: Complete integration with OpenAI GPT and Google Gemini APIs for intelligent suggestions
-- **✅ Advanced Filtering**: Cost, accessibility, duration, and equipment filtering with flexible matching
-- **✅ Enhanced Fallback System**: Comprehensive offline suggestions with detailed metadata
-- **✅ Weather-Specific Categories**: Tailored activity suggestions for different weather conditions
-- **✅ Smart Caching**: Intelligent caching system with 1-hour duration and proper invalidation
-- **✅ Robust Error Handling**: Graceful degradation when AI services are unavailable
-- **✅ Detailed Metadata**: Each activity includes cost, accessibility, equipment, and duration information
-- **✅ Quick Suggestions**: Instant activity recommendations for immediate user needs
-
-### 🎨 Dynamic Theme System (Latest)
-
-- **✅ Multi-Theme Architecture**: 6 professional themes (Matrix, Cyberpunk, Arctic, Solar, Terminal, Midnight)
-- **✅ Live Theme Switching**: Instant theme changes without application restart
-- **✅ Chart Theme Integration**: All visualizations automatically update with theme changes
-- **✅ Observer Pattern**: Robust theme change notification system across all components
-- **✅ Persistent Theme Settings**: Theme preferences saved and restored between sessions
-- **✅ Consistent Styling**: Unified color schemes across all UI components and charts
-
-### Configuration Service Fixes
-
-- **✅ ConfigService AttributeError Resolution**: Fixed missing property methods for weather, UI, and app configurations
-- **✅ Enhanced Configuration Structure**: Added missing attributes (api_key, base_url, default_city) to configuration classes
-- **✅ Automatic Configuration Sync**: Weather API key and base URL now sync automatically from API configuration
-- **✅ Type Safety**: Added proper type hints to all configuration property methods
-- **✅ Exception Handling**: Replaced generic exception handlers with specific exception types throughout codebase
-
-### Code Quality Improvements
-
-- **Specific Exception Handling**: Enhanced error handling in search components, validators, and services
-- **Type Annotations**: Improved type safety across public API functions
-- **Configuration Robustness**: Eliminated AttributeError crashes during application startup
-- **Service Integration**: Seamless integration between configuration and weather services
-- **ML Algorithm Integration**: Added scikit-learn, numpy, and pandas for advanced analytics
-- **Theme Observer Pattern**: Implemented robust theme change notification system
 
 ## 🚀 Quick Start
 
@@ -170,7 +81,7 @@ A modern weather dashboard application featuring **AI-powered analytics**, **mac
 ```bash
 # 1. Clone and navigate
 git clone <repository-url>
-cd weather_dashboard_Final_Eric_Hunter
+cd weather_dashboard_E_Hunter_Petross
 
 # 2. Create a virtual environment
 python -m venv venv
@@ -179,20 +90,12 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Install additional mapping dependencies (if not automatically installed)
-pip install folium==0.15.0 branca==0.6.0 jinja2>=2.9
-
-# 5. Configure API keys (create .env file in root directory)
+# 4. Configure API keys (create .env file in root directory)
 OPENWEATHER_API_KEY=your_openweather_key_here
 OPENAI_API_KEY=your_openai_key_here  # Optional for AI activity suggestions
 GEMINI_API_KEY=your_gemini_key_here  # Optional for enhanced AI features
-SPOTIFY_CLIENT_ID=your_spotify_client_id  # Optional for music integration
-SPOTIFY_CLIENT_SECRET=your_spotify_client_secret  # Optional for music integration
 
-# 6. Install optional dependencies
-pip install streamlit  # For web interface (optional)
-
-# 7. Run application
+# 5. Run application
 python main.py
 ```
 
@@ -203,26 +106,20 @@ python main.py
 ### Navigation Tabs
 
 - **Weather** - Current conditions and enhanced meteorological data
-- **Forecast** - 5-day detailed forecasts with extended analytics
-- **Comparison** - Traditional multi-city weather comparison
-- **🆕 ML Analysis** - AI-powered weather analytics with clustering, similarity analysis, and radar charts
-- **Journal** - Personal weather tracking with mood correlation and AI insights
-- **Activities** - Weather-based suggestions with ML recommendations
-- **Poetry** - AI-generated weather poems with visual presentation
-- **Favorites** - Intelligent quick access to saved locations with search
+- **🏙️ Team Compare** - Traditional multi-city weather comparison
+- **🧠 AI Analysis** - AI-powered weather analytics with clustering and similarity analysis
+- **Activities** - Weather-based suggestions with AI recommendations
+- **Maps** - Interactive weather maps with multiple layers
+- **Settings** - Application configuration and preferences
 
 ### Design Highlights
 
 - **🎨 6 Professional Themes**: Matrix (green terminal), Cyberpunk (neon purple), Arctic (ice blue), Solar (warm orange), Terminal (classic green), Midnight (deep purple)
 - **Live Theme Switching** with instant visual updates across all components
-- **Professional typography** using JetBrains Mono font family for technical aesthetic
+- **Professional typography** using JetBrains Mono font family
 - **Responsive layout** that adapts to window size and theme changes
 - **Dynamic hover effects** that match selected theme colors
 - **Theme-synchronized data visualization** with consistent color schemes
-- **Card-based layout** with theme-adaptive backgrounds and borders
-- **ML Chart Integration** with automatic theme color application
-
-> 🎨 **UI Framework**: Built with CustomTkinter for modern, responsive design
 
 ## 📱 Usage
 
@@ -240,8 +137,6 @@ python main.py
 - **Ctrl+3** - Forecast visualization
 - **Ctrl+4** - Humidity/pressure data
 
-> 📊 **Charts**: Interactive visualizations powered by Matplotlib with real-time data updates
-
 ### Advanced Features
 
 - **🤖 ML Weather Analysis** - AI-powered pattern recognition and clustering
@@ -249,35 +144,17 @@ python main.py
 - **🎯 Weather Clustering** - Intelligent grouping with K-means algorithms
 - **📈 Radar Charts** - Multi-dimensional weather profile comparisons
 - **🌍 Enhanced City Comparison** - Traditional and AI-powered analysis modes
-- **📔 Smart Weather Journal** - Personal tracking with AI mood correlation
-- **🎯 Enhanced Activity Suggestions** - AI-powered recommendations with cost, accessibility, and equipment filtering
-- **🎨 Dynamic Weather Poetry** - AI-generated poems with theme-integrated presentation
-- **🔊 Voice Assistant** - Cortana integration for hands-free operation
+- **🎯 Enhanced Activity Suggestions** - AI-powered recommendations with filtering
 - **🎨 Live Theme System** - 6 professional themes with instant switching
-
-> 🚀 **Modern Interface**: Glassmorphic design with responsive layout and intuitive navigation
 
 ## 🛠️ Technical Stack
 
-### Core Architecture
-
-- **Clean Architecture** with MVC pattern and dependency injection
-- **Service layer** for API integration and business logic
-- **SQLite database** with SQLAlchemy ORM for data persistence
-- **Component-based UI** with CustomTkinter framework
-- **Async support** for non-blocking operations
-- **Comprehensive logging** with structured error handling
-- **AI/ML Integration** with OpenAI GPT and scikit-learn for intelligent analysis
-- **Dynamic Theme System** with real-time switching and chart integration
-- **Performance Optimization** with intelligent caching and async operations
-
-### Key Dependencies
+### Core Dependencies
 
 ```txt
 # UI Framework
 customtkinter==5.2.2          # Modern UI framework
 ttkbootstrap==1.10.1          # Bootstrap-themed widgets
-streamlit==1.29.0             # Web app framework (optional)
 
 # Data & Visualization
 matplotlib==3.8.2             # Charts and visualizations
@@ -318,80 +195,38 @@ cachetools==5.3.2             # Caching utilities
 ratelimit==2.2.1              # API rate limiting
 ```
 
-> 🏗️ **Modern Stack**: Production-ready dependencies with pinned versions for reproducible builds
-
 ### Project Structure
 
 ```text
-weather_dashboard_Final_Eric_Hunter/
+weather_dashboard_E_Hunter_Petross/
 ├── src/                    # Source code
 │   ├── config/            # Configuration management
-│   │   └── app_config.py  # Application configuration
 │   ├── models/            # Data models
-│   │   └── weather_models.py # Weather data structures
 │   ├── services/          # Business logic & APIs
 │   │   ├── activity_service.py        # Activity suggestions
 │   │   ├── config_service.py          # Configuration management
 │   │   ├── enhanced_weather_service.py # Weather API integration
 │   │   ├── geocoding_service.py       # Location services
 │   │   ├── github_team_service.py     # Team data integration
-│   │   ├── loading_manager.py         # Loading states
-│   │   ├── logging_service.py         # Structured logging
-│   │   └── ml_weather_service.py      # AI/ML analytics engine
+│   │   ├── ml_weather_service.py      # AI/ML analytics engine
+│   │   └── maps_service.py            # Interactive maps
 │   ├── ui/               # GUI components
 │   │   ├── components/   # Reusable UI components
-│   │   │   ├── animation_manager.py   # UI animations
-│   │   │   ├── city_comparison_panel.py # Traditional comparison
-│   │   │   ├── error_manager.py       # Error handling UI
-│   │   │   ├── forecast_day_card.py   # Forecast display
-│   │   │   ├── ml_comparison_panel.py # AI-powered analysis
-│   │   │   ├── search_components.py   # Enhanced search
-│   │   │   ├── simple_temperature_chart.py # Basic charts
-│   │   │   ├── status_manager.py      # Status messages
-│   │   │   ├── theme_preview_card.py  # Theme previews
-│   │   │   ├── visual_polish.py       # Visual enhancements
-│   │   │   └── weather_effects.py     # Weather animations
-│   │   ├── professional_weather_dashboard.py # Main dashboard
-│   │   ├── safe_widgets.py           # Safe CustomTkinter widgets
-│   │   ├── theme.py                  # UI theming
-│   │   └── theme_manager.py          # Dynamic theme system
+│   │   ├── dashboard/    # Dashboard tab managers
+│   │   ├── maps/         # Interactive map components
+│   │   ├── styles/       # UI styling and themes
+│   │   └── professional_weather_dashboard.py # Main dashboard
 │   └── utils/            # Utility functions
-│       └── loading_manager.py
 ├── assets/               # Static resources
-│   ├── images/          # Application images
-│   │   └── Main.png     # Dashboard screenshot
-│   └── sounds/          # Audio files
 ├── cache/                # Runtime cache
-│   ├── enhanced_weather_cache.json
-│   ├── favorites.json
-│   ├── recent_searches.json
-│   └── weather_cache.json
 ├── config/               # Configuration files
-│   ├── cleanup_config.yaml
-│   ├── cleanup_patterns.yaml
-│   └── theme_config.json
 ├── data/                 # Application data
-│   ├── favorite_locations.json
-│   ├── recent_searches.json
-│   ├── search_history.json
-│   ├── team_cache.json
-│   └── team_weather.json
 ├── docs/                 # Documentation
-│   ├── API_GUIDE.md     # API integration guide
-│   ├── ARCHITECTURE.md  # Architecture documentation
-│   └── WORKS_CITED.md   # Citations and references
 ├── scripts/              # Development tools
-│   ├── clean.py         # Cleanup utilities
-│   └── config/          # Script configurations
 ├── main.py              # Application entry point
 ├── requirements.txt     # Production dependencies
-├── requirements-dev.txt # Development dependencies
-├── requirements-test.txt # Testing dependencies
-├── .gitignore          # Git ignore rules
 └── README.md           # This documentation
 ```
-
-> 📁 **Organized Structure**: Clean architecture with clear separation of concerns and comprehensive tooling
 
 ## 🏗️ Architecture
 
@@ -411,38 +246,14 @@ The Weather Dashboard follows clean architecture principles with modular design 
 - **Configuration Management**: Centralized settings with environment variable support
 - **Component-Based UI**: Modular CustomTkinter components for reusability
 - **Caching Strategy**: Intelligent data caching for performance optimization
+- **Theme Observer Pattern**: Real-time theme switching across all components
 
-### Documentation
+## 📚 Documentation
 
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Detailed architecture documentation
-- **[API_GUIDE.md](API_GUIDE.md)** - API integration and internal interfaces
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Detailed architecture documentation
+- **[API_GUIDE.md](docs/API_GUIDE.md)** - API integration and internal interfaces
 - **[WORKS_CITED.md](docs/WORKS_CITED.md)** - Comprehensive citations for all external resources
-- **Development tools** - Automated cleanup, code quality, and testing scripts
-
-> 🔧 **Modern Practices**: Type hints, async support, comprehensive error handling, and automated code quality tools
-
-## 🌟 Project Highlights
-
-### Technical Excellence
-
-- **Clean Architecture** with modular design
-- **Modern UI/UX** with glassmorphic styling
-- **Data visualization** with interactive charts
-- **Voice integration** for accessibility
-- **Comprehensive testing** with CI/CD
-- **Extensive documentation** and quality standards
-
-### Innovation Features
-
-- **AI-generated poetry** based on weather
-- **Mood tracking** with weather correlation
-- **Multi-city comparison** analytics
-- **Voice-controlled interface** (Cortana)
-- **Real-time data visualization** with hotkeys
-
-> 🚀 **Extensible Design**: Modular architecture allows for easy feature additions and enhancements
-
----
+- **[FINAL_REFLECTION.md](docs/FINAL_REFLECTION.md)** - Project reflection and lessons learned
 
 ## 🔒 Security
 
@@ -471,8 +282,6 @@ MIT License - This project is open source and available under the MIT License.
 - **[OpenWeatherMap](https://openweathermap.org/)** - Weather data API
 - **[CustomTkinter](https://github.com/TomSchimansky/CustomTkinter)** - Modern GUI framework
 - **Python Community** - Excellent libraries and documentation
-
-> 📚 **Complete Attribution**: See [WORKS_CITED.md](docs/WORKS_CITED.md) for comprehensive citations of all external resources, APIs, libraries, and frameworks used in this project.
 
 ---
 
