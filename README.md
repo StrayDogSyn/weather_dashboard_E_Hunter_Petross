@@ -12,7 +12,7 @@ A modern, professional weather dashboard application built with Python and Custo
 
 ## **Screenshots**
 
-![Weather Dashboard Screenshot](assets/images/Main.png)
+![Weather Dashboard Screenshot](assets/images/Main_Tab.png)
 
 ## ✨ Core Features
 
@@ -111,6 +111,7 @@ python main.py
 ```
 
 **Google Maps API Setup:**
+
 - Visit [Google Cloud Console](https://console.cloud.google.com/)
 - Enable the following APIs:
   - Maps JavaScript API
@@ -122,15 +123,18 @@ python main.py
 ### Troubleshooting
 
 **Maps not loading?**
+
 - Verify your Google Maps API key is correct
 - Check that required APIs are enabled in Google Cloud Console
 - The application will fallback to static maps if interactive maps fail
 
 **Import errors?**
+
 - Ensure all dependencies are installed: `pip install -r requirements.txt`
 - Check Python version compatibility (3.8+)
 
 **Performance issues?**
+
 - The application uses lazy loading - maps load when first accessed
 - Clear cache folder if experiencing data issues
 
@@ -185,28 +189,33 @@ python main.py
 ## 🛠️ Technology Stack
 
 ### Core Framework
+
 - **Python 3.8+** - Core language with type hints
 - **CustomTkinter** - Modern UI framework with dark/light themes
 - **Tkinter** - Native GUI toolkit
 
 ### API & Web Integration
+
 - **Requests** - HTTP client for API calls
 - **Google Maps API** - Maps, geocoding, and location services
 - **OpenWeatherMap API** - Weather data and forecasting
 - **tkinterweb** - HTML rendering for embedded maps
 
 ### Data & Storage
+
 - **SQLite** - Local database with repository pattern
 - **Pandas** - Data analysis and manipulation
 - **NumPy** - Numerical computing
 - **JSON** - Configuration and data serialization
 
 ### Visualization & UI
+
 - **Pillow (PIL)** - Image processing and manipulation
 - **Matplotlib** - Data visualization and charting
 - **CustomTkinter widgets** - Modern UI components
 
 ### System & Performance
+
 - **Asyncio** - Asynchronous programming
 - **Threading** - Concurrent operations
 - **Logging** - Comprehensive application logging
@@ -321,6 +330,7 @@ The Weather Dashboard follows clean architecture principles with modular design 
 ## 🔄 Recent Updates
 
 ### Enhanced Maps Integration (Latest)
+
 - ✅ **Resolved Critical Import Issues**: Fixed relative import errors in enhanced static maps
 - ✅ **Thread-Safe Google Maps**: Implemented comprehensive thread safety for UI operations
 - ✅ **Progressive Fallback System**: Interactive maps → Static maps → Coordinate display
@@ -329,6 +339,7 @@ The Weather Dashboard follows clean architecture principles with modular design 
 - ✅ **Comprehensive Testing**: Standalone test suite for maps functionality
 
 ### Stability Improvements
+
 - ✅ **Error Handling**: Comprehensive exception handling with user-friendly messages
 - ✅ **Resource Management**: Automatic cleanup prevents memory leaks
 - ✅ **API Resilience**: Intelligent retry mechanisms with exponential backoff
