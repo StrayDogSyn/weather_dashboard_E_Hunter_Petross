@@ -14,19 +14,19 @@
           "region": null,
           "admin_area": null
         },
-        "timestamp": "2025-08-04 15:41:01.717437",
+        "timestamp": "2025-08-04 16:19:10.931626",
         "condition": "WeatherCondition.CLOUDS",
-        "description": "Broken Clouds",
-        "temperature": 21.0,
-        "feels_like": 20.9,
-        "humidity": 66,
-        "pressure": 1015,
+        "description": "Few Clouds",
+        "temperature": 20.3,
+        "feels_like": 20.0,
+        "humidity": 63,
+        "pressure": 1014,
         "visibility": 10,
         "uv_index": null,
-        "wind_speed": 6.2,
-        "wind_direction": 250,
+        "wind_speed": 5.7,
+        "wind_direction": 280,
         "wind_gust": null,
-        "cloudiness": 75,
+        "cloudiness": 20,
         "sunrise": null,
         "sunset": null,
         "alerts": [],
@@ -37,32 +37,32 @@
           },
           "weather": [
             {
-              "id": 803,
+              "id": 801,
               "main": "Clouds",
-              "description": "broken clouds",
-              "icon": "04d"
+              "description": "few clouds",
+              "icon": "02n"
             }
           ],
           "base": "stations",
           "main": {
-            "temp": 21.02,
-            "feels_like": 20.9,
-            "temp_min": 19.95,
-            "temp_max": 22.06,
-            "pressure": 1015,
-            "humidity": 66,
-            "sea_level": 1015,
+            "temp": 20.28,
+            "feels_like": 20.01,
+            "temp_min": 18.9,
+            "temp_max": 20.98,
+            "pressure": 1014,
+            "humidity": 63,
+            "sea_level": 1014,
             "grnd_level": 1011
           },
           "visibility": 10000,
           "wind": {
-            "speed": 6.17,
-            "deg": 250
+            "speed": 5.66,
+            "deg": 280
           },
           "clouds": {
-            "all": 75
+            "all": 20
           },
-          "dt": 1754335822,
+          "dt": 1754338002,
           "sys": {
             "type": 2,
             "id": 2075535,
@@ -81,7 +81,7 @@
           "sunset": "2025-08-04 15:44:16",
           "moonrise": null,
           "moonset": null,
-          "moon_phase": 0.9043361721662907,
+          "moon_phase": 0.14830794824525206,
           "day_length": "15:15:23"
         }
       },
@@ -91,12 +91,12 @@
         "sunset": "2025-08-04T15:44:16",
         "moonrise": null,
         "moonset": null,
-        "moon_phase": 0.9043361721662907,
+        "moon_phase": 0.14830794824525206,
         "day_length": 54923.0
       },
       "alerts": []
     },
-    "timestamp": "2025-08-04T15:41:03.614687",
+    "timestamp": "2025-08-04T16:19:12.871343",
     "ttl": 600
   },
   "forecast_london": {
