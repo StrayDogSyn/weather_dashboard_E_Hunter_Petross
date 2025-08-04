@@ -14,7 +14,7 @@
           "region": null,
           "admin_area": null
         },
-        "timestamp": "2025-08-04 11:49:31.449707",
+        "timestamp": "2025-08-04 12:03:32.675791",
         "condition": "WeatherCondition.CLOUDS",
         "description": "Overcast Clouds",
         "temperature": 21.1,
@@ -45,8 +45,8 @@
           ],
           "base": "stations",
           "main": {
-            "temp": 21.09,
-            "feels_like": 21.4,
+            "temp": 21.1,
+            "feels_like": 21.41,
             "temp_min": 20.31,
             "temp_max": 21.75,
             "pressure": 1013,
@@ -62,7 +62,7 @@
           "clouds": {
             "all": 100
           },
-          "dt": 1754322233,
+          "dt": 1754322980,
           "sys": {
             "type": 2,
             "id": 2075535,
@@ -81,7 +81,7 @@
           "sunset": "2025-08-04 15:44:16",
           "moonrise": null,
           "moonset": null,
-          "moon_phase": 0.8749107401678012,
+          "moon_phase": 0.18189558413119344,
           "day_length": "15:15:23"
         }
       },
@@ -91,12 +91,12 @@
         "sunset": "2025-08-04T15:44:16",
         "moonrise": null,
         "moonset": null,
-        "moon_phase": 0.8749107401678012,
+        "moon_phase": 0.18189558413119344,
         "day_length": 54923.0
       },
       "alerts": []
     },
-    "timestamp": "2025-08-04T11:49:33.324197",
+    "timestamp": "2025-08-04T12:03:34.550312",
     "ttl": 600
   },
   "forecast_london": {
