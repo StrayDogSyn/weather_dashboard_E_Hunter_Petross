@@ -53,7 +53,7 @@ class StaticMapsComponent(ctk.CTkFrame):
         """Create the UI components"""
         # Map display frame
         self.map_frame = ctk.CTkFrame(self, corner_radius=10)
-        self.map_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        self.map_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         
         # Map label for image display
         self.map_label = ctk.CTkLabel(
@@ -61,12 +61,12 @@ class StaticMapsComponent(ctk.CTkFrame):
             text="Loading map...",
             fg_color="transparent"
         )
-        self.map_label.pack(fill="both", expand=True)
+        self.map_label.grid(row=0, column=0, sticky="nsew")
         
         # Controls frame
         self.controls_frame = ctk.CTkFrame(self, height=60, corner_radius=10)
-        self.controls_frame.pack(fill="x", padx=10, pady=(0, 10))
-        self.controls_frame.pack_propagate(False)
+        self.controls_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 10))
+        self.controls_frame.grid_propagate(False)
         
         # Zoom controls
         self.zoom_in_btn = ctk.CTkButton(
@@ -111,6 +111,15 @@ class StaticMapsComponent(ctk.CTkFrame):
             command=self._search_location
         )
         self.search_btn.pack(side="left", padx=(0, 10), pady=10)
+        
+        # Configure main grid
+        self.grid_rowconfigure(0, weight=1)  # map frame
+        self.grid_rowconfigure(1, weight=0)  # controls frame
+        self.grid_columnconfigure(0, weight=1)
+        
+        # Configure map frame grid
+        self.map_frame.grid_rowconfigure(0, weight=1)
+        self.map_frame.grid_columnconfigure(0, weight=1)
         
     def _load_initial_map(self):
         """Load the initial map"""

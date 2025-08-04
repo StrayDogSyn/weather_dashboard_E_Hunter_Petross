@@ -63,16 +63,16 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         
         # Top toolbar frame with search and browser button
         self.toolbar_frame = ctk.CTkFrame(self, height=50, corner_radius=0)
-        self.toolbar_frame.pack(fill="x", padx=0, pady=0)
-        self.toolbar_frame.pack_propagate(False)
+        self.toolbar_frame.grid(row=0, column=0, sticky="ew", padx=0, pady=0)
+        self.toolbar_frame.grid_propagate(False)
         
         # Search section in toolbar
         self.search_frame = ctk.CTkFrame(self.toolbar_frame, fg_color="transparent")
-        self.search_frame.pack(side="left", fill="x", expand=True, padx=10, pady=5)
+        self.search_frame.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
         
         # Location icon
         self.location_icon = ctk.CTkLabel(self.search_frame, text="📍", font=("Arial", 16))
-        self.location_icon.pack(side="left", padx=(0, 5))
+        self.location_icon.grid(row=0, column=0, padx=(0, 5), sticky="w")
         
         # Search entry field
         self.search_entry = ctk.CTkEntry(
@@ -80,7 +80,7 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             placeholder_text="Search for a location...",
             width=300
         )
-        self.search_entry.pack(side="left", fill="x", expand=True)
+        self.search_entry.grid(row=0, column=1, sticky="ew")
         self.search_entry.bind("<Return>", self._on_search)
         
         # Search button
@@ -90,7 +90,7 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             width=80,
             command=self._search_location
         )
-        self.search_btn.pack(side="left", padx=5)
+        self.search_btn.grid(row=0, column=2, padx=5, sticky="w")
         
         # Browser button - IMPORTANT FEATURE
         self.browser_btn = ctk.CTkButton(
@@ -100,18 +100,18 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             command=self._open_in_browser,
             fg_color="#2B7A78"
         )
-        self.browser_btn.pack(side="right", padx=10)
+        self.browser_btn.grid(row=0, column=1, padx=10, sticky="e")
         
         # Main content area with sidebar and map
         self.content_frame = ctk.CTkFrame(self, corner_radius=0)
-        self.content_frame.pack(fill="both", expand=True)
+        self.content_frame.grid(row=1, column=0, sticky="nsew")
         
         # Create left sidebar with all controls
         self._create_sidebar()
         
         # Map display area on the right
         self.map_container = ctk.CTkFrame(self.content_frame, corner_radius=10)
-        self.map_container.pack(side="right", fill="both", expand=True, padx=(0, 10), pady=10)
+        self.map_container.grid(row=0, column=1, sticky="nsew", padx=(0, 10), pady=10)
         
         # Map label for displaying the image
         self.map_label = ctk.CTkLabel(
@@ -119,25 +119,50 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             text="Loading map...",
             fg_color="transparent"
         )
-        self.map_label.pack(fill="both", expand=True, padx=5, pady=5)
+        self.map_label.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         
         # Status bar at bottom
         self.status_frame = ctk.CTkFrame(self, height=30, corner_radius=0)
-        self.status_frame.pack(fill="x", side="bottom")
-        self.status_frame.pack_propagate(False)
+        self.status_frame.grid(row=2, column=0, sticky="ew")
+        self.status_frame.grid_propagate(False)
         
         self.status_label = ctk.CTkLabel(
             self.status_frame,
             text="Ready",
             font=("Arial", 10)
         )
-        self.status_label.pack(side="left", padx=10)
+        self.status_label.grid(row=0, column=0, padx=10, sticky="w")
+        
+        # Configure grid weights
+        self.grid_rowconfigure(0, weight=0)  # toolbar
+        self.grid_rowconfigure(1, weight=1)  # content
+        self.grid_rowconfigure(2, weight=0)  # status
+        self.grid_columnconfigure(0, weight=1)
+        
+        # Configure content frame grid
+        self.content_frame.grid_rowconfigure(0, weight=1)
+        self.content_frame.grid_columnconfigure(0, weight=0)  # sidebar
+        self.content_frame.grid_columnconfigure(1, weight=1)  # map
+        
+        # Configure toolbar frame grid
+        self.toolbar_frame.grid_columnconfigure(0, weight=1)  # search frame
+        self.toolbar_frame.grid_columnconfigure(1, weight=0)  # browser button
+        
+        # Configure search frame grid
+        self.search_frame.grid_columnconfigure(1, weight=1)  # search entry
+        
+        # Configure map container grid
+        self.map_container.grid_rowconfigure(0, weight=1)
+        self.map_container.grid_columnconfigure(0, weight=1)
+        
+        # Configure zoom frame grid
+        self.zoom_frame.grid_columnconfigure(1, weight=1)  # zoom label
     
     def _create_sidebar(self):
         """Create left sidebar with map controls and weather layers"""
         self.sidebar = ctk.CTkFrame(self.content_frame, width=250, corner_radius=10)
-        self.sidebar.pack(side="left", fill="y", padx=10, pady=10)
-        self.sidebar.pack_propagate(False)
+        self.sidebar.grid(row=0, column=0, sticky="ns", padx=10, pady=10)
+        self.sidebar.grid_propagate(False)
         
         # Map Controls Section
         self.controls_label = ctk.CTkLabel(
@@ -145,11 +170,11 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             text="Map Controls",
             font=("Arial", 16, "bold")
         )
-        self.controls_label.pack(pady=(10, 5))
+        self.controls_label.grid(row=0, column=0, pady=(10, 5), sticky="ew")
         
         # Zoom controls
         self.zoom_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        self.zoom_frame.pack(fill="x", padx=10, pady=5)
+        self.zoom_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
         
         self.zoom_out_btn = ctk.CTkButton(
             self.zoom_frame,
@@ -157,13 +182,13 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             width=40,
             command=self._zoom_out
         )
-        self.zoom_out_btn.pack(side="left")
+        self.zoom_out_btn.grid(row=0, column=0, sticky="w")
         
         self.zoom_label = ctk.CTkLabel(
             self.zoom_frame,
             text=f"Zoom: {self.zoom_level}"
         )
-        self.zoom_label.pack(side="left", expand=True)
+        self.zoom_label.grid(row=0, column=1, sticky="ew")
         
         self.zoom_in_btn = ctk.CTkButton(
             self.zoom_frame,
@@ -171,11 +196,11 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             width=40,
             command=self._zoom_in
         )
-        self.zoom_in_btn.pack(side="right")
+        self.zoom_in_btn.grid(row=0, column=2, sticky="e")
         
         # Map type selection
         self.map_type_label = ctk.CTkLabel(self.sidebar, text="Map Type:")
-        self.map_type_label.pack(pady=(10, 5))
+        self.map_type_label.grid(row=2, column=0, pady=(10, 5), sticky="ew")
         
         self.map_type_var = ctk.StringVar(value=self.map_type)
         self.map_type_menu = ctk.CTkOptionMenu(
