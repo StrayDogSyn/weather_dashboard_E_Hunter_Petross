@@ -11,7 +11,7 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Callable
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -310,6 +310,9 @@ class EnhancedWeatherService:
         
         # WeatherAPI base URL
         self.weatherapi_base_url = self.config.get_setting("api.weatherapi_base_url", "https://api.weatherapi.com/v1")
+        
+        # Observer pattern for weather updates
+        self._observers: List[Callable] = []
 
     def _load_cache(self) -> None:
         """Load enhanced weather cache from file."""
@@ -331,6 +334,26 @@ class EnhancedWeatherService:
             self.logger.debug("💾 Enhanced cache saved successfully")
         except Exception as e:
             self.logger.warning(f"Failed to save enhanced cache: {e}")
+
+    def add_observer(self, observer: Callable) -> None:
+        """Add an observer for weather updates."""
+        if observer not in self._observers:
+            self._observers.append(observer)
+            self.logger.debug(f"Added weather observer: {observer.__name__ if hasattr(observer, '__name__') else str(observer)}")
+
+    def remove_observer(self, observer: Callable) -> None:
+        """Remove an observer for weather updates."""
+        if observer in self._observers:
+            self._observers.remove(observer)
+            self.logger.debug(f"Removed weather observer: {observer.__name__ if hasattr(observer, '__name__') else str(observer)}")
+
+    def notify_observers(self, weather_data: Any) -> None:
+        """Notify all observers of weather data updates."""
+        for observer in self._observers:
+            try:
+                observer(weather_data)
+            except Exception as e:
+                self.logger.error(f"Error notifying observer {observer}: {e}")
 
     def _is_cache_valid(self, cache_entry: Dict[str, Any], cache_duration: int = None) -> bool:
         """Check if cache entry is still valid."""
@@ -1552,6 +1575,10 @@ class EnhancedWeatherService:
         self._save_cache()
 
         self.logger.info(f"✅ Enhanced weather data retrieved for {location}")
+        
+        # Notify observers of new weather data
+        self.notify_observers(weather_data)
+        
         return weather_data
 
     def _get_wind_direction(self, degrees: float) -> str:

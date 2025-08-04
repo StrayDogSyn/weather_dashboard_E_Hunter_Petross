@@ -613,7 +613,9 @@ class GoogleMapsWidget(ctk.CTkFrame):
                 self.logger.warning("⚠️ Pywebview window object is None or missing")
                 
             # Schedule another check if needed
-            self.safe_after(5000, self._check_map_loading_followup)
+            call_id = self.safe_after(5000, self._check_map_loading_followup)
+            if call_id:
+                self.scheduled_calls.add(call_id)
             
         except Exception as e:
             self.logger.error(f"Error during map loading check: {e}")

@@ -198,6 +198,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.bind("<Control-w>", lambda e: self.tabview.set("Weather"))
         self.bind("<Control-a>", lambda e: self.tabview.set("Activities"))
         self.bind("<Control-s>", lambda e: self.tabview.set("Settings"))
+        self.bind("<Control-q>", lambda e: self._on_closing())
         self.bind("<F5>", lambda e: self._load_weather_data())
         self.bind("<Escape>", lambda e: self.search_entry.delete(0, "end"))
         self.bind("<question>", lambda e: self.error_handler.show_keyboard_shortcuts())
@@ -3147,6 +3148,15 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 pass
         self.scheduled_calls.clear()
 
+    def _update_usage_stats(self):
+        """Update usage statistics display."""
+        try:
+            if not self.is_destroyed:
+                # Schedule next update
+                self.safe_after(5000, self._update_usage_stats)
+        except Exception as e:
+            self.logger.error(f"Error updating usage stats: {e}")
+
     def _on_closing(self):
         """Handle application closing."""
         self.is_destroyed = True
@@ -3188,6 +3198,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         if hasattr(self, "loading_manager"):
             self.loading_manager.shutdown()
 
+        self.quit()
         self.destroy()
 
     def _update_time(self):
@@ -3915,26 +3926,78 @@ class ProfessionalWeatherDashboard(SafeCTk):
         )
 
     def _create_maps_tab(self):
-        """Create Maps tab with Google Maps integration."""
+        """Create Maps tab with thread-safe maps integration."""
         try:
-            # Import here to avoid circular imports
-            from .maps.google_maps_widget import GoogleMapsWidget
+            # Import the new thread-safe maps manager
+            from .dashboard.maps_tab_manager import ThreadSafeMapsTabManager, MAPS_AVAILABLE
             
-            # Create the Google Maps widget with proper services
-            self.google_maps_widget = GoogleMapsWidget(
-                self.maps_tab, 
-                weather_service=self.weather_service,
-                config_service=self.config_service
-            )
-            self.google_maps_widget.pack(fill="both", expand=True)
-            
-            self.logger.info("Maps tab created successfully with Google Maps")
+            if MAPS_AVAILABLE:
+                # Create the thread-safe maps manager with proper services
+                self.maps_tab_manager = ThreadSafeMapsTabManager(
+                    self.maps_tab,
+                    weather_service=self.weather_service,
+                    config_service=self.config_service
+                )
+                self.logger.info("Maps tab created successfully with thread-safe maps")
+            else:
+                # Show maps unavailable message
+                self._create_maps_unavailable_message()
+                self.logger.warning("Maps dependencies not available, showing fallback message")
             
         except Exception as e:
-            self.logger.error(f"Failed to create Google Maps widget: {e}")
+            self.logger.error(f"Failed to create maps tab: {e}")
             # Fallback for demo mode
             self._create_enhanced_maps_tab()
 
+    def _create_maps_unavailable_message(self):
+        """Create message when maps dependencies are unavailable."""
+        # Create main container
+        maps_container = ctk.CTkFrame(self.maps_tab)
+        maps_container.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            maps_container, 
+            text="🗺️ Maps Feature Unavailable", 
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title_label.pack(pady=(20, 10))
+        
+        # Info message
+        info_frame = ctk.CTkFrame(maps_container)
+        info_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        info_text = """
+📦 Missing Dependencies
+
+The interactive maps feature requires additional packages:
+
+• tkintermapview >= 1.29
+• tkinterweb >= 3.24  
+• pywebview >= 4.0
+
+💡 To enable maps functionality:
+
+1. Install dependencies:
+   pip install tkintermapview tkinterweb pywebview
+
+2. Restart the application
+
+🌟 Once installed, you'll have access to:
+• Real-time weather overlays
+• Interactive location selection
+• Temperature and precipitation maps
+• Wind patterns visualization
+        """
+        
+        info_label = ctk.CTkLabel(
+            info_frame,
+            text=info_text,
+            font=ctk.CTkFont(size=14),
+            justify="left"
+        )
+        info_label.pack(pady=20, padx=20)
+    
     def _create_enhanced_maps_tab(self):
         """Create enhanced maps tab with weather visualization."""
         # Main container

@@ -471,13 +471,13 @@ class InteractiveWeatherMapsWidget(ctk.CTkFrame):
 
             # Load in web view only if not destroyed
             if not self._destroyed:
-                self._safe_after(0, self._display_map)
+                self._safe_after_idle(self._display_map)
 
         except Exception as e:
             self.logger.error(f"Failed to load map: {e}")
             if not self._destroyed:
                 error_msg = str(e)
-                self._safe_after(0, lambda: self._update_status(f"Error loading map: {error_msg}"))
+                self._safe_after_idle(lambda: self._update_status(f"Error loading map: {error_msg}"))
 
     def _display_map(self):
         """Display map in web view."""
@@ -577,16 +577,16 @@ class InteractiveWeatherMapsWidget(ctk.CTkFrame):
             coords = asyncio.run(self.maps_service.geocode_location(location))
             if coords and not self._destroyed:
                 self.current_location = coords
-                self._safe_after(0, self._refresh_map)
-                self._safe_after(0, lambda: self._update_status(f"Found {location}"))
+                self._safe_after_idle(self._refresh_map)
+                self._safe_after_idle(lambda: self._update_status(f"Found {location}"))
             elif not self._destroyed:
-                self._safe_after(0, lambda: self._update_status(f"Location '{location}' not found"))
+                self._safe_after_idle(lambda: self._update_status(f"Location '{location}' not found"))
 
         except Exception as e:
             self.logger.error(f"Failed to search location: {e}")
             if not self._destroyed:
                 error_msg = str(e)
-                self._safe_after(0, lambda: self._update_status(f"Search error: {error_msg}"))
+                self._safe_after_idle(lambda: self._update_status(f"Search error: {error_msg}"))
 
     def _go_to_current_location(self):
         """Go to current GPS location."""
