@@ -1,4 +1,5 @@
 import weakref
+import tkinter as tk
 from typing import Optional
 
 import customtkinter as ctk
@@ -16,23 +17,33 @@ class SafeWidget:
 
     def safe_after(self, ms: int, func: callable, *args) -> Optional[str]:
         """Safely schedule a callback with automatic cleanup."""
-        if not self.winfo_exists():
-            return None
-
         try:
+            if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
+                return None
             after_id = self.after(ms, func, *args)
             self._after_ids[id(self)].add(after_id)
             return after_id
-        except Exception:
+        except (tk.TclError, AttributeError, Exception):
+            return None
+    
+    def safe_after_idle(self, func: callable, *args) -> Optional[str]:
+        """Safely schedule an idle callback with automatic cleanup."""
+        try:
+            if not hasattr(self, 'winfo_exists') or not self.winfo_exists():
+                return None
+            after_id = self.after_idle(func, *args)
+            self._after_ids[id(self)].add(after_id)
+            return after_id
+        except (tk.TclError, AttributeError, Exception):
             return None
 
     def safe_after_cancel(self, after_id: str) -> None:
         """Safely cancel an after callback."""
         try:
-            if after_id and self.winfo_exists():
+            if after_id and hasattr(self, 'winfo_exists') and self.winfo_exists():
                 self.after_cancel(after_id)
-                self._after_ids[id(self)].discard(after_id)
-        except BaseException:
+            self._after_ids[id(self)].discard(after_id)
+        except (tk.TclError, ValueError, AttributeError, Exception):
             pass
 
     def cleanup_after_callbacks(self) -> None:
@@ -45,9 +56,33 @@ class SafeWidget:
 
     def destroy(self) -> None:
         """Safely destroy widget with cleanup."""
-        self.cleanup_after_callbacks()
-        super().destroy()
-        SafeWidget._active_widgets.discard(self)
+        try:
+            self.cleanup_after_callbacks()
+            
+            # Check if widget still exists before attempting destruction
+            if hasattr(self, 'winfo_exists'):
+                try:
+                    exists = self.winfo_exists()
+                except (tk.TclError, AttributeError):
+                    exists = False
+                    
+                if exists:
+                    # Try to destroy using the specific widget class destroy method
+                    for cls in self.__class__.__mro__:
+                        if hasattr(cls, 'destroy') and cls != SafeWidget:
+                            try:
+                                cls.destroy(self)
+                                break
+                            except (tk.TclError, AttributeError):
+                                continue
+        except (tk.TclError, AttributeError, Exception):
+            pass
+        finally:
+            SafeWidget._active_widgets.discard(self)
+            # Clean up after_ids for this widget
+            widget_id = id(self)
+            if widget_id in self._after_ids:
+                del self._after_ids[widget_id]
 
     @classmethod
     def cleanup_all_widgets(cls) -> None:

@@ -8,6 +8,7 @@ import logging
 
 import customtkinter as ctk
 
+from src.ui.safe_widgets import SafeCTkTabview
 from src.ui.components.common.header import HeaderComponent
 from src.ui.components.common.status_bar_component import StatusBarComponent
 from src.ui.components.journal_tab_manager import JournalTabManager
@@ -54,7 +55,7 @@ class DashboardController(BaseDashboard):
 
     def _create_main_content(self):
         """Create tab view and initialize tab managers."""
-        self.tabview = ctk.CTkTabview(self, corner_radius=10)
+        self.tabview = SafeCTkTabview(self, corner_radius=10)
         self.tabview.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
 
         # Create tabs

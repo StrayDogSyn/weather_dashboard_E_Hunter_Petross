@@ -5,6 +5,20 @@ from datetime import datetime, timedelta
 import customtkinter as ctk
 from dotenv import load_dotenv
 
+# Import safe widgets
+from src.ui.safe_widgets import (
+    SafeCTk,
+    SafeCTkFrame,
+    SafeCTkLabel,
+    SafeCTkButton,
+    SafeCTkEntry,
+    SafeCTkTabview,
+    SafeCTkScrollableFrame,
+    SafeCTkProgressBar,
+    SafeCTkComboBox,
+    SafeCTkTextbox,
+)
+
 from src.services.activity_service import ActivityService
 from src.services.config_service import ConfigService
 from src.services.enhanced_weather_service import (
@@ -43,7 +57,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
 
-class ProfessionalWeatherDashboard(ctk.CTk):
+class ProfessionalWeatherDashboard(SafeCTk):
     """Professional weather dashboard with clean design."""
 
     def __init__(self, config_service=None):
@@ -72,14 +86,14 @@ class ProfessionalWeatherDashboard(ctk.CTk):
                 self.config_service.get_setting("api.github_token") if self.config_service else None
             )
             self.github_service = GitHubTeamService(github_token=github_token)
-            self.loading_manager = LoadingManager()
+            self.loading_manager = LoadingManager(ui_widget=self)
         except Exception as e:
             self.logger.warning(f"Running in demo mode without API keys: {e}")
             self.config_service = None
             self.weather_service = None
             self.activity_service = None
             self.github_service = GitHubTeamService()  # GitHub service can work without API keys
-            self.loading_manager = LoadingManager()  # Still initialize for offline mode
+            self.loading_manager = LoadingManager(ui_widget=self)  # Still initialize for offline mode
 
         # Initialize visual polish managers
         self.animation_manager = AnimationManager()
@@ -122,6 +136,9 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
         # Track scheduled after() calls for cleanup
         self.scheduled_calls = []
+        
+        # Flag to prevent stale callbacks during UI refresh
+        self.is_refreshing_activities = False
 
         # Track open hourly breakdown windows
         self.open_hourly_windows = []
@@ -159,10 +176,12 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         self._setup_keyboard_shortcuts()
 
         # Load initial data with progressive loading approach
+        # Using after_idle directly as we don't have a safe_after_idle method
+        # This is a one-time call at startup, so it doesn't need cleanup
         self.after_idle(self._initialize_progressive_loading)
 
         # Start background loading for additional data (delayed)
-        self.after(3000, self._start_background_loading)
+        self.safe_after(3000, self._start_background_loading)
 
         # Initialize enhanced settings
         self._initialize_enhanced_settings()
@@ -232,32 +251,32 @@ class ProfessionalWeatherDashboard(ctk.CTk):
                 self.font_size = self.config_service.get_setting("appearance.font_size", 12)
 
             # Schedule periodic updates
-            self.after(5000, self._update_usage_stats)  # Update usage stats every 5 seconds
-            self.after(10000, self._update_cache_size)  # Update cache size every 10 seconds
+            self.safe_after(5000, self._update_usage_stats)  # Update usage stats every 5 seconds
+            self.safe_after(10000, self._update_cache_size)  # Update cache size every 10 seconds
 
         except Exception as e:
             self.logger.warning(f"Failed to initialize enhanced settings: {e}")
 
     def _create_header(self):
         """Create professional header with PROJECT CODEFRONT branding."""
-        self.header_frame = ctk.CTkFrame(
+        self.header_frame = SafeCTkFrame(
             self, height=100, fg_color=DataTerminalTheme.CARD_BG, corner_radius=0
         )
         self.header_frame.grid(row=0, column=0, sticky="ew")
         self.header_frame.grid_propagate(False)
 
         # Add accent strip
-        accent_strip = ctk.CTkFrame(
+        accent_strip = SafeCTkFrame(
             self.header_frame, height=3, fg_color=DataTerminalTheme.PRIMARY, corner_radius=0
         )
         accent_strip.pack(fill="x", side="top")
 
         # Title container
-        title_container = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        title_container = SafeCTkFrame(self.header_frame, fg_color="transparent")
         title_container.pack(side="left", padx=40, pady=20)
 
         # Main title with glow effect
-        title_frame = ctk.CTkFrame(
+        title_frame = SafeCTkFrame(
             title_container,
             fg_color="transparent",
             border_width=1,
@@ -265,7 +284,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         )
         title_frame.pack()
 
-        self.title_label = ctk.CTkLabel(
+        self.title_label = SafeCTkLabel(
             title_frame,
             text="⚡ PROJECT CODEFRONT",
             font=(DataTerminalTheme.FONT_FAMILY, 32, "bold"),
@@ -274,7 +293,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         self.title_label.pack(padx=15, pady=5)
 
         # Subtitle
-        self.subtitle_label = ctk.CTkLabel(
+        self.subtitle_label = SafeCTkLabel(
             title_container,
             text="Advanced Weather Intelligence System",
             font=(DataTerminalTheme.FONT_FAMILY, 14),
@@ -283,11 +302,11 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         self.subtitle_label.pack()
 
         # Search container on right
-        search_container = ctk.CTkFrame(self.header_frame, fg_color="transparent")
+        search_container = SafeCTkFrame(self.header_frame, fg_color="transparent")
         search_container.pack(side="right", padx=40, pady=20)
 
         # Search and controls frame
-        search_controls_frame = ctk.CTkFrame(search_container, fg_color="transparent")
+        search_controls_frame = SafeCTkFrame(search_container, fg_color="transparent")
         search_controls_frame.pack()
 
         # Enhanced Search Bar
@@ -306,7 +325,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
             self._create_basic_search(search_controls_frame)
 
         # Manual refresh button with loading indicator
-        self.refresh_button = ctk.CTkButton(
+        self.refresh_button = SafeCTkButton(
             search_controls_frame,
             text="🔄 Refresh",
             width=100,
@@ -320,7 +339,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         self.refresh_button.pack(side="left")
 
         # Current location indicator
-        self.location_label = ctk.CTkLabel(
+        self.location_label = SafeCTkLabel(
             search_container,
             text=f"📍 Current: {self.current_city}",
             font=(DataTerminalTheme.FONT_FAMILY, 12),
@@ -330,7 +349,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
     def _create_main_content(self):
         """Create tab view."""
-        self.tabview = ctk.CTkTabview(self, corner_radius=10)
+        self.tabview = SafeCTkTabview(self, corner_radius=10)
         self.tabview.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
 
         # Create tabs
@@ -1831,74 +1850,90 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
     def _update_weather_display(self, weather_data):
         """Update UI with enhanced weather display and visual effects."""
-        try:
-            # Validate weather data first
-            if not self._validate_weather_data(weather_data):
-                self.logger.warning("Invalid weather data received")
-                self._show_data_unavailable_state()
-                return
+        # STEP 3 DEBUG: Implement thread-safe UI updates
+        
+        def _safe_update_display():
+            try:
+                # Validate weather data first
+                if not self._validate_weather_data(weather_data):
+                    self.logger.warning("Invalid weather data received")
+                    self._show_data_unavailable_state()
+                    return
 
-            # Store current weather data for activity suggestions
-            self.current_weather_data = weather_data
-            # Track when weather data was last updated
-            self.last_weather_data_timestamp = datetime.now()
+                # Store current weather data for activity suggestions
+                self.current_weather_data = weather_data
+                # Track when weather data was last updated
+                self.last_weather_data_timestamp = datetime.now()
 
-            # Update last refresh timestamp
-            self._update_last_refresh_timestamp()
+                # Update last refresh timestamp
+                self._update_last_refresh_timestamp()
 
-            # Update weather-based background with validation
-            self._update_weather_background_safe(weather_data)
+                # Update weather-based background with validation
+                self._update_weather_background_safe(weather_data)
 
-            # Update activities if on activities tab
-            if self.tabview.get() == "Activities":
-                self._update_activity_suggestions(weather_data)
+                # Update activities if on activities tab
+                if self.tabview.get() == "Activities":
+                    self._update_activity_suggestions(weather_data)
 
-            # Refresh activity suggestions with new weather data
-            self._refresh_activity_suggestions()
+                # Refresh activity suggestions with new weather data
+                self._refresh_activity_suggestions()
 
-            # Update location display with validation
-            self._update_location_display_safe(weather_data)
+                # Update location display with validation
+                self._update_location_display_safe(weather_data)
 
-            # Update temperature display with proper unit conversion
-            self._update_temperature_display_safe(weather_data)
+                # Update temperature display with proper unit conversion
+                self._update_temperature_display_safe(weather_data)
 
-            # Update condition display with validation
-            self._update_condition_display_safe(weather_data)
+                # Update condition display with validation
+                self._update_condition_display_safe(weather_data)
 
-            # Show success status
-            self.status_manager.show_weather_fact()
+                # Show success status
+                self.status_manager.show_weather_fact()
 
-            # Refresh any open hourly breakdown windows
-            self.logger.info("About to refresh open hourly windows from _update_weather_display")
-            self._refresh_open_hourly_windows()
+                # Refresh any open hourly breakdown windows
+                self.logger.info("About to refresh open hourly windows from _update_weather_display")
+                self._refresh_open_hourly_windows()
 
-            # Update metrics with validation and proper conversions
-            self._update_weather_metrics_safe(weather_data)
+                # Update metrics with validation and proper conversions
+                self._update_weather_metrics_safe(weather_data)
 
-            # Update air quality display
-            self._update_air_quality_display(weather_data)
+                # Update air quality display
+                self._update_air_quality_display(weather_data)
 
-            # Update sun times display
-            self._update_sun_times_display(weather_data)
+                # Update sun times display
+                self._update_sun_times_display(weather_data)
 
-            # Update weather alerts display
-            self._update_weather_alerts_display(weather_data)
+                # Update weather alerts display
+                self._update_weather_alerts_display(weather_data)
 
-            # Update forecast cards
-            self._update_forecast_cards(weather_data)
+                # Update forecast cards
+                self._update_forecast_cards(weather_data)
 
-            # Update temperature chart
-            if hasattr(self, "temp_chart"):
-                self._update_temperature_chart(weather_data)
+                # Update temperature chart
+                if hasattr(self, "temp_chart"):
+                    self._update_temperature_chart(weather_data)
 
-            # Update status with success message
-            self._update_status_success()
+                # Update status with success message
+                self._update_status_success()
 
-            self.logger.info("Weather display updated successfully")
+                self.logger.info("Weather display updated successfully")
 
-        except Exception as e:
-            self.logger.error(f"Error updating display: {e}")
-            self._handle_display_error(e)
+            except Exception as e:
+                self.logger.error(f"Error updating display: {e}")
+                self._handle_display_error(e)
+        
+        # Schedule UI update on main thread using safe_after_idle
+        if hasattr(self, 'safe_after_idle'):
+            self.safe_after_idle(_safe_update_display)
+        else:
+            # Fallback to regular after_idle if SafeWidget not available
+            try:
+                if self.winfo_exists():
+                    self.after_idle(_safe_update_display)
+            except Exception as e:
+                self.logger.error(f"Failed to schedule UI update: {e}")
+                # As last resort, execute directly (not ideal but prevents data loss)
+                _safe_update_display()
 
     def _validate_weather_data(self, weather_data):
         """Validate weather data before processing."""
@@ -2249,12 +2284,12 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         self.activities_tab.grid_rowconfigure(1, weight=1)
 
         # Header with better spacing
-        header_frame = ctk.CTkFrame(self.activities_tab, fg_color="transparent", height=60)
+        header_frame = SafeCTkFrame(self.activities_tab, fg_color="transparent", height=60)
         header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(15, 8))
         header_frame.grid_propagate(False)
         header_frame.grid_columnconfigure(0, weight=1)
 
-        title = ctk.CTkLabel(
+        title = SafeCTkLabel(
             header_frame,
             text="🎯 AI Activity Suggestions",
             font=(DataTerminalTheme.FONT_FAMILY, 20, "bold"),
@@ -2262,7 +2297,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         )
         title.grid(row=0, column=0, sticky="w", pady=15)
 
-        refresh_btn = ctk.CTkButton(
+        refresh_btn = SafeCTkButton(
             header_frame,
             text="🔄 Get New Suggestions",
             width=160,
@@ -2276,7 +2311,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         refresh_btn.grid(row=0, column=1, sticky="e", pady=15, padx=(15, 0))
 
         # Activity cards container with better structure
-        self.activities_container = ctk.CTkScrollableFrame(
+        self.activities_container = SafeCTkScrollableFrame(
             self.activities_tab, fg_color="transparent", corner_radius=0
         )
         self.activities_container.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 15))
@@ -2336,108 +2371,129 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         ]
 
     def _create_activity_cards(self, activities):
-        """Create activity cards from activities list."""
-        # Clear existing cards
-        for widget in self.activities_container.winfo_children():
-            widget.destroy()
+        """Create activity cards from activities list using safe two-phase update."""
+        # Set flag to block incoming updates during refresh
+        self.is_refreshing_activities = True
+        
+        try:
+            # Phase 1: Cancel any pending scheduled operations that might target widgets
+            self._cleanup_scheduled_calls()
+            
+            # Clear existing cards
+            for widget in self.activities_container.winfo_children():
+                widget.destroy()
+            
+            # CRITICAL: Force Tkinter to process all widget destructions NOW
+            # This ensures the container is truly empty before we add new widgets
+            self.activities_container.update_idletasks()
 
-        # Calculate grid layout
-        cards_per_row = 3
-        for i, activity in enumerate(activities):
-            row = i // cards_per_row
-            col = i % cards_per_row
+            # Calculate grid layout
+            cards_per_row = 3
+            for i, activity in enumerate(activities):
+                row = i // cards_per_row
+                col = i % cards_per_row
 
-            card = ctk.CTkFrame(
-                self.activities_container,
-                fg_color=DataTerminalTheme.CARD_BG,
-                corner_radius=16,
-                border_width=1,
-                border_color=DataTerminalTheme.BORDER,
-                height=200,
-            )
-            card.grid(row=row, column=col, padx=15, pady=15, sticky="ew")
-            card.grid_propagate(False)
+                card = SafeCTkFrame(
+                    self.activities_container,
+                    fg_color=DataTerminalTheme.CARD_BG,
+                    corner_radius=16,
+                    border_width=1,
+                    border_color=DataTerminalTheme.BORDER,
+                    height=200,
+                )
+                card.grid(row=row, column=col, padx=15, pady=15, sticky="ew")
+                card.grid_propagate(False)
 
-            # Configure card grid
-            card.grid_rowconfigure(0, weight=0)  # Header
-            card.grid_rowconfigure(1, weight=1)  # Description
-            card.grid_rowconfigure(2, weight=0)  # Details
-            card.grid_columnconfigure(0, weight=1)
+                # Configure card grid
+                card.grid_rowconfigure(0, weight=0)  # Header
+                card.grid_rowconfigure(1, weight=1)  # Description
+                card.grid_rowconfigure(2, weight=0)  # Details
+                card.grid_columnconfigure(0, weight=1)
 
-            # Header with icon and title
-            header = ctk.CTkFrame(card, fg_color="transparent", height=50)
-            header.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 5))
-            header.grid_propagate(False)
-            header.grid_columnconfigure(1, weight=1)
+                # Header with icon and title
+                header = SafeCTkFrame(card, fg_color="transparent", height=50)
+                header.grid(row=0, column=0, sticky="ew", padx=15, pady=(15, 5))
+                header.grid_propagate(False)
+                header.grid_columnconfigure(1, weight=1)
 
-            # Icon
-            icon_label = ctk.CTkLabel(
-                header, text=activity.get("icon", "🎯"), font=(DataTerminalTheme.FONT_FAMILY, 28)
-            )
-            icon_label.grid(row=0, column=0, padx=(0, 10), sticky="w")
+                # Icon
+                icon_label = SafeCTkLabel(
+                    header, text=activity.get("icon", "🎯"), font=(DataTerminalTheme.FONT_FAMILY, 28)
+                )
+                icon_label.grid(row=0, column=0, padx=(0, 10), sticky="w")
 
-            # Title
-            title_label = ctk.CTkLabel(
-                header,
-                text=activity.get("title", "Activity"),
-                font=(DataTerminalTheme.FONT_FAMILY, 14, "bold"),
-                text_color=DataTerminalTheme.TEXT,
-                anchor="w",
-            )
-            title_label.grid(row=0, column=1, sticky="ew")
+                # Title
+                title_label = SafeCTkLabel(
+                    header,
+                    text=activity.get("title", "Activity"),
+                    font=(DataTerminalTheme.FONT_FAMILY, 14, "bold"),
+                    text_color=DataTerminalTheme.TEXT,
+                    anchor="w",
+                )
+                title_label.grid(row=0, column=1, sticky="ew")
 
-            # Category badge
-            category_badge = ctk.CTkLabel(
-                header,
-                text=activity.get("category", "General"),
-                fg_color=DataTerminalTheme.PRIMARY,
-                corner_radius=10,
-                text_color=DataTerminalTheme.BACKGROUND,
-                font=(DataTerminalTheme.FONT_FAMILY, 10, "bold"),
-                width=60,
-                height=20,
-            )
-            category_badge.grid(row=0, column=2, padx=(10, 0), sticky="e")
+                # Category badge
+                category_badge = SafeCTkLabel(
+                    header,
+                    text=activity.get("category", "General"),
+                    fg_color=DataTerminalTheme.PRIMARY,
+                    corner_radius=10,
+                    text_color=DataTerminalTheme.BACKGROUND,
+                    font=(DataTerminalTheme.FONT_FAMILY, 10, "bold"),
+                    width=60,
+                    height=20,
+                )
+                category_badge.grid(row=0, column=2, padx=(10, 0), sticky="e")
 
-            # Description
-            desc_label = ctk.CTkLabel(
-                card,
-                text=activity.get("description", "No description available"),
-                font=(DataTerminalTheme.FONT_FAMILY, 12),
-                text_color=DataTerminalTheme.TEXT_SECONDARY,
-                anchor="nw",
-                justify="left",
-                wraplength=250,
-            )
-            desc_label.grid(row=1, column=0, sticky="new", padx=15, pady=5)
+                # Description
+                desc_label = SafeCTkLabel(
+                    card,
+                    text=activity.get("description", "No description available"),
+                    font=(DataTerminalTheme.FONT_FAMILY, 12),
+                    text_color=DataTerminalTheme.TEXT_SECONDARY,
+                    anchor="nw",
+                    justify="left",
+                    wraplength=250,
+                )
+                desc_label.grid(row=1, column=0, sticky="new", padx=15, pady=5)
 
-            # Details
-            details_frame = ctk.CTkFrame(card, fg_color="transparent", height=40)
-            details_frame.grid(row=2, column=0, sticky="ew", padx=15, pady=(5, 15))
-            details_frame.grid_propagate(False)
-            details_frame.grid_columnconfigure(0, weight=1)
-            details_frame.grid_columnconfigure(1, weight=1)
+                # Details
+                details_frame = SafeCTkFrame(card, fg_color="transparent", height=40)
+                details_frame.grid(row=2, column=0, sticky="ew", padx=15, pady=(5, 15))
+                details_frame.grid_propagate(False)
+                details_frame.grid_columnconfigure(0, weight=1)
+                details_frame.grid_columnconfigure(1, weight=1)
 
-            time_label = ctk.CTkLabel(
-                details_frame,
-                text=f"⏱️ {activity.get('time', 'Variable')}",
-                font=(DataTerminalTheme.FONT_FAMILY, 11),
-                text_color=DataTerminalTheme.TEXT_SECONDARY,
-                anchor="w",
-            )
-            time_label.grid(row=0, column=0, sticky="w", pady=2)
+                time_label = SafeCTkLabel(
+                    details_frame,
+                    text=f"⏱️ {activity.get('time', 'Variable')}",
+                    font=(DataTerminalTheme.FONT_FAMILY, 11),
+                    text_color=DataTerminalTheme.TEXT_SECONDARY,
+                    anchor="w",
+                )
+                time_label.grid(row=0, column=0, sticky="w", pady=2)
 
-            items_label = ctk.CTkLabel(
-                details_frame,
-                text=f"📦 {activity.get('items', 'None required')}",
-                font=(DataTerminalTheme.FONT_FAMILY, 11),
-                text_color=DataTerminalTheme.TEXT_SECONDARY,
-                anchor="w",
-            )
-            items_label.grid(row=1, column=0, sticky="w", pady=2)
+                items_label = SafeCTkLabel(
+                    details_frame,
+                    text=f"📦 {activity.get('items', 'None required')}",
+                    font=(DataTerminalTheme.FONT_FAMILY, 11),
+                    text_color=DataTerminalTheme.TEXT_SECONDARY,
+                    anchor="w",
+                )
+                items_label.grid(row=1, column=0, sticky="w", pady=2)
+        except Exception as e:
+            self.logger.error(f"Error creating activity cards: {e}")
+        finally:
+            # Always reset the flag, even if an error occurred
+            self.is_refreshing_activities = False
 
     def _update_activity_suggestions(self, weather_data):
         """Update activity suggestions based on weather with caching."""
+        # Check if UI is currently being refreshed - if so, discard this update
+        if getattr(self, 'is_refreshing_activities', False):
+            self.logger.debug("Discarding activity update - UI is currently being refreshed")
+            return
+            
         try:
             # Create cache key based on weather conditions
             cache_key = f"activities_{self.current_city}_{weather_data.get('condition', 'unknown')}_{weather_data.get('temperature', 0)}"
@@ -2473,6 +2529,13 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
     def _refresh_activity_suggestions(self):
         """Refresh activity suggestions when weather data changes."""
+        # STEP 2 DEBUG: Restore UI manipulation to test tkinterweb isolation
+        
+        # Check if UI is currently being refreshed - if so, discard this update
+        if getattr(self, 'is_refreshing_activities', False):
+            self.logger.debug("Discarding activity refresh - UI is currently being updated")
+            return
+            
         if hasattr(self, "activities_container") and self.activities_container.winfo_exists():
             try:
                 # Get updated activity suggestions
@@ -2541,7 +2604,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
             # In real implementation, run database optimization
             self.status_label.configure(text="⚡ Database optimization started...")
             # Mock optimization delay
-            self.after(2000, lambda: self.status_label.configure(text="✅ Database optimized"))
+            self.safe_after(2000, lambda: self.status_label.configure(text="✅ Database optimized"))
         except Exception as e:
             self.status_label.configure(text=f"❌ Database optimization failed: {str(e)}")
 
@@ -2551,7 +2614,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
             # In real implementation, open date range dialog and export
             self.status_label.configure(text="📤 Exporting data with date range...")
             # Mock export delay
-            self.after(
+            self.safe_after(
                 1500, lambda: self.status_label.configure(text="✅ Data exported successfully")
             )
         except Exception as e:
@@ -2664,7 +2727,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
             self.animation_manager.success_pulse(self.auto_refresh_switch)
             status_text = "🔄 Auto-refresh enabled"
             # Start refresh cycle immediately
-            self.after(1000, self._schedule_refresh)
+            self.safe_after(1000, self._schedule_refresh)
         else:
             # Warning pulse for disabling
             self.animation_manager.warning_pulse(self.auto_refresh_switch)
@@ -2737,7 +2800,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
                 self.status_manager.show_info("🔄 Refreshing weather data...")
 
             # Schedule the actual refresh to allow UI to update
-            self.after(100, self._perform_manual_refresh, original_text)
+            self.safe_after(100, self._perform_manual_refresh, original_text)
 
         except Exception as e:
             self.logger.error(f"Error starting manual refresh: {e}")
@@ -3314,10 +3377,10 @@ class ProfessionalWeatherDashboard(ctk.CTk):
             return self._safe_fetch_weather_data_with_timeout()
 
         def on_success(weather_data):
-            self.after(0, lambda: self._handle_weather_success(weather_data))
+            self._handle_weather_success(weather_data)
 
         def on_error(error):
-            self.after(0, lambda: self._handle_weather_error(error))
+            self._handle_weather_error(error)
 
         # Load critical weather data with 5-second timeout as requested
         self.loading_manager.load_critical(
@@ -3603,7 +3666,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
         def on_forecast_success(forecast_data):
             if forecast_data:
-                self.after(0, lambda: self._update_forecast_display(forecast_data))
+                self._update_forecast_display(forecast_data)
 
         def on_forecast_error(error):
             self.logger.warning(f"Forecast background loading failed: {error}")
@@ -3640,7 +3703,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
         def on_air_quality_success(air_quality_data):
             if air_quality_data:
-                self.after(0, lambda: self._update_air_quality_display(air_quality_data))
+                self._update_air_quality_display(air_quality_data)
 
         def on_air_quality_error(error):
             self.logger.warning(f"Air quality background loading failed: {error}")
@@ -3679,7 +3742,10 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
                     # Trigger staggered animation for updated cards
                     for i, card in enumerate(self.forecast_cards):
-                        self.after(i * 100, lambda c=card: c.animate_in())
+                        try:
+                            card.animate_in()
+                        except Exception as e:
+                            self.logger.warning(f"Card animation failed: {e}")
 
                 # Refresh any open hourly breakdown windows
                 self._refresh_open_hourly_windows()

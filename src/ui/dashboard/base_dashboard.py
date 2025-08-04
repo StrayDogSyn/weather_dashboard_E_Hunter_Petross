@@ -93,14 +93,14 @@ class BaseDashboard(ctk.CTk):
                 self.config_service.get_setting("api.github_token") if self.config_service else None
             )
             self.github_service = GitHubTeamService(github_token=github_token)
-            self.loading_manager = LoadingManager()
+            self.loading_manager = LoadingManager(ui_widget=self)
         except Exception as e:
             self.logger.warning(f"Running in demo mode without API keys: {e}")
             self.config_service = None
             self.weather_service = None
             self.activity_service = None
             self.github_service = GitHubTeamService()  # GitHub service can work without API keys
-            self.loading_manager = LoadingManager()  # Still initialize for offline mode
+            self.loading_manager = LoadingManager(ui_widget=self)  # Still initialize for offline mode
 
     def _initialize_visual_managers(self):
         """Initialize visual polish managers."""

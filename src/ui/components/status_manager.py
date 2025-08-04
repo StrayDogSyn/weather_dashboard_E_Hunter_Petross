@@ -11,6 +11,11 @@ from enum import Enum
 from typing import Dict, Optional
 
 import customtkinter as ctk
+from src.ui.safe_widgets import (
+    SafeCTkFrame,
+    SafeCTkLabel,
+    SafeCTkProgressBar,
+)
 
 from .animation_manager import AnimationManager
 
@@ -94,7 +99,7 @@ class StatusMessageManager:
     def create_status_bar(self, width: int = 400, height: int = 40) -> ctk.CTkFrame:
         """Create enhanced status bar with animations."""
 
-        self.status_frame = ctk.CTkFrame(
+        self.status_frame = SafeCTkFrame(
             self.parent,
             width=width,
             height=height,
@@ -103,17 +108,17 @@ class StatusMessageManager:
         )
 
         # Content container
-        content_frame = ctk.CTkFrame(self.status_frame, fg_color="transparent")
+        content_frame = SafeCTkFrame(self.status_frame, fg_color="transparent")
         content_frame.pack(fill="both", expand=True, padx=10, pady=5)
 
         # Icon label
-        self.icon_label = ctk.CTkLabel(
+        self.icon_label = SafeCTkLabel(
             content_frame, text="🌤️", font=("JetBrains Mono", 16), width=30
         )
         self.icon_label.pack(side="left", padx=(0, 10))
 
         # Status text
-        self.status_label = ctk.CTkLabel(
+        self.status_label = SafeCTkLabel(
             content_frame,
             text="Ready",
             font=("JetBrains Mono", 12),
@@ -123,7 +128,7 @@ class StatusMessageManager:
         self.status_label.pack(side="left", fill="both", expand=True)
 
         # Progress bar (hidden by default)
-        self.progress_bar = ctk.CTkProgressBar(
+        self.progress_bar = SafeCTkProgressBar(
             content_frame, width=60, height=8, progress_color=self.theme_colors["accent"]
         )
 
@@ -282,7 +287,10 @@ class StatusMessageManager:
     def _type_message(self, message: str, delay: int = 50):
         """Create typing effect for message."""
         if self.typing_timer:
-            self.parent.after_cancel(self.typing_timer)
+            try:
+                self.parent.after_cancel(self.typing_timer)
+            except (tk.TclError, ValueError):
+                pass
 
         def type_char(index: int = 0):
             try:
@@ -441,6 +449,7 @@ class TooltipManager:
                     return
 
             try:
+                # Use widget's after method directly since this is in TooltipManager
                 tooltip_data["show_timer"] = widget.after(delay, show_tooltip)
             except tk.TclError:
                 pass
@@ -479,7 +488,7 @@ class TooltipManager:
         tooltip_window.configure(bg=self.theme_colors["tooltip_shadow"])
 
         # Create tooltip frame
-        tooltip_frame = ctk.CTkFrame(
+        tooltip_frame = SafeCTkFrame(
             tooltip_window,
             fg_color=self.theme_colors["tooltip_bg"],
             border_color=self.theme_colors["tooltip_border"],
@@ -489,7 +498,7 @@ class TooltipManager:
         tooltip_frame.pack(padx=1, pady=1)
 
         # Tooltip text
-        tooltip_label = ctk.CTkLabel(
+        tooltip_label = SafeCTkLabel(
             tooltip_frame,
             text=tooltip_data["text"],
             font=("JetBrains Mono", 11),

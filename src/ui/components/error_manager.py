@@ -11,6 +11,11 @@ from enum import Enum
 from typing import Callable, Dict, List, Optional
 
 import customtkinter as ctk
+from src.ui.safe_widgets import (
+    SafeCTkFrame,
+    SafeCTkLabel,
+    SafeCTkButton,
+)
 
 from .animation_manager import AnimationManager, MicroInteractions
 
@@ -64,7 +69,7 @@ class ErrorCard:
         bg_color, border_color, icon = self._get_level_styling(level)
 
         # Create main error frame
-        self.error_frame = ctk.CTkFrame(
+        self.error_frame = SafeCTkFrame(
             self.parent,
             width=width,
             height=height,
@@ -81,23 +86,23 @@ class ErrorCard:
         self.error_frame.pack_propagate(False)
 
         # Create header with icon and title
-        header_frame = ctk.CTkFrame(self.error_frame, fg_color="transparent", height=60)
+        header_frame = SafeCTkFrame(self.error_frame, fg_color="transparent", height=60)
         header_frame.pack(fill="x", padx=20, pady=(20, 10))
         header_frame.pack_propagate(False)
 
         # Icon
-        icon_label = ctk.CTkLabel(
+        icon_label = SafeCTkLabel(
             header_frame, text=icon, font=("JetBrains Mono", 32), text_color=border_color
         )
         icon_label.pack(side="left", padx=(0, 15))
 
         # Title and close button container
-        title_container = ctk.CTkFrame(header_frame, fg_color="transparent")
+        title_container = SafeCTkFrame(header_frame, fg_color="transparent")
         title_container.pack(side="left", fill="both", expand=True)
 
         # Title
         title_text = title or self._get_default_title(level)
-        title_label = ctk.CTkLabel(
+        title_label = SafeCTkLabel(
             title_container,
             text=title_text,
             font=("JetBrains Mono", 18, "bold"),
@@ -107,7 +112,7 @@ class ErrorCard:
         title_label.pack(anchor="w")
 
         # Close button
-        close_button = ctk.CTkButton(
+        close_button = SafeCTkButton(
             header_frame,
             text="✕",
             width=30,
@@ -124,11 +129,11 @@ class ErrorCard:
         self.micro_interactions.add_hover_glow(close_button, border_color)
 
         # Message content
-        content_frame = ctk.CTkFrame(self.error_frame, fg_color="transparent")
+        content_frame = SafeCTkFrame(self.error_frame, fg_color="transparent")
         content_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
 
         # Main message
-        message_label = ctk.CTkLabel(
+        message_label = SafeCTkLabel(
             content_frame,
             text=message,
             font=("JetBrains Mono", 14),
@@ -141,7 +146,7 @@ class ErrorCard:
 
         # Details (if provided)
         if details:
-            details_label = ctk.CTkLabel(
+            details_label = SafeCTkLabel(
                 content_frame,
                 text=details,
                 font=("JetBrains Mono", 12),
@@ -154,11 +159,11 @@ class ErrorCard:
 
         # Action buttons (if provided)
         if actions:
-            button_frame = ctk.CTkFrame(content_frame, fg_color="transparent")
+            button_frame = SafeCTkFrame(content_frame, fg_color="transparent")
             button_frame.pack(fill="x", pady=(10, 0))
 
             for i, action in enumerate(actions):
-                button = ctk.CTkButton(
+                button = SafeCTkButton(
                     button_frame,
                     text=action.get("text", "Action"),
                     command=action.get("callback", lambda: None),
@@ -289,7 +294,7 @@ class NotificationToast:
         """Show notification toast."""
 
         # Create toast frame
-        toast_frame = ctk.CTkFrame(
+        toast_frame = SafeCTkFrame(
             self.parent,
             fg_color=self.theme_colors["toast_bg"],
             border_color=self._get_toast_color(level),
@@ -302,12 +307,12 @@ class NotificationToast:
         self._position_toast(toast_frame, position)
 
         # Create content
-        content_frame = ctk.CTkFrame(toast_frame, fg_color="transparent")
+        content_frame = SafeCTkFrame(toast_frame, fg_color="transparent")
         content_frame.pack(fill="both", expand=True, padx=15, pady=10)
 
         # Icon
         icon = self._get_toast_icon(level)
-        icon_label = ctk.CTkLabel(
+        icon_label = SafeCTkLabel(
             content_frame,
             text=icon,
             font=("JetBrains Mono", 16),
@@ -316,7 +321,7 @@ class NotificationToast:
         icon_label.pack(side="left", padx=(0, 10))
 
         # Message
-        message_label = ctk.CTkLabel(
+        message_label = SafeCTkLabel(
             content_frame,
             text=message,
             font=("JetBrains Mono", 12),

@@ -10,7 +10,10 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 
 import customtkinter as ctk
-import tkinterweb
+# import tkinterweb  # COMMENTED OUT FOR DEBUGGING - Step 2
+# import webview      # COMMENTED OUT FOR DEBUGGING - Step 2
+import threading
+import time
 
 from ...services.enhanced_weather_service import EnhancedWeatherService
 from ..theme import DataTerminalTheme
@@ -26,8 +29,11 @@ class GoogleMapsWidget(ctk.CTkFrame):
         self.config_service = config_service
         self.logger = logging.getLogger(__name__)
         
+        self.logger.info("=== INITIALIZING GOOGLE MAPS WIDGET ===")
+        
         # Get Google Maps API key
         self.api_key = self._get_google_maps_api_key()
+        self.logger.info(f"API key retrieved: {self.api_key[:10] if self.api_key else 'None'}...")
         
         # Current map state
         self.current_location = {"lat": 40.7128, "lng": -74.0060}  # Default to NYC
@@ -36,13 +42,20 @@ class GoogleMapsWidget(ctk.CTkFrame):
         
         # Temporary file for map HTML
         self.temp_dir = Path(tempfile.gettempdir()) / "google_maps"
+        self.logger.info(f"Creating temp directory: {self.temp_dir}")
         self.temp_dir.mkdir(exist_ok=True)
+        self.logger.info(f"Temp directory created successfully: {self.temp_dir.exists()}")
         self.current_map_file = None
         
+        # Track scheduled after() calls for cleanup
+        self.scheduled_calls = set()
+        
         # Setup UI
+        self.logger.info("Setting up UI components...")
         self._setup_ui()
         
         # Load initial map
+        self.logger.info("Loading initial map...")
         self._load_initial_map()
     
     def _get_google_maps_api_key(self) -> str:
@@ -235,32 +248,62 @@ class GoogleMapsWidget(ctk.CTkFrame):
         map_container.grid_columnconfigure(0, weight=1)
         map_container.grid_rowconfigure(0, weight=1)
         
-        # Web view for Google Maps
+        # Create container for webview
+        self.webview_container = ctk.CTkFrame(map_container, fg_color="white")
+        self.webview_container.grid(row=0, column=0, sticky="nsew")
+        
+        # DEBUGGING STEP 2: Replace tkinterweb with standard CTkFrame
         try:
-            self.map_webview = tkinterweb.HtmlFrame(map_container)
-            self.map_webview.grid(row=0, column=0, sticky="nsew")
-        except Exception as e:
-            self.logger.error(f"Failed to create web view: {e}")
-            # Fallback label
-            fallback_label = ctk.CTkLabel(
-                map_container,
-                text="Google Maps not available\nPlease check your internet connection",
-                font=(DataTerminalTheme.FONT_FAMILY, 14),
-                text_color=DataTerminalTheme.TEXT_SECONDARY
+            # self.map_webview = tkinterweb.HtmlFrame(self.webview_container)  # COMMENTED OUT
+            self.map_webview = ctk.CTkFrame(self.webview_container, fg_color="#2b2b2b")
+            self.map_webview.pack(fill="both", expand=True)
+            
+            # Add placeholder content
+            placeholder_label = ctk.CTkLabel(
+                self.map_webview,
+                text="🗺️ Google Maps Widget\n(tkinterweb replaced with CTkFrame for debugging)",
+                font=(DataTerminalTheme.FONT_FAMILY, 16),
+                text_color=DataTerminalTheme.TEXT
             )
-            fallback_label.grid(row=0, column=0)
+            placeholder_label.pack(expand=True)
+            
+            self.logger.info("DEBUG: TkinterWeb replaced with CTkFrame successfully")
+        except Exception as e:
+            self.logger.error(f"Failed to create replacement frame: {e}")
+            self.map_webview = None
+        
+        self.webview_window = None
+        self.logger.info("Map container created successfully")
     
     def _load_initial_map(self):
-        """Load initial Google Maps."""
+        """Load the initial Google Maps view using pywebview"""
         try:
+            self.logger.info("Starting initial Google Maps load...")
+            self.logger.info(f"Temp directory: {self.temp_dir}")
+            self.logger.info(f"Temp directory exists: {self.temp_dir.exists()}")
+            
             self._create_google_maps_html()
-            self._display_map()
+            
+            # Start pywebview in a separate thread
+            if self.current_map_file and self.current_map_file.exists():
+                self.logger.info(f"HTML file created successfully: {self.current_map_file}")
+                self.logger.info(f"HTML file size: {self.current_map_file.stat().st_size} bytes")
+                self._start_webview(str(self.current_map_file))
+                self.logger.info(f"Google Maps HTML file loaded: {self.current_map_file}")
+                
+                # Check map loading after a delay
+                self.safe_after(3000, self._check_map_loading)
+            else:
+                self.logger.error(f"HTML file not found: {self.current_map_file}")
+                self._show_fallback_map("HTML file not found")
+                
         except Exception as e:
             self.logger.error(f"Failed to load initial map: {e}")
             self._show_fallback_map(str(e))
     
     def _create_google_maps_html(self):
         """Create Google Maps HTML with weather overlays."""
+        self.logger.info(f"Creating Google Maps HTML with API key: {self.api_key[:10]}...")
         # Get active weather layers
         active_layers = [layer for layer, var in self.layer_vars.items() if var.get()]
         
@@ -507,22 +550,148 @@ class GoogleMapsWidget(ctk.CTkFrame):
         
         return overlays_js
     
-    def _display_map(self):
-        """Display map in web view."""
+
+    
+    def _start_webview(self, html_file_path):
+        """DEBUGGING STEP 2: Skip HTML loading since tkinterweb is replaced"""
         try:
-            if hasattr(self, 'map_webview') and self.current_map_file and os.path.exists(self.current_map_file):
-                self.map_webview.load_file(str(self.current_map_file))
-                self.logger.info("Google Maps loaded successfully")
+            if self.map_webview:
+                self.logger.info(f"DEBUG: Skipping HTML file loading (tkinterweb replaced): {html_file_path}")
+                # Update placeholder content to show it's working
+                for child in self.map_webview.winfo_children():
+                    if isinstance(child, ctk.CTkLabel):
+                        child.configure(text="🗺️ Google Maps Widget\n(tkinterweb replaced - map loading skipped)\n✅ Widget created successfully")
+                self.logger.info("DEBUG: Placeholder content updated successfully")
             else:
-                self._show_fallback_map("Web view not available")
+                self.logger.warning("DEBUG: Replacement widget not available")
+                self._show_webview_fallback()
         except Exception as e:
-            self.logger.error(f"Failed to display map: {e}")
-            self._show_fallback_map(str(e))
+            self.logger.error(f"DEBUG: Failed to update replacement widget: {e}")
+            self._show_webview_fallback()
+    
+    def _create_webview_window(self, html_file_path):
+        """Legacy method - now handled by _start_webview"""
+        self.logger.info("_create_webview_window called - delegating to _start_webview")
+        self._start_webview(html_file_path)
+    
+    def _check_map_loading(self):
+        """Check the status of map loading and provide diagnostic information"""
+        try:
+            self.logger.info("=== MAP LOADING STATUS CHECK ===")
+            
+            # Check if HTML file still exists
+            if self.current_map_file and self.current_map_file.exists():
+                self.logger.info(f"✓ HTML file exists: {self.current_map_file}")
+                
+                # Read HTML content to verify it was created properly
+                with open(self.current_map_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                    self.logger.info(f"✓ HTML file size: {len(content)} characters")
+                    
+                    # Check for key elements
+                    if 'google.maps.Map' in content:
+                        self.logger.info("✓ Google Maps API initialization code found")
+                    else:
+                        self.logger.warning("⚠️ Google Maps API initialization code NOT found")
+                        
+                    if self.api_key in content:
+                        self.logger.info("✓ API key properly embedded in HTML")
+                    else:
+                        self.logger.warning("⚠️ API key NOT found in HTML")
+                        
+            else:
+                self.logger.error("✗ HTML file does not exist or was deleted")
+            
+            # Check webview container status
+            children = self.webview_container.winfo_children()
+            self.logger.info(f"Webview container has {len(children)} child widgets")
+            
+            # Check if pywebview window exists
+            if hasattr(self, 'webview_window') and self.webview_window:
+                self.logger.info("✓ Pywebview window object exists")
+            else:
+                self.logger.warning("⚠️ Pywebview window object is None or missing")
+                
+            # Schedule another check if needed
+            self.safe_after(5000, self._check_map_loading_followup)
+            
+        except Exception as e:
+            self.logger.error(f"Error during map loading check: {e}")
+    
+    def _check_map_loading_followup(self):
+        """Follow-up check for map loading status"""
+        try:
+            self.logger.info("=== FOLLOW-UP MAP STATUS CHECK ===")
+            
+            # Check if we should show fallback
+            children = self.webview_container.winfo_children()
+            if len(children) == 0:
+                self.logger.warning("⚠️ No widgets in webview container - showing fallback")
+                self._show_webview_fallback()
+            else:
+                self.logger.info(f"✓ Webview container has {len(children)} widgets")
+                
+        except Exception as e:
+            self.logger.error(f"Error during follow-up check: {e}")
+    
+    def _show_webview_fallback(self):
+        """Show fallback message when webview fails"""
+        try:
+            self.logger.info("Showing webview fallback message")
+            # Clear the container and show a message
+            for widget in self.webview_container.winfo_children():
+                widget.destroy()
+            
+            fallback_label = ctk.CTkLabel(
+                self.webview_container,
+                text="🗺️ Google Maps\n\nA separate window should open with the interactive map.\nIf no window appears, please check your system settings.",
+                font=("Arial", 14),
+                justify="center"
+            )
+            fallback_label.pack(expand=True, fill="both", padx=20, pady=20)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to show webview fallback: {e}")
+    
+    def _check_map_loading(self):
+        """Check if the map has loaded properly and log debugging information"""
+        try:
+            self.logger.info("Checking map loading status...")
+            
+            if not self.webview_window:
+                self.logger.warning("Webview window is None")
+                return
+                
+            # Check if webview supports JavaScript execution
+            try:
+                # Test JavaScript execution
+                result = self.webview_window.evaluate_js('typeof initMap')
+                self.logger.info(f"JavaScript execution test result: {result}")
+                
+                if result == 'function':
+                    self.logger.info("Google Maps initMap function is available")
+                else:
+                    self.logger.warning("initMap function not found in JavaScript context")
+                    
+            except Exception as js_error:
+                self.logger.error(f"JavaScript execution failed: {js_error}")
+            
+            # Check if HTML file contains the necessary components
+            if self.current_map_file and self.current_map_file.exists():
+                with open(self.current_map_file, 'r', encoding='utf-8') as f:
+                    html_content = f.read()
+                    if 'initMap' in html_content and self.api_key in html_content:
+                        self.logger.info("HTML file contains initMap function and valid API key")
+                    else:
+                        self.logger.warning("HTML file missing initMap function or API key")
+            
+        except Exception as e:
+            self.logger.error(f"Error checking map loading: {e}")
     
     def _show_fallback_map(self, error_msg: str):
         """Show fallback content when Google Maps cannot be displayed."""
         try:
-            if hasattr(self, 'map_webview'):
+            if self.map_webview:
                 fallback_html = f"""
                 <!DOCTYPE html>
                 <html>
@@ -610,7 +779,8 @@ class GoogleMapsWidget(ctk.CTkFrame):
         """Refresh the map with current settings."""
         try:
             self._create_google_maps_html()
-            self._display_map()
+            if self.current_map_file and self.current_map_file.exists():
+                self._start_webview(str(self.current_map_file))
             self.logger.info("Map refreshed")
         except Exception as e:
             self.logger.error(f"Failed to refresh map: {e}")
@@ -623,9 +793,27 @@ class GoogleMapsWidget(ctk.CTkFrame):
         """Change map style."""
         self.logger.info("Map style change (feature available in full version)")
     
+    def safe_after(self, delay, callback):
+        """Safe after() call that tracks scheduled calls for cleanup."""
+        try:
+            call_id = self.after(delay, callback)
+            self.scheduled_calls.add(call_id)
+            return call_id
+        except Exception as e:
+            self.logger.error(f"Error scheduling after() call: {e}")
+            return None
+    
     def cleanup(self):
         """Clean up resources."""
         try:
+            # Cancel all scheduled after() calls
+            for call_id in self.scheduled_calls.copy():
+                try:
+                    self.after_cancel(call_id)
+                except Exception:
+                    pass  # Call may have already executed
+            self.scheduled_calls.clear()
+            
             # Clean up temporary files
             if self.current_map_file and os.path.exists(self.current_map_file):
                 os.remove(self.current_map_file)

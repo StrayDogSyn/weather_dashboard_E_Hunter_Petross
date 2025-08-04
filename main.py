@@ -84,7 +84,7 @@ class ProgressiveWeatherApp:
     def __init__(self):
         """Initialize the progressive loading app."""
         self.logger = logging.getLogger(__name__)
-        self.loading_manager = LoadingManager(max_workers=3)
+        self.loading_manager = LoadingManager(max_workers=3, ui_widget=None)
         self.root = None
         self.dashboard = None
         self.status_label = None
@@ -410,7 +410,7 @@ class ProgressiveWeatherApp:
                 self.logger.error(f"Progressive loading failed: {e}")
 
         # Start loading in background thread
-        loading_thread = threading.Thread(target=loading_sequence, daemon=True)
+        loading_thread = threading.Thread(target=loading_sequence)
         loading_thread.start()
 
     def run(self):
@@ -450,10 +450,12 @@ def main():
     # Load environment
     load_dotenv()
 
+    dashboard = None
     try:
         # Import and create the professional dashboard directly
         from src.ui.professional_weather_dashboard import ProfessionalWeatherDashboard
         from src.services.config_service import ConfigService
+        from src.ui.safe_widgets import SafeWidget
 
         # Initialize config service
         config_service = ConfigService()
@@ -469,6 +471,23 @@ def main():
     except Exception as e:
         logger.error(f"Failed to start dashboard: {e}")
         raise
+    finally:
+        # Cleanup all safe widgets
+        try:
+            from src.ui.safe_widgets import SafeWidget
+            SafeWidget.cleanup_all_widgets()
+            logger.info("Safe widget cleanup completed")
+        except Exception as cleanup_error:
+            logger.error(f"Error during cleanup: {cleanup_error}")
+        
+        # Ensure dashboard cleanup
+        if dashboard:
+            try:
+                dashboard.destroy()
+            except Exception as destroy_error:
+                logger.error(f"Error destroying dashboard: {destroy_error}")
+        
+        logger.info("Application shutdown complete")
 
 
 if __name__ == "__main__":

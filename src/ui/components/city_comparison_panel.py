@@ -256,6 +256,9 @@ class CityComparisonPanel(ctk.CTkFrame):
         # Weather similarity tracking
         self.similarity_threshold = 0.8
 
+        # Track scheduled after() calls to prevent TclError
+        self.scheduled_calls = set()
+
         self._setup_ui()
         self._apply_theme()
 
@@ -592,10 +595,18 @@ class CityComparisonPanel(ctk.CTkFrame):
             def fetch_data():
                 try:
                     team_cities = self.github_service.force_refresh()
-                    self.after(0, lambda: self._process_team_data(team_cities))
+                    # Direct call instead of self.after to avoid threading issues
+                    try:
+                        self._process_team_data(team_cities)
+                    except Exception as process_error:
+                        logger.error(f"Error processing team data: {process_error}")
                 except Exception as e:
                     error_msg = str(e)
-                    self.after(0, lambda: self._handle_team_sync_error(error_msg))
+                    # Direct call instead of self.after to avoid threading issues
+                    try:
+                        self._handle_team_sync_error(error_msg)
+                    except Exception as handle_error:
+                        logger.error(f"Error handling team sync error: {handle_error}")
 
             threading.Thread(target=fetch_data, daemon=True).start()
 
@@ -841,7 +852,7 @@ class CityComparisonPanel(ctk.CTkFrame):
                             share_window.update()
 
                             # Simulate API call delay
-                            self.after(
+                            self.safe_after(
                                 1000,
                                 lambda: self._complete_share(share_window, status_label, team_data),
                             )
@@ -1024,11 +1035,16 @@ class CityComparisonPanel(ctk.CTkFrame):
             logger.error(f"Error adding activity item: {e}")
 
     def _refresh_activity_feed(self, scrollable_frame):
-        """Refresh the activity feed display."""
+        """Refresh the activity feed display using safe two-phase update."""
+        # STEP 2 DEBUG: Restore UI manipulation to test tkinterweb isolation
         try:
-            # Clear existing items
+            # Phase 1: Clear existing items
             for widget in scrollable_frame.winfo_children():
                 widget.destroy()
+            
+            # CRITICAL: Force Tkinter to process all widget destructions NOW
+            # This ensures the frame is truly empty before we add new widgets
+            scrollable_frame.update_idletasks()
 
             # Repopulate with current activity feed
             if self.activity_feed:
@@ -1098,7 +1114,7 @@ class CityComparisonPanel(ctk.CTkFrame):
                     self.after_cancel(self.refresh_timer)
 
                 # Schedule next refresh
-                self.refresh_timer = self.after(delay_ms, self._auto_refresh_callback)
+                self.refresh_timer = self.safe_after(delay_ms, self._auto_refresh_callback)
 
         except Exception as e:
             logger.error(f"Error scheduling auto-refresh: {e}")
@@ -2296,6 +2312,19 @@ class CityComparisonPanel(ctk.CTkFrame):
         except Exception as e:
             logger.error(f"Failed to add rankings to column: {e}")
 
+    def safe_after(self, delay_ms: int, callback):
+        """Safely schedule an after() call with error handling and tracking."""
+        try:
+            if not self.winfo_exists():
+                return None
+            
+            call_id = self.after(delay_ms, callback)
+            self.scheduled_calls.add(call_id)
+            return call_id
+        except Exception as e:
+            logger.error(f"Error scheduling after() call: {e}")
+            return None
+
     def update_theme(self):
         """Update theme for all components."""
         self._apply_theme()
@@ -2310,6 +2339,14 @@ class CityComparisonPanel(ctk.CTkFrame):
 
     def destroy(self):
         """Clean up when destroying the panel."""
+        # Cancel all scheduled after() calls
+        for call_id in self.scheduled_calls:
+            try:
+                self.after_cancel(call_id)
+            except Exception:
+                pass  # Ignore errors if call was already cancelled
+        self.scheduled_calls.clear()
+        
         # Unregister from theme updates
         self.theme_manager.remove_observer(self.update_theme)
 

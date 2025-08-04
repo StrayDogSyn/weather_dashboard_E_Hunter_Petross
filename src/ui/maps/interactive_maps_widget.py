@@ -413,7 +413,7 @@ class InteractiveWeatherMapsWidget(ctk.CTkFrame):
 
     def _load_initial_map(self):
         """Load initial map."""
-        threading.Thread(target=self._load_map_async, daemon=True).start()
+        threading.Thread(target=self._load_map_async).start()
 
     def _load_map_async(self):
         """Load map asynchronously."""
@@ -564,7 +564,7 @@ class InteractiveWeatherMapsWidget(ctk.CTkFrame):
         if not location:
             return
 
-        threading.Thread(target=self._search_location_async, args=(location,), daemon=True).start()
+        threading.Thread(target=self._search_location_async, args=(location,)).start()
 
     def _search_location_async(self, location: str):
         """Search location asynchronously."""
@@ -633,7 +633,7 @@ class InteractiveWeatherMapsWidget(ctk.CTkFrame):
 
     def _refresh_map(self):
         """Refresh the map with current settings."""
-        threading.Thread(target=self._load_map_async, daemon=True).start()
+        threading.Thread(target=self._load_map_async).start()
 
     def _start_auto_update(self):
         """Start auto-update timer."""
