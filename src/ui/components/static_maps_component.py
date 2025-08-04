@@ -331,6 +331,144 @@ class StaticMapsComponent(ctk.CTkFrame):
                 return False
         return False
     
+    def _draw_weather_overlay(self, img):
+        """Draw weather information overlay on map"""
+        try:
+            # Create drawing context
+            draw = ImageDraw.Draw(img, 'RGBA')
+            
+            # Try to use a font
+            try:
+                font = ImageFont.truetype("arial.ttf", 16)
+                small_font = ImageFont.truetype("arial.ttf", 12)
+            except:
+                font = ImageFont.load_default()
+                small_font = font
+            
+            # Draw weather data points
+            for location, data in self.weather_data.items():
+                if 'lat' in data and 'lon' in data:
+                    # Convert lat/lon to pixel coordinates
+                    x, y = self._lat_lon_to_pixels(
+                        data['lat'], data['lon'],
+                        img.width, img.height
+                    )
+                    
+                    if x and y:
+                        # Draw weather info box
+                        temp = data.get('temperature', 0)
+                        condition = data.get('condition', 'Unknown')
+                        
+                        # Background box
+                        box_width = 120
+                        box_height = 50
+                        draw.rectangle(
+                            [x - box_width//2, y - box_height//2,
+                             x + box_width//2, y + box_height//2],
+                            fill=(255, 255, 255, 200),
+                            outline=(0, 0, 0, 255),
+                            width=2
+                        )
+                        
+                        # Temperature
+                        temp_text = f"{temp}°C"
+                        draw.text(
+                            (x, y - 10),
+                            temp_text,
+                            fill=(0, 0, 0, 255),
+                            anchor="mm",
+                            font=font
+                        )
+                        
+                        # Condition
+                        draw.text(
+                            (x, y + 10),
+                            condition[:15],  # Truncate long conditions
+                            fill=(0, 0, 0, 255),
+                            anchor="mm",
+                            font=small_font
+                        )
+            
+            return img
+            
+        except Exception as e:
+            self.logger.error(f"Failed to draw weather overlay: {e}")
+            return img
+    
+    def _lat_lon_to_pixels(self, lat, lon, img_width, img_height):
+        """Convert latitude/longitude to pixel coordinates"""
+        try:
+            # Simple mercator projection
+            # This is approximate and works best near the map center
+            
+            # Calculate pixel offset from center
+            lat_diff = lat - self.center_lat
+            lon_diff = lon - self.center_lng
+            
+            # Approximate pixels per degree at current zoom
+            # This is a simplification - real calculation is more complex
+            scale = (2 ** self.zoom_level) * 2
+            
+            x = img_width / 2 + (lon_diff * scale)
+            y = img_height / 2 - (lat_diff * scale)
+            
+            # Check if point is within image bounds
+            if 0 <= x <= img_width and 0 <= y <= img_height:
+                return int(x), int(y)
+            
+            return None, None
+            
+        except Exception as e:
+            self.logger.error(f"Failed to convert coordinates: {e}")
+            return None, None
+    
+    def _geocode_location(self, location):
+        """Geocode a location string to coordinates"""
+        def _geocode():
+            try:
+                # Use geocoding API
+                url = "https://maps.googleapis.com/maps/api/geocode/json"
+                params = {
+                    'address': location,
+                    'key': self.api_key
+                }
+                
+                response = requests.get(url, params=params, timeout=5)
+                data = response.json()
+                
+                if data['status'] == 'OK' and data['results']:
+                    result = data['results'][0]
+                    lat = result['geometry']['location']['lat']
+                    lng = result['geometry']['location']['lng']
+                    
+                    # Update map center
+                    self.center_lat = lat
+                    self.center_lng = lng
+                    
+                    # Update map
+                    self.after_idle(self._update_map)
+                    
+                else:
+                    self.logger.warning(f"Location not found: {location}")
+                    
+            except Exception as e:
+                self.logger.error(f"Geocoding failed: {e}")
+        
+        # Run in thread
+        thread = threading.Thread(target=_geocode)
+        thread.daemon = True
+        thread.start()
+    
+    def update_location(self, lat, lon, location_name=None):
+        """Update map center location"""
+        self.center_lat = lat
+        self.center_lng = lon
+        self._update_map()
+        
+        if location_name:
+            self.location_entry.delete(0, 'end')
+            self.location_entry.insert(0, location_name)
+    
     def cleanup(self):
         """Clean up resources"""
         self.current_image = None
