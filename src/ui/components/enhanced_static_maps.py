@@ -347,18 +347,333 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         self._update_status("Using default location")
     
     def _update_map(self):
-        """Update the map display"""
-        if not self.api_key:
+        """Update the map display with current settings and overlays"""
+        def _fetch_and_display():
+            try:
+                # Show loading state
+                self.after_idle(lambda: self.map_label.configure(text="Updating map..."))
+                
+                if not self.api_key:
+                    # Show informative message when no API key
+                    self._display_no_api_key_message()
+                    return
+                
+                # Build the complete map URL
+                url = self._build_enhanced_map_url()
+                
+                # Fetch map image
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                
+                # Convert to PIL Image
+                img = Image.open(BytesIO(response.content))
+                
+                # Add weather overlays if any layers are active
+                if any(self.weather_layers.values()) and self.weather_data:
+                    img = self._draw_weather_overlays(img)
+                
+                # Add map attribution
+                img = self._add_attribution(img)
+                
+                # Display the final image
+                self._safe_display_image(img)
+                
+                # Update status
+                self.after_idle(lambda: self._update_status("Map updated", duration=1000))
+                
+            except requests.HTTPError as e:
+                self.logger.error(f"HTTP error fetching map: {e}")
+                self._display_error_message("Map service unavailable")
+            except requests.RequestException as e:
+                self.logger.error(f"Network error fetching map: {e}")
+                self._display_error_message("Network connection error")
+            except Exception as e:
+                self.logger.error(f"Failed to update map: {e}")
+                self._display_error_message("Map update failed")
+        
+        # Run map update in background thread
+        thread = threading.Thread(target=_fetch_and_display, daemon=True)
+        thread.start()
+    
+    def _build_enhanced_map_url(self):
+        """Build Google Static Maps API URL with all parameters"""
+        base_url = "https://maps.googleapis.com/maps/api/staticmap"
+        
+        # Basic parameters
+        params = {
+            'center': f"{self.center_lat},{self.center_lng}",
+            'zoom': self.zoom_level,
+            'size': '640x480',
+            'maptype': self.map_type,
+            'format': 'png',
+            'scale': 2,  # High DPI support
+            'key': self.api_key
+        }
+        
+        # Add weather markers if weather layers are active
+        if any(self.weather_layers.values()) and self.weather_data:
+            markers = self._build_weather_markers_enhanced()
+            if markers:
+                params['markers'] = markers
+        
+        # Build URL with parameters
+        param_string = '&'.join([f"{k}={v}" for k, v in params.items()])
+        return f"{base_url}?{param_string}"
+    
+    def _display_no_api_key_message(self):
+        """Display informative message when no API key is available"""
+        try:
+            # Create informative image
+            width, height = 640, 480
+            img = Image.new('RGB', (width, height), color='#f0f0f0')
+            draw = ImageDraw.Draw(img)
+            
+            # Try to load a font
+            try:
+                font_large = ImageFont.truetype("arial.ttf", 24)
+                font_small = ImageFont.truetype("arial.ttf", 16)
+            except:
+                font_large = ImageFont.load_default()
+                font_small = ImageFont.load_default()
+            
+            # Draw message
+            message = "Google Maps API Key Required"
+            submessage = "Please configure your API key in settings"
+            
+            # Center the text
+            bbox = draw.textbbox((0, 0), message, font=font_large)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            x = (width - text_width) // 2
+            y = (height - text_height) // 2 - 20
+            
+            draw.text((x, y), message, fill='#666666', font=font_large)
+            
+            # Draw submessage
+            bbox2 = draw.textbbox((0, 0), submessage, font=font_small)
+            text_width2 = bbox2[2] - bbox2[0]
+            x2 = (width - text_width2) // 2
+            y2 = y + text_height + 10
+            
+            draw.text((x2, y2), submessage, fill='#999999', font=font_small)
+            
+            self._safe_display_image(img)
+            self._update_status("API key required for maps")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to display no API key message: {e}")
             self._display_fallback_map()
-            return
-        
-        self._update_status("Loading map...")
-        
-        # Run map loading in background thread
-        threading.Thread(
-            target=self._load_map_image,
-            daemon=True
-        ).start()
+    
+    def _draw_weather_overlays(self, img):
+        """Draw weather overlays on the map image"""
+        try:
+            # Create a copy to avoid modifying the original
+            overlay_img = img.copy()
+            draw = ImageDraw.Draw(overlay_img)
+            
+            # Draw weather data points
+            for location, data in self.weather_data.items():
+                if 'lat' in data and 'lon' in data:
+                    # Convert lat/lon to pixel coordinates
+                    x, y = self._lat_lon_to_pixels(
+                        data['lat'], data['lon'], 
+                        img.width, img.height
+                    )
+                    
+                    # Draw temperature if temperature layer is active
+                    if self.weather_layers.get('temperature', False):
+                        temp = data.get('temperature', 0)
+                        color = self._temp_to_color(temp)
+                        draw.ellipse([x-8, y-8, x+8, y+8], fill=color, outline='white', width=2)
+                        
+                        # Add temperature text
+                        try:
+                            font = ImageFont.truetype("arial.ttf", 12)
+                        except:
+                            font = ImageFont.load_default()
+                        
+                        temp_text = f"{int(temp)}°"
+                        bbox = draw.textbbox((0, 0), temp_text, font=font)
+                        text_width = bbox[2] - bbox[0]
+                        draw.text((x - text_width//2, y - 6), temp_text, fill='white', font=font)
+            
+            return overlay_img
+            
+        except Exception as e:
+            self.logger.error(f"Failed to draw weather overlays: {e}")
+            return img
+    
+    def _lat_lon_to_pixels(self, lat, lon, img_width, img_height):
+        """Convert latitude/longitude to pixel coordinates on the map"""
+        try:
+            # Web Mercator projection (simplified)
+            # This is an approximation for the static map bounds
+            
+            # Calculate the bounds of the current map view
+            lat_rad = math.radians(self.center_lat)
+            n = 2.0 ** self.zoom_level
+            
+            # Calculate pixel coordinates relative to map center
+            lat_diff = lat - self.center_lat
+            lon_diff = lon - self.center_lng
+            
+            # Convert to pixel offsets (approximate)
+            x_offset = (lon_diff * img_width) / (360.0 / n)
+            y_offset = -(lat_diff * img_height) / (180.0 / n)
+            
+            # Calculate final pixel coordinates
+            x = int(img_width / 2 + x_offset)
+            y = int(img_height / 2 + y_offset)
+            
+            return x, y
+            
+        except Exception as e:
+            self.logger.error(f"Failed to convert coordinates: {e}")
+            return img_width // 2, img_height // 2
+    
+    def _temp_to_color(self, temp):
+        """Convert temperature to color for visualization"""
+        if temp < -10:
+            return '#0000FF'  # Blue for very cold
+        elif temp < 0:
+            return '#4169E1'  # Royal blue for cold
+        elif temp < 10:
+            return '#00CED1'  # Dark turquoise for cool
+        elif temp < 20:
+            return '#32CD32'  # Lime green for mild
+        elif temp < 30:
+            return '#FFD700'  # Gold for warm
+        elif temp < 40:
+            return '#FF8C00'  # Dark orange for hot
+        else:
+            return '#FF0000'  # Red for very hot
+    
+    def _add_attribution(self, img):
+        """Add Google Maps attribution to the image"""
+        try:
+            # Create a copy to avoid modifying the original
+            attributed_img = img.copy()
+            draw = ImageDraw.Draw(attributed_img)
+            
+            # Attribution text
+            attribution = "© Google Maps"
+            
+            try:
+                font = ImageFont.truetype("arial.ttf", 10)
+            except:
+                font = ImageFont.load_default()
+            
+            # Position at bottom right
+            bbox = draw.textbbox((0, 0), attribution, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            x = img.width - text_width - 5
+            y = img.height - text_height - 5
+            
+            # Draw background rectangle
+            draw.rectangle([x-2, y-1, x+text_width+2, y+text_height+1], 
+                         fill='white', outline='gray')
+            
+            # Draw attribution text
+            draw.text((x, y), attribution, fill='black', font=font)
+            
+            return attributed_img
+            
+        except Exception as e:
+            self.logger.error(f"Failed to add attribution: {e}")
+            return img
+    
+    def _safe_display_image(self, img):
+        """Safely display image in the UI thread"""
+        try:
+            # Convert PIL image to CTkImage
+            photo = CTkImage(light_image=img, dark_image=img, size=img.size)
+            
+            # Update in main thread
+            self.after_idle(lambda: self._update_map_display(photo, img))
+            
+        except Exception as e:
+            self.logger.error(f"Failed to display image safely: {e}")
+            self.after_idle(lambda: self._display_fallback_map())
+    
+    def _update_map_display(self, photo, img):
+        """Update the map display with new image"""
+        try:
+            self.map_label.configure(image=photo, text="")
+            self.map_label.image = photo  # Keep reference
+            self.current_image = img
+            
+        except Exception as e:
+            self.logger.error(f"Failed to update map display: {e}")
+            self._display_fallback_map()
+    
+    def _display_error_message(self, message):
+        """Display error message on the map"""
+        try:
+            # Create error image
+            width, height = 640, 480
+            img = Image.new('RGB', (width, height), color='#ffebee')
+            draw = ImageDraw.Draw(img)
+            
+            try:
+                font_large = ImageFont.truetype("arial.ttf", 20)
+                font_small = ImageFont.truetype("arial.ttf", 14)
+            except:
+                font_large = ImageFont.load_default()
+                font_small = ImageFont.load_default()
+            
+            # Draw error icon (simple X)
+            center_x, center_y = width // 2, height // 2 - 40
+            draw.line([center_x-20, center_y-20, center_x+20, center_y+20], fill='#f44336', width=4)
+            draw.line([center_x-20, center_y+20, center_x+20, center_y-20], fill='#f44336', width=4)
+            
+            # Draw error message
+            bbox = draw.textbbox((0, 0), message, font=font_large)
+            text_width = bbox[2] - bbox[0]
+            x = (width - text_width) // 2
+            y = center_y + 40
+            
+            draw.text((x, y), message, fill='#d32f2f', font=font_large)
+            
+            # Draw retry message
+            retry_msg = "Click refresh to try again"
+            bbox2 = draw.textbbox((0, 0), retry_msg, font=font_small)
+            text_width2 = bbox2[2] - bbox2[0]
+            x2 = (width - text_width2) // 2
+            y2 = y + 30
+            
+            draw.text((x2, y2), retry_msg, fill='#666666', font=font_small)
+            
+            self._safe_display_image(img)
+            self._update_status(f"Error: {message}", error=True)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to display error message: {e}")
+            self._display_fallback_map()
+    
+    def _build_weather_markers_enhanced(self):
+        """Build enhanced weather markers for the map URL"""
+        try:
+            markers = []
+            
+            for location, data in self.weather_data.items():
+                if 'lat' in data and 'lon' in data:
+                    lat, lon = data['lat'], data['lon']
+                    
+                    # Create marker based on active weather layers
+                    if self.weather_layers.get('temperature', False):
+                        temp = data.get('temperature', 0)
+                        color = 'red' if temp > 25 else 'blue' if temp < 10 else 'green'
+                        label = str(int(temp))
+                        marker = f"color:{color}|size:mid|label:{label}|{lat},{lon}"
+                        markers.append(marker)
+            
+            return '|'.join(markers) if markers else None
+            
+        except Exception as e:
+            self.logger.error(f"Failed to build weather markers: {e}")
+            return None
     
     def _load_map_image(self):
         """Load map image from Google Static Maps API"""
