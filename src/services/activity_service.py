@@ -11,6 +11,11 @@ try:
 except ImportError:
     genai = None
 
+try:
+    import openai
+except ImportError:
+    openai = None
+
 from ..models.weather.current_weather import WeatherData
 from .config_service import ConfigService
 
@@ -62,10 +67,15 @@ class ActivityService:
         self._quota_reset_time = datetime.now() + timedelta(hours=1)
         self._daily_quota_limit = 1000  # Conservative daily limit
 
-        # Initialize Gemini with proper error handling
+        # Initialize AI services with proper error handling
         self.model = None
         self._gemini_available = False
+        self._openai_available = False
+        self.openai_api_key = None
+        self.gemini_api_key = None
+        
         self._initialize_gemini()
+        self._initialize_openai()
 
         # Activity categories mapping
         self.activity_categories = {
@@ -104,6 +114,9 @@ class ActivityService:
                 self._gemini_available = False
                 return
 
+            # Store the API key for later use
+            self.gemini_api_key = gemini_key
+
             if not genai:
                 self.logger.warning(
                     "📦 Google Generative AI library not available. Install with: pip install google-generativeai"
@@ -126,13 +139,18 @@ class ActivityService:
                 "gemini-1.5-flash", generation_config=generation_config
             )
 
-            # Test the connection with a simple prompt
-            test_response = self._make_api_request_with_retry("Test connection")
-            if test_response:
-                self.logger.info("✅ Gemini AI successfully initialized and tested")
-                self._gemini_available = True
-            else:
-                self.logger.warning("⚠️ Gemini AI test failed - no response received")
+            # Test the connection with a simple prompt (direct call during initialization)
+            try:
+                test_response = self.model.generate_content("Test connection")
+                if test_response and test_response.text:
+                    self.logger.info("✅ Gemini AI successfully initialized and tested")
+                    self._gemini_available = True
+                else:
+                    self.logger.warning("⚠️ Gemini AI test failed - no response received")
+                    self._gemini_available = False
+                    self.model = None
+            except Exception as test_error:
+                self.logger.warning(f"⚠️ Gemini AI test failed: {test_error}")
                 self._gemini_available = False
                 self.model = None
 
@@ -140,6 +158,53 @@ class ActivityService:
             self.logger.error(f"❌ Failed to initialize Gemini AI: {e}")
             self._gemini_available = False
             self.model = None
+
+    def _initialize_openai(self) -> None:
+        """Initialize OpenAI with comprehensive error handling."""
+        try:
+            # Try to get API key from config service first, then environment
+            self.openai_api_key = self.config.get_api_key("openai")
+            if not self.openai_api_key:
+                self.openai_api_key = os.getenv("OPENAI_API_KEY")
+
+            if not self.openai_api_key:
+                self.logger.warning(
+                    "🔑 OPENAI_API_KEY not found in configuration or environment variables"
+                )
+                self._openai_available = False
+                return
+
+            if not openai:
+                self.logger.warning(
+                    "📦 OpenAI library not available. Install with: pip install openai"
+                )
+                self._openai_available = False
+                return
+
+            # Configure OpenAI client (new v1.0+ interface)
+            from openai import OpenAI
+            self.openai_client = OpenAI(api_key=self.openai_api_key)
+            
+            # Test the connection with a simple request
+            try:
+                test_response = self.openai_client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": "Test"}],
+                    max_tokens=5
+                )
+                if test_response:
+                    self.logger.info("✅ OpenAI successfully initialized and tested")
+                    self._openai_available = True
+                else:
+                    self.logger.warning("⚠️ OpenAI test failed - no response received")
+                    self._openai_available = False
+            except Exception as test_e:
+                self.logger.warning(f"⚠️ OpenAI test failed: {test_e}")
+                self._openai_available = False
+
+        except Exception as e:
+            self.logger.error(f"❌ Failed to initialize OpenAI: {e}")
+            self._openai_available = False
 
     def get_activity_suggestions(
         self,
@@ -220,6 +285,303 @@ class ActivityService:
         if len(self._cache) > 10:
             oldest_key = min(self._cache.keys(), key=lambda k: self._cache[k][1])
             del self._cache[oldest_key]
+
+    def get_ai_suggestions(self, weather_data: Dict[str, Any], filters: Optional[Dict] = None) -> List[Dict[str, Any]]:
+        """Get AI suggestions with robust fallback and comprehensive error handling"""
+        try:
+            # Enhanced weather data validation
+            if not self._validate_weather_data(weather_data):
+                self.logger.warning("Invalid weather data for AI suggestions")
+                return self._get_fallback_suggestions(weather_data, filters)
+            
+            # Try AI services in order with improved error handling
+            suggestions = None
+            
+            # Try Gemini first (primary AI service)
+            if self.gemini_api_key and self._gemini_available and not suggestions:
+                try:
+                    suggestions = self._get_gemini_suggestions(weather_data, filters)
+                    if suggestions:
+                        self.logger.info(f"✅ Gemini provided {len(suggestions)} suggestions")
+                except Exception as e:
+                    self.logger.warning(f"Gemini API failed: {e}")
+                    suggestions = None  # Ensure suggestions is None for fallback
+            
+            # Try OpenAI as fallback
+            if self.openai_api_key and self._openai_available and not suggestions:
+                try:
+                    suggestions = self._get_openai_suggestions(weather_data, filters)
+                    if suggestions:
+                        self.logger.info(f"✅ OpenAI provided {len(suggestions)} suggestions")
+                except Exception as e:
+                    self.logger.warning(f"OpenAI API failed: {e}")
+                    suggestions = None  # Ensure suggestions is None for fallback
+            
+            # Use fallback if both AI services fail
+            if not suggestions:
+                self.logger.info("Using fallback suggestions - AI services unavailable")
+                suggestions = self._get_fallback_suggestions(weather_data, filters)
+            
+            # Validate suggestions before applying filters
+            if not suggestions or not isinstance(suggestions, list):
+                self.logger.warning("Invalid suggestions format, using emergency fallback")
+                return self._get_emergency_fallback()
+            
+            # Apply filters with error handling
+            if filters and suggestions:
+                try:
+                    duration_filter = filters.get('duration')
+                    equipment_filter = filters.get('equipment')
+                    cost_filter = filters.get('cost')
+                    accessibility_filter = filters.get('accessibility')
+                    suggestions = self._apply_filters(suggestions, duration_filter, equipment_filter, cost_filter, accessibility_filter)
+                except Exception as e:
+                    self.logger.warning(f"Filter application failed: {e}, returning unfiltered suggestions")
+            
+            return suggestions[:10]  # Limit to 10 suggestions
+            
+        except Exception as e:
+            self.logger.error(f"Critical error in activity suggestions: {e}")
+            return self._get_emergency_fallback()
+
+    def _validate_weather_data(self, weather_data: Dict[str, Any]) -> bool:
+        """Validate weather data structure and content"""
+        try:
+            if not weather_data or not isinstance(weather_data, dict):
+                return False
+            
+            # Check for required fields
+            required_fields = ['temperature']
+            for field in required_fields:
+                if field not in weather_data:
+                    self.logger.warning(f"Missing required weather field: {field}")
+                    return False
+            
+            # Validate temperature range (reasonable values)
+            temp = weather_data.get('temperature')
+            if not isinstance(temp, (int, float)) or temp < -50 or temp > 60:
+                self.logger.warning(f"Invalid temperature value: {temp}")
+                return False
+            
+            # Check for weather description (can be in different formats)
+            has_description = (
+                'weather' in weather_data or 
+                'description' in weather_data or 
+                'condition' in weather_data
+            )
+            
+            if not has_description:
+                self.logger.warning("No weather description found")
+                # Still valid, we can work with just temperature
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Weather data validation error: {e}")
+            return False
+    
+    def _get_emergency_fallback(self) -> List[Dict[str, Any]]:
+        """Emergency fallback when everything fails"""
+        return [
+            {
+                'title': 'Check Weather Forecast',
+                'category': 'indoor_activities',
+                'subcategory': 'Indoor',
+                'icon': '🌤️',
+                'description': 'Stay updated on current weather conditions and plan accordingly',
+                'duration': '5 minutes',
+                'equipment': 'none',
+                'cost': '$',
+                'accessibility': 'Easy',
+                'items': 'Weather app or website',
+                'safety_notes': 'Always check weather before outdoor activities'
+            },
+            {
+                'title': 'Indoor Reading',
+                'category': 'indoor_activities',
+                'subcategory': 'Indoor',
+                'icon': '📚',
+                'description': 'Enjoy a good book in the comfort of your home',
+                'duration': '1-2 hours',
+                'equipment': 'none',
+                'cost': '$',
+                'accessibility': 'Easy',
+                'items': 'Book, comfortable seating, good lighting',
+                'safety_notes': 'Take breaks to rest your eyes'
+            },
+            {
+                'title': 'Light Indoor Exercise',
+                'category': 'indoor_activities',
+                'subcategory': 'Indoor',
+                'icon': '🧘',
+                'description': 'Simple stretching or yoga to stay active indoors',
+                'duration': '30 minutes',
+                'equipment': 'basic',
+                'cost': '$',
+                'accessibility': 'Easy',
+                'items': 'Yoga mat or towel, comfortable clothes',
+                'safety_notes': 'Start slowly and listen to your body'
+            }
+         ]
+
+    def _get_openai_suggestions(self, weather_data: Dict[str, Any], filters: Optional[Dict] = None) -> List[Dict[str, Any]]:
+        """Get suggestions from OpenAI API with enhanced error handling"""
+        try:
+            # Validate OpenAI client availability
+            if not self.openai_client:
+                raise Exception("OpenAI client not initialized")
+            
+            # Convert weather_data to WeatherData object if needed
+            if isinstance(weather_data, dict):
+                # Create a simple weather object for compatibility
+                class SimpleWeather:
+                    def __init__(self, data):
+                        self.temperature = data.get('temperature', 20)
+                        self.description = data.get('weather', {}).get('description', 'clear')
+                        self.humidity = data.get('humidity', 50)
+                        self.wind_speed = data.get('wind_speed', 5)
+                
+                weather_obj = SimpleWeather(weather_data)
+            else:
+                weather_obj = weather_data
+
+            # Create prompt for OpenAI with error handling
+            prompt = self._create_activity_prompt(weather_obj)
+            if not prompt:
+                raise Exception("Failed to create activity prompt")
+            
+            # Make API request with timeout and retry logic
+            max_retries = 2
+            for attempt in range(max_retries):
+                try:
+                    response = self.openai_client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful assistant that suggests weather-appropriate activities. Always respond with valid JSON in the exact format requested."},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=1500,
+                        temperature=0.7,
+                        timeout=30  # 30 second timeout
+                    )
+                    
+                    # Validate response
+                    if not response or not response.choices:
+                        raise Exception("Empty response from OpenAI")
+                    
+                    response_text = response.choices[0].message.content
+                    if not response_text:
+                        raise Exception("Empty content from OpenAI response")
+                    
+                    # Parse and validate suggestions
+                    suggestions = self._parse_ai_response(response_text)
+                    if suggestions and len(suggestions) > 0:
+                        return suggestions
+                    else:
+                        raise Exception("No valid suggestions parsed from OpenAI response")
+                        
+                except Exception as api_error:
+                    self.logger.warning(f"OpenAI API attempt {attempt + 1} failed: {api_error}")
+                    if attempt == max_retries - 1:
+                        raise api_error
+                    time.sleep(1)  # Brief delay before retry
+            
+            return []
+            
+        except Exception as e:
+            self.logger.error(f"OpenAI API error: {e}")
+            raise
+
+    def _get_gemini_suggestions(self, weather_data: Dict[str, Any], filters: Optional[Dict] = None) -> List[Dict[str, Any]]:
+        """Get suggestions from Gemini API with enhanced error handling"""
+        try:
+            # Validate Gemini availability
+            if not self.model:
+                raise Exception("Gemini model not initialized")
+            
+            # Convert weather_data to WeatherData object if needed
+            if isinstance(weather_data, dict):
+                # Create a simple weather object for compatibility
+                class SimpleWeather:
+                    def __init__(self, data):
+                        self.temperature = data.get('temperature', 20)
+                        self.description = data.get('weather', {}).get('description', 'clear')
+                        self.humidity = data.get('humidity', 50)
+                        self.wind_speed = data.get('wind_speed', 5)
+                
+                weather_obj = SimpleWeather(weather_data)
+            else:
+                weather_obj = weather_data
+
+            # Create prompt for Gemini with error handling
+            prompt = self._create_activity_prompt(weather_obj)
+            if not prompt:
+                raise Exception("Failed to create activity prompt")
+            
+            # Make API request with timeout and retry logic
+            max_retries = 2
+            for attempt in range(max_retries):
+                try:
+                    response = self.model.generate_content(
+                        prompt,
+                        generation_config={
+                            'temperature': 0.7,
+                            'max_output_tokens': 1500,
+                        }
+                    )
+                    
+                    # Validate response
+                    if not response or not response.text:
+                        raise Exception("Empty response from Gemini")
+                    
+                    response_text = response.text
+                    
+                    # Parse and validate suggestions
+                    suggestions = self._parse_ai_response(response_text)
+                    if suggestions and len(suggestions) > 0:
+                        return suggestions
+                    else:
+                        raise Exception("No valid suggestions parsed from Gemini response")
+                        
+                except Exception as api_error:
+                    self.logger.warning(f"Gemini API attempt {attempt + 1} failed: {api_error}")
+                    if attempt == max_retries - 1:
+                        raise api_error
+                    time.sleep(1)  # Brief delay before retry
+            
+            return []
+            
+        except Exception as e:
+            self.logger.error(f"Gemini API error: {e}")
+            raise
+
+    def _create_activity_prompt(self, weather_data) -> str:
+        """Create a prompt for AI activity suggestions"""
+        return f"""
+        Based on the current weather conditions, suggest 5-10 activities:
+        - Temperature: {weather_data.temperature}°C
+        - Conditions: {weather_data.description}
+        - Humidity: {getattr(weather_data, 'humidity', 'N/A')}%
+        - Wind Speed: {getattr(weather_data, 'wind_speed', 'N/A')} km/h
+        
+        Please provide suggestions in JSON format with the following structure:
+        {{
+            "suggestions": [
+                {{
+                    "title": "Activity Name",
+                    "category": "outdoor_adventures|indoor_activities|social_activities|weather_specific",
+                    "description": "Brief description",
+                    "duration": "short|medium|long",
+                    "equipment": "none|basic|advanced",
+                    "cost": "$|$$|$$$",
+                    "accessibility": "Easy|Moderate|Difficult",
+                    "items": ["item1", "item2"]
+                }}
+            ]
+        }}
+        
+        Consider safety, weather appropriateness, and enjoyment.
+        """
 
     def _make_api_request_with_retry(self, prompt: str) -> Optional[str]:
         """Make API request with exponential backoff retry logic."""
@@ -640,10 +1002,19 @@ Return ONLY a valid JSON array with this exact structure:
 
         return filtered if filtered else suggestions  # Return all if no matches
 
-    def _get_fallback_suggestions(self, weather_data: WeatherData) -> List[Dict[str, Any]]:
+    def _get_fallback_suggestions(self, weather_data, filters: Optional[Dict] = None) -> List[Dict[str, Any]]:
         """Enhanced fallback suggestions when AI is not available."""
-        temp = weather_data.temperature
-        condition = weather_data.description.lower()
+        # Handle different weather data formats
+        if isinstance(weather_data, dict):
+            temp = weather_data.get('temperature', 20)
+            condition = weather_data.get('weather', {}).get('description', 'clear').lower()
+        elif weather_data and hasattr(weather_data, 'temperature'):
+            temp = weather_data.temperature
+            condition = weather_data.description.lower()
+        else:
+            # Default fallback values
+            temp = 20
+            condition = 'clear'
 
         suggestions = []
 

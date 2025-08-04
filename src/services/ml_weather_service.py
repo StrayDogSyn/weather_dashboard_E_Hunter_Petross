@@ -1,21 +1,27 @@
 """Machine Learning Weather Service for advanced analytics and recommendations."""
 
 import logging
-from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
-
-# Visualization
-import matplotlib.pyplot as plt
+from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
-import pandas as pd
-import seaborn as sns
+from datetime import datetime, timezone
+import json
 
-# ML Libraries
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.neighbors import NearestNeighbors
-from sklearn.preprocessing import StandardScaler
+# Conditional imports with fallback
+try:
+    from sklearn.cluster import KMeans
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import PCA
+    from sklearn.metrics.pairwise import cosine_similarity
+    from sklearn.neighbors import NearestNeighbors
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    logging.warning("Scikit-learn not available. ML features will be limited.")
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -74,43 +80,72 @@ class MLWeatherService:
     """Advanced ML-powered weather analysis service."""
 
     def __init__(self):
-        self.scaler = StandardScaler()
-        self.pca = PCA(n_components=3)
-        self.kmeans = KMeans(n_clusters=5, random_state=42)
-        self.nn_model = NearestNeighbors(n_neighbors=5, metric="cosine")
+        """Initialize ML Weather Service with error handling for missing dependencies."""
+        try:
+            # Initialize sklearn components only if available
+            if SKLEARN_AVAILABLE:
+                self.scaler = StandardScaler()
+                self.pca = PCA(n_components=3)
+                self.kmeans = KMeans(n_clusters=5, random_state=42)
+                self.nn_model = NearestNeighbors(n_neighbors=5, metric="cosine")
+                self.ml_enabled = True
+                logger.info("ML components initialized successfully")
+            else:
+                # Fallback: Initialize as None when sklearn is not available
+                self.scaler = None
+                self.pca = None
+                self.kmeans = None
+                self.nn_model = None
+                self.ml_enabled = False
+                logger.warning("ML components disabled due to missing sklearn")
 
-        # Weather feature weights for different analysis types
-        self.similarity_weights = {
-            "temperature": 0.3,
-            "humidity": 0.2,
-            "wind_speed": 0.2,
-            "pressure": 0.15,
-            "uv_index": 0.1,
-            "visibility": 0.05,
-        }
+            # Weather feature weights for different analysis types
+            self.similarity_weights = {
+                "temperature": 0.3,
+                "humidity": 0.2,
+                "wind_speed": 0.2,
+                "pressure": 0.15,
+                "uv_index": 0.1,
+                "visibility": 0.05,
+            }
 
-        # Cluster characteristics
-        self.cluster_profiles = {
-            0: {
-                "name": "Mild & Cloudy",
-                "emoji": "☁️",
-                "desc": "Comfortable temperatures with moderate humidity",
-            },
-            1: {"name": "Dry Heat", "emoji": "🔥", "desc": "High temperatures with low humidity"},
-            2: {
-                "name": "Storm Watch",
-                "emoji": "🌧️",
-                "desc": "High humidity with variable conditions",
-            },
-            3: {
-                "name": "Cool & Crisp",
-                "emoji": "❄️",
-                "desc": "Low temperatures with clear conditions",
-            },
-            4: {"name": "Tropical", "emoji": "🌴", "desc": "Warm and humid conditions"},
-        }
+            # Cluster characteristics
+            self.cluster_profiles = {
+                0: {
+                    "name": "Mild & Cloudy",
+                    "emoji": "☁️",
+                    "desc": "Comfortable temperatures with moderate humidity",
+                },
+                1: {"name": "Dry Heat", "emoji": "🔥", "desc": "High temperatures with low humidity"},
+                2: {
+                    "name": "Storm Watch",
+                    "emoji": "🌧️",
+                    "desc": "High humidity with variable conditions",
+                },
+                3: {
+                    "name": "Cool & Crisp",
+                    "emoji": "❄️",
+                    "desc": "Low temperatures with clear conditions",
+                },
+                4: {"name": "Tropical", "emoji": "🌴", "desc": "Warm and humid conditions"},
+            }
 
-        logger.info("ML Weather Service initialized")
+            # Initialize cache for performance
+            self._similarity_cache = {}
+            self._cluster_cache = {}
+            
+            logger.info(f"ML Weather Service initialized (ML enabled: {self.ml_enabled})")
+            
+        except Exception as e:
+            logger.error(f"Error initializing ML Weather Service: {e}")
+            # Ensure service can still function with basic features
+            self.ml_enabled = False
+            self.scaler = None
+            self.pca = None
+            self.kmeans = None
+            self.nn_model = None
+            self._similarity_cache = {}
+            self._cluster_cache = {}
 
     def prepare_weather_data(self, weather_profiles: List[WeatherProfile]) -> pd.DataFrame:
         """Prepare weather data for ML analysis."""
@@ -156,6 +191,11 @@ class MLWeatherService:
     def calculate_similarity_matrix(self, weather_profiles: List[WeatherProfile]) -> np.ndarray:
         """Calculate similarity matrix between cities using cosine similarity."""
         try:
+            # Check if ML is available
+            if not self.ml_enabled or not SKLEARN_AVAILABLE:
+                logger.warning("ML features not available, using basic similarity calculation")
+                return self._calculate_basic_similarity_matrix(weather_profiles)
+
             df = self.prepare_weather_data(weather_profiles)
             if df.empty:
                 return np.array([])
@@ -171,17 +211,54 @@ class MLWeatherService:
             ]
             features = df[feature_columns].values
 
-            # Normalize features
-            features_scaled = self.scaler.fit_transform(features)
-
-            # Calculate cosine similarity
-            similarity_matrix = cosine_similarity(features_scaled)
+            # Error boundary for sklearn operations
+            try:
+                # Normalize features
+                features_scaled = self.scaler.fit_transform(features)
+                # Calculate cosine similarity
+                similarity_matrix = cosine_similarity(features_scaled)
+            except Exception as sklearn_error:
+                logger.error(f"Sklearn operation failed: {sklearn_error}, falling back to basic calculation")
+                return self._calculate_basic_similarity_matrix(weather_profiles)
 
             logger.info(f"Calculated similarity matrix for {len(df)} cities")
             return similarity_matrix
 
         except Exception as e:
             logger.error(f"Error calculating similarity matrix: {e}")
+            return np.array([])
+
+    def _calculate_basic_similarity_matrix(self, weather_profiles: List[WeatherProfile]) -> np.ndarray:
+        """Fallback similarity calculation without sklearn."""
+        try:
+            df = self.prepare_weather_data(weather_profiles)
+            if df.empty:
+                return np.array([])
+
+            feature_columns = ["temperature", "humidity", "wind_speed", "pressure"]
+            features = df[feature_columns].values
+            n_cities = len(features)
+            
+            # Simple normalized euclidean distance converted to similarity
+            similarity_matrix = np.zeros((n_cities, n_cities))
+            
+            for i in range(n_cities):
+                for j in range(n_cities):
+                    if i == j:
+                        similarity_matrix[i][j] = 1.0
+                    else:
+                        # Calculate normalized distance
+                        diff = np.abs(features[i] - features[j])
+                        # Normalize by feature ranges (rough approximation)
+                        normalized_diff = diff / np.array([50, 100, 20, 100])  # temp, humidity, wind, pressure ranges
+                        distance = np.mean(normalized_diff)
+                        similarity_matrix[i][j] = max(0, 1 - distance)
+            
+            logger.info(f"Calculated basic similarity matrix for {n_cities} cities")
+            return similarity_matrix
+            
+        except Exception as e:
+            logger.error(f"Error in basic similarity calculation: {e}")
             return np.array([])
 
     def get_city_similarity(
@@ -246,8 +323,13 @@ class MLWeatherService:
     def perform_weather_clustering(
         self, weather_profiles: List[WeatherProfile]
     ) -> List[ClusterResult]:
-        """Perform K-means clustering on weather data."""
+        """Perform K-means clustering on weather data with error boundaries."""
         try:
+            # Check if ML is available
+            if not self.ml_enabled or not SKLEARN_AVAILABLE:
+                logger.warning("ML clustering not available, using basic grouping")
+                return self._perform_basic_clustering(weather_profiles)
+
             df = self.prepare_weather_data(weather_profiles)
             if df.empty:
                 return []
@@ -256,19 +338,25 @@ class MLWeatherService:
             feature_columns = ["temperature", "humidity", "wind_speed", "pressure", "uv_index"]
             features = df[feature_columns].values
 
-            # Normalize features
-            features_scaled = self.scaler.fit_transform(features)
+            # Error boundary for sklearn clustering operations
+            try:
+                # Normalize features
+                features_scaled = self.scaler.fit_transform(features)
 
-            # Apply PCA for dimensionality reduction if needed
-            if len(feature_columns) > 3:
-                features_pca = self.pca.fit_transform(features_scaled)
-            else:
-                features_pca = features_scaled
+                # Apply PCA for dimensionality reduction if needed
+                if len(feature_columns) > 3:
+                    features_pca = self.pca.fit_transform(features_scaled)
+                else:
+                    features_pca = features_scaled
 
-            # Perform clustering
-            n_clusters = min(5, len(df))  # Adjust clusters based on data size
-            self.kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-            cluster_labels = self.kmeans.fit_predict(features_pca)
+                # Perform clustering
+                n_clusters = min(5, len(df))  # Adjust clusters based on data size
+                self.kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+                cluster_labels = self.kmeans.fit_predict(features_pca)
+                
+            except Exception as sklearn_error:
+                logger.error(f"Sklearn clustering failed: {sklearn_error}, falling back to basic clustering")
+                return self._perform_basic_clustering(weather_profiles)
 
             # Analyze clusters
             df["cluster"] = cluster_labels
@@ -314,11 +402,77 @@ class MLWeatherService:
             logger.error(f"Error performing weather clustering: {e}")
             return []
 
+    def _perform_basic_clustering(self, weather_profiles: List[WeatherProfile]) -> List[ClusterResult]:
+        """Fallback clustering using simple temperature-based grouping."""
+        try:
+            df = self.prepare_weather_data(weather_profiles)
+            if df.empty:
+                return []
+
+            # Simple temperature-based clustering
+            def get_temp_cluster(temp):
+                if temp < 10:
+                    return 3  # Cool & Crisp
+                elif temp < 20:
+                    return 0  # Mild & Cloudy
+                elif temp < 30:
+                    return 4  # Tropical
+                else:
+                    return 1  # Dry Heat
+
+            df["cluster"] = df["temperature"].apply(get_temp_cluster)
+            cluster_results = []
+
+            for cluster_id in df["cluster"].unique():
+                cluster_cities = df[df["cluster"] == cluster_id]["city_name"].tolist()
+                cluster_data = df[df["cluster"] == cluster_id]
+
+                # Calculate cluster characteristics
+                characteristics = {
+                    "avg_temperature": float(cluster_data["temperature"].mean()),
+                    "avg_humidity": float(cluster_data["humidity"].mean()),
+                    "avg_wind_speed": float(cluster_data["wind_speed"].mean()),
+                    "avg_pressure": float(cluster_data["pressure"].mean()),
+                }
+
+                # Get cluster profile
+                profile = self.cluster_profiles.get(
+                    cluster_id,
+                    {
+                        "name": f"Group {cluster_id}",
+                        "emoji": "🌤️",
+                        "desc": "Basic weather grouping",
+                    },
+                )
+
+                cluster_results.append(
+                    ClusterResult(
+                        cluster_id=cluster_id,
+                        cluster_name=profile["name"],
+                        cities=cluster_cities,
+                        characteristics=characteristics,
+                        emoji=profile["emoji"],
+                        description=profile["desc"],
+                    )
+                )
+
+            logger.info(f"Performed basic clustering with {len(cluster_results)} groups")
+            return cluster_results
+
+        except Exception as e:
+            logger.error(f"Error in basic clustering: {e}")
+            return []
+
     def recommend_city_by_preferences(
         self, preferences: Dict[str, Any], weather_profiles: List[WeatherProfile]
     ) -> Optional[RecommendationResult]:
-        """Recommend a city based on user weather preferences."""
+        """Recommend a city based on user weather preferences with error boundaries."""
         try:
+            # Check if ML is available
+            if not self.ml_enabled or not SKLEARN_AVAILABLE:
+                logger.warning("ML recommendations not available, using basic matching")
+                return self._recommend_city_basic(preferences, weather_profiles)
+
             df = self.prepare_weather_data(weather_profiles)
             if df.empty:
                 return None
@@ -335,29 +489,35 @@ class MLWeatherService:
                 ]
             ).reshape(1, -1)
 
-            # Normalize preference vector
-            feature_columns = [
-                "temperature",
-                "humidity",
-                "wind_speed",
-                "pressure",
-                "uv_index",
-                "visibility",
-            ]
-            features = df[feature_columns].values
-            features_scaled = self.scaler.fit_transform(features)
-            pref_scaled = self.scaler.transform(pref_vector)
+            # Error boundary for sklearn operations
+            try:
+                # Normalize preference vector
+                feature_columns = [
+                    "temperature",
+                    "humidity",
+                    "wind_speed",
+                    "pressure",
+                    "uv_index",
+                    "visibility",
+                ]
+                features = df[feature_columns].values
+                features_scaled = self.scaler.fit_transform(features)
+                pref_scaled = self.scaler.transform(pref_vector)
 
-            # Find nearest neighbors
-            self.nn_model.fit(features_scaled)
-            distances, indices = self.nn_model.kneighbors(pref_scaled)
+                # Find nearest neighbors
+                self.nn_model.fit(features_scaled)
+                distances, indices = self.nn_model.kneighbors(pref_scaled)
 
-            # Get best match
-            best_match_idx = indices[0][0]
-            best_match_distance = distances[0][0]
+                # Get best match
+                best_match_idx = indices[0][0]
+                best_match_distance = distances[0][0]
 
-            recommended_city = df.iloc[best_match_idx]["city_name"]
-            match_percentage = max(0, (1 - best_match_distance) * 100)
+                recommended_city = df.iloc[best_match_idx]["city_name"]
+                match_percentage = max(0, (1 - best_match_distance) * 100)
+                
+            except Exception as sklearn_error:
+                logger.error(f"Sklearn recommendation failed: {sklearn_error}, falling back to basic matching")
+                return self._recommend_city_basic(preferences, weather_profiles)
 
             # Generate reasons
             city_data = df.iloc[best_match_idx]
@@ -421,6 +581,104 @@ class MLWeatherService:
 
         except Exception as e:
             logger.error(f"Error generating city recommendation: {e}")
+            return None
+
+    def _recommend_city_basic(
+        self, preferences: Dict[str, Any], weather_profiles: List[WeatherProfile]
+    ) -> Optional[RecommendationResult]:
+        """Fallback city recommendation using simple distance calculation."""
+        try:
+            df = self.prepare_weather_data(weather_profiles)
+            if df.empty:
+                return None
+
+            # Simple distance-based matching
+            best_city = None
+            best_score = float('inf')
+            best_idx = 0
+
+            pref_temp = preferences.get("temperature", 20)
+            pref_humidity = preferences.get("humidity", 50)
+            pref_wind = preferences.get("wind_speed", 5)
+            pref_pressure = preferences.get("pressure", 1013)
+
+            for idx, row in df.iterrows():
+                # Calculate weighted distance
+                temp_diff = abs(row["temperature"] - pref_temp) / 50  # normalize by typical range
+                humidity_diff = abs(row["humidity"] - pref_humidity) / 100
+                wind_diff = abs(row["wind_speed"] - pref_wind) / 20
+                pressure_diff = abs(row["pressure"] - pref_pressure) / 100
+
+                # Weighted score
+                score = (
+                    temp_diff * 0.4 +
+                    humidity_diff * 0.3 +
+                    wind_diff * 0.2 +
+                    pressure_diff * 0.1
+                )
+
+                if score < best_score:
+                    best_score = score
+                    best_city = row["city_name"]
+                    best_idx = idx
+
+            if best_city is None:
+                return None
+
+            # Calculate match percentage
+            match_percentage = max(0, (1 - best_score) * 100)
+
+            # Generate reasons
+            city_data = df.iloc[best_idx]
+            reasons = []
+
+            temp_diff = abs(city_data["temperature"] - pref_temp)
+            if temp_diff < 5:
+                reasons.append(f"Temperature close to preference ({city_data['temperature']:.1f}°C)")
+
+            humidity_diff = abs(city_data["humidity"] - pref_humidity)
+            if humidity_diff < 15:
+                reasons.append(f"Humidity level suitable ({city_data['humidity']:.1f}%)")
+
+            if not reasons:
+                reasons.append("Best available match from current data")
+
+            # Create basic cluster info
+            cluster_info = ClusterResult(
+                cluster_id=0,
+                cluster_name="Basic Match",
+                cities=[best_city],
+                characteristics={},
+                emoji="🌤️",
+                description="Simple preference matching",
+            )
+
+            # Comparison data
+            comparison_data = {
+                "your_preferences": preferences,
+                "recommended_city_data": {
+                    "temperature": float(city_data["temperature"]),
+                    "humidity": float(city_data["humidity"]),
+                    "wind_speed": float(city_data["wind_speed"]),
+                    "pressure": float(city_data["pressure"]),
+                },
+                "differences": {
+                    "temperature": float(temp_diff),
+                    "humidity": float(humidity_diff),
+                    "wind_speed": float(abs(city_data["wind_speed"] - pref_wind)),
+                },
+            }
+
+            return RecommendationResult(
+                recommended_city=best_city,
+                match_percentage=match_percentage,
+                reasons=reasons,
+                cluster_info=cluster_info,
+                comparison_data=comparison_data,
+            )
+
+        except Exception as e:
+            logger.error(f"Error in basic city recommendation: {e}")
             return None
 
     def create_similarity_heatmap(
@@ -541,14 +799,22 @@ class MLWeatherService:
             # Perform clustering
             clusters = self.perform_weather_clustering(weather_profiles)
 
-            # Prepare features for PCA visualization
-            feature_columns = ["temperature", "humidity", "wind_speed", "pressure", "uv_index"]
-            features = df[feature_columns].values
-            features_scaled = self.scaler.fit_transform(features)
+            # Check if ML features are available
+            if not self.ml_enabled or not SKLEARN_AVAILABLE:
+                return self._create_basic_cluster_visualization(weather_profiles, figsize, theme)
 
-            # Apply PCA for 2D visualization
-            pca_2d = PCA(n_components=2)
-            features_2d = pca_2d.fit_transform(features_scaled)
+            try:
+                # Prepare features for PCA visualization
+                feature_columns = ["temperature", "humidity", "wind_speed", "pressure", "uv_index"]
+                features = df[feature_columns].values
+                features_scaled = self.scaler.fit_transform(features)
+
+                # Apply PCA for 2D visualization
+                pca_2d = PCA(n_components=2)
+                features_2d = pca_2d.fit_transform(features_scaled)
+            except Exception as e:
+                logger.warning(f"PCA visualization failed, using basic visualization: {e}")
+                return self._create_basic_cluster_visualization(weather_profiles, figsize, theme)
 
             # Create visualization
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
@@ -684,6 +950,175 @@ class MLWeatherService:
 
         except Exception as e:
             logger.error(f"Error creating cluster visualization: {e}")
+            fig, ax = plt.subplots(figsize=figsize)
+            ax.text(
+                0.5,
+                0.5,
+                f"Error: {str(e)}",
+                ha="center",
+                va="center",
+                transform=ax.transAxes,
+                color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+            )
+            self._style_figure(fig, ax, theme)
+            return fig
+
+    def _create_basic_cluster_visualization(
+        self, weather_profiles: List[WeatherProfile], figsize=(12, 8), theme=None
+    ) -> plt.Figure:
+        """Fallback cluster visualization without PCA."""
+        try:
+            # Apply theme settings
+            self._apply_chart_theme(theme)
+
+            df = self.prepare_weather_data(weather_profiles)
+            if df.empty:
+                fig, ax = plt.subplots(figsize=figsize)
+                ax.text(
+                    0.5,
+                    0.5,
+                    "No data available",
+                    ha="center",
+                    va="center",
+                    transform=ax.transAxes,
+                    color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+                )
+                self._style_figure(fig, ax, theme)
+                return fig
+
+            # Perform basic clustering
+            clusters = self.perform_weather_clustering(weather_profiles)
+
+            # Create simple temperature vs humidity scatter plot
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=figsize)
+
+            # Generate theme-based colors for clusters
+            if theme:
+                primary = theme.get("primary", "#00FF41")
+                secondary = theme.get("secondary", "#008F11")
+                accent = theme.get("accent", "#FF6B35")
+                chart_colors = theme.get(
+                    "chart_colors", [primary, secondary, accent, "#FFD700", "#FF69B4", "#00CED1"]
+                )
+                colors = (
+                    chart_colors[: len(clusters)]
+                    if len(clusters) <= len(chart_colors)
+                    else plt.cm.Set3(np.linspace(0, 1, len(clusters)))
+                )
+            else:
+                colors = plt.cm.Set3(np.linspace(0, 1, len(clusters)))
+
+            # Simple scatter plot using temperature and humidity
+            for i, cluster in enumerate(clusters):
+                cluster_indices = df[df["city_name"].isin(cluster.cities)].index
+                if len(cluster_indices) > 0:
+                    color = colors[i] if isinstance(colors, list) else colors[i]
+                    cluster_data = df.iloc[cluster_indices]
+                    
+                    ax1.scatter(
+                        cluster_data["temperature"],
+                        cluster_data["humidity"],
+                        c=[color],
+                        label=f"{cluster.emoji} {cluster.cluster_name}",
+                        s=100,
+                        alpha=0.8,
+                        edgecolors=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+                        linewidth=1,
+                    )
+
+                    # Add city labels
+                    for idx in cluster_indices:
+                        ax1.annotate(
+                            df.iloc[idx]["city_name"],
+                            (df.iloc[idx]["temperature"], df.iloc[idx]["humidity"]),
+                            xytext=(5, 5),
+                            textcoords="offset points",
+                            fontsize=8,
+                            alpha=0.9,
+                            color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+                            weight="bold",
+                        )
+
+            self._style_figure(fig, ax1, theme)
+            ax1.set_title(
+                "🌍 Weather Clusters (Temperature vs Humidity)",
+                fontsize=14,
+                fontweight="bold",
+                color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+            )
+            ax1.set_xlabel(
+                "Temperature (°C)",
+                color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+            )
+            ax1.set_ylabel(
+                "Humidity (%)",
+                color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+            )
+            ax1.legend(
+                bbox_to_anchor=(1.05, 1),
+                loc="upper left",
+                facecolor=theme.get("card_bg", "#1E1E1E") if theme else "#1E1E1E",
+                edgecolor=theme.get("primary", "#00FF41") if theme else "#00FF41",
+                labelcolor=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+            )
+            ax1.grid(True, alpha=0.3, color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0")
+
+            # Cluster characteristics bar chart
+            cluster_names = [f"{c.emoji} {c.cluster_name}" for c in clusters]
+            avg_temps = [c.characteristics.get("avg_temperature", 0) for c in clusters]
+
+            # Use theme colors for bars
+            bar_colors = (
+                colors[: len(clusters)]
+                if isinstance(colors, list)
+                else [colors[i] for i in range(len(clusters))]
+            )
+            bars = ax2.bar(
+                range(len(cluster_names)),
+                avg_temps,
+                color=bar_colors,
+                alpha=0.8,
+                edgecolor=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+                linewidth=1,
+            )
+
+            # Add value labels on bars
+            for bar, temp in zip(bars, avg_temps):
+                height = bar.get_height()
+                ax2.text(
+                    bar.get_x() + bar.get_width() / 2.0,
+                    height + 0.5,
+                    f"{temp:.1f}°C",
+                    ha="center",
+                    va="bottom",
+                    fontsize=10,
+                    color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+                    weight="bold",
+                )
+
+            self._style_figure(fig, ax2, theme)
+            ax2.set_title(
+                "📊 Average Temperature by Cluster",
+                fontsize=14,
+                fontweight="bold",
+                color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0",
+            )
+            ax2.set_xlabel(
+                "Clusters", color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0"
+            )
+            ax2.set_ylabel(
+                "Temperature (°C)", color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0"
+            )
+            ax2.set_xticks(range(len(cluster_names)))
+            ax2.set_xticklabels(cluster_names, rotation=45, ha="right")
+            ax2.grid(True, alpha=0.3, color=theme.get("text", "#E0E0E0") if theme else "#E0E0E0")
+
+            plt.tight_layout()
+            logger.info("Created basic cluster visualization")
+            return fig
+
+        except Exception as e:
+            logger.error(f"Error creating basic cluster visualization: {e}")
             fig, ax = plt.subplots(figsize=figsize)
             ax.text(
                 0.5,

@@ -5,6 +5,9 @@ import time
 import tkinter as tk
 from pathlib import Path
 from typing import Dict, Any
+import os
+import json
+from datetime import datetime
 
 # Add src to path
 src_path = Path(__file__).parent / "src"
@@ -12,6 +15,59 @@ sys.path.insert(0, str(src_path))
 
 from utils.loading_manager import LoadingManager
 from dotenv import load_dotenv
+
+
+def ensure_directories():
+    """Ensure all required directories exist"""
+    required_dirs = [
+        'cache',
+        'config',
+        'data',
+        'logs',
+        'assets',
+        'assets/weather_images'
+    ]
+    
+    for dir_path in required_dirs:
+        Path(dir_path).mkdir(parents=True, exist_ok=True)
+    
+    # Create default config if not exists
+    config_file = Path('config/settings.json')
+    if not config_file.exists():
+        default_config = {
+            'theme': 'midnight',
+            'temperature_unit': 'celsius',
+            'cache_ttl': 3600,
+            'created_at': datetime.now().isoformat()
+        }
+        config_file.parent.mkdir(exist_ok=True)
+        with open(config_file, 'w') as f:
+            json.dump(default_config, f, indent=2)
+
+
+def setup_logging():
+    """Configure logging with rotation"""
+    log_dir = Path('logs')
+    log_dir.mkdir(exist_ok=True)
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_dir / 'weather_dashboard.log', encoding='utf-8'),
+            logging.StreamHandler(sys.stdout)
+        ]
+    )
+    
+    # Set console encoding to UTF-8 for Windows
+    if sys.platform == 'win32':
+        try:
+            import codecs
+            sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+            sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+        except (AttributeError, OSError):
+            pass  # Fallback if encoding setup fails
+
 
 # Lazy imports for UI components
 try:
@@ -382,13 +438,12 @@ class ProgressiveWeatherApp:
 
 def main():
     """Main entry point for the weather dashboard."""
+    # Ensure directories exist
+    ensure_directories()
+    
     # Setup logging
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(levelname)s [%(asctime)s] %(name)s: %(message)s',
-        datefmt='%H:%M:%S'
-    )
-
+    setup_logging()
+    
     logger = logging.getLogger(__name__)
     logger.info("Starting Weather Dashboard...")
 

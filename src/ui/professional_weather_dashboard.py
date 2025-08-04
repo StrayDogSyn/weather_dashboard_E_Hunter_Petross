@@ -3553,6 +3553,7 @@ class ProfessionalWeatherDashboard(ctk.CTk):
 
     def _handle_weather_error(self, error):
         """Handle weather data loading errors."""
+        self._hide_loading_state()  # Ensure loading state is cleared on error
         self.logger.error(f"Weather loading failed: {error}")
         self.error_handler.show_error_toast(f"Weather data loading failed: {str(error)}")
 
@@ -3848,8 +3849,25 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         )
 
     def _create_maps_tab(self):
-        """Create Maps tab with enhanced weather visualization."""
-        self._create_enhanced_maps_tab()
+        """Create Maps tab with Google Maps integration."""
+        try:
+            # Import here to avoid circular imports
+            from .maps.google_maps_widget import GoogleMapsWidget
+            
+            # Create the Google Maps widget with proper services
+            self.google_maps_widget = GoogleMapsWidget(
+                self.maps_tab, 
+                weather_service=self.weather_service,
+                config_service=self.config_service
+            )
+            self.google_maps_widget.pack(fill="both", expand=True)
+            
+            self.logger.info("Maps tab created successfully with Google Maps")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to create Google Maps widget: {e}")
+            # Fallback for demo mode
+            self._create_enhanced_maps_tab()
 
     def _create_enhanced_maps_tab(self):
         """Create enhanced maps tab with weather visualization."""
@@ -4132,8 +4150,8 @@ class ProfessionalWeatherDashboard(ctk.CTk):
         location = self.maps_location_entry.get().strip()
         if location:
             # Update the main weather display with this location
-            self.location_entry.delete(0, "end")
-            self.location_entry.insert(0, location)
+            self.search_entry.delete(0, "end")
+            self.search_entry.insert(0, location)
             self._search_weather()
 
             # Update maps display

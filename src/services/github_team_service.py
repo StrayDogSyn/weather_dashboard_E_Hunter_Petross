@@ -53,6 +53,52 @@ class GitHubTeamService:
         # Load cached data on startup
         self._load_cached_data()
 
+    def fetch_team_data(self) -> List[Dict[str, Any]]:
+        """Fetch team weather data from GitHub with proper error handling"""
+        try:
+            # Construct the raw content URL
+            base_url = "https://raw.githubusercontent.com/StrayDogSyn/New_Team_Dashboard/main/"
+            
+            # Try multiple file formats
+            team_data = []
+            
+            # Try JSON first
+            try:
+                json_url = base_url + "team_weather_data.json"
+                response = requests.get(json_url, timeout=10)
+                if response.status_code == 200:
+                    team_data = response.json()
+                    logger.info(f"Loaded {len(team_data)} entries from JSON")
+            except Exception as e:
+                logger.warning(f"JSON load failed: {e}")
+            
+            # Try CSV as fallback
+            if not team_data:
+                try:
+                    csv_url = base_url + "team_weather_data.csv"
+                    response = requests.get(csv_url, timeout=10)
+                    if response.status_code == 200:
+                        team_data = self._parse_csv_data(response.text)
+                        logger.info(f"Loaded {len(team_data)} entries from CSV")
+                except Exception as e:
+                    logger.warning(f"CSV load failed: {e}")
+            
+            # Validate and clean data
+            valid_data = []
+            for entry in team_data:
+                if self._validate_entry(entry):
+                    valid_data.append(entry)
+            
+            # Cache the data
+            self._cache_data(valid_data)
+            
+            return valid_data
+            
+        except Exception as e:
+            logger.error(f"Failed to fetch team data: {e}")
+            # Return cached data if available
+            return self._get_cached_data()
+
     def fetch_team_cities(self) -> List[TeamCityData]:
         """Fetch weather data from team members from CSV file."""
         try:
@@ -117,6 +163,77 @@ class GitHubTeamService:
         # Sort by timestamp, most recent first
         activity_feed.sort(key=lambda x: x["timestamp"], reverse=True)
         return activity_feed[:10]  # Return last 10 activities
+
+    def _validate_entry(self, entry: Dict[str, Any]) -> bool:
+        """Validate a team data entry"""
+        required_fields = ['city', 'temperature', 'timestamp']
+        
+        # Check required fields
+        for field in required_fields:
+            if field not in entry:
+                return False
+        
+        # Validate data types
+        try:
+            float(entry.get('temperature', 0))
+            # Validate timestamp
+            if 'timestamp' in entry:
+                datetime.fromisoformat(entry['timestamp'].replace('Z', '+00:00'))
+            return True
+        except (ValueError, TypeError):
+            return False
+
+    def _get_cached_data(self) -> List[Dict[str, Any]]:
+        """Get cached team data as fallback"""
+        cache_file = Path('cache/team_weather_cache.json')
+        try:
+            if cache_file.exists():
+                with open(cache_file, 'r') as f:
+                    return json.load(f)
+        except Exception as e:
+            logger.error(f"Failed to load cache: {e}")
+        
+        # Return demo data if no cache
+        return self._get_demo_data()
+
+    def _cache_data(self, data: List[Dict[str, Any]]) -> None:
+        """Cache team data for fallback use"""
+        try:
+            cache_file = Path('cache/team_weather_cache.json')
+            cache_file.parent.mkdir(exist_ok=True)
+            
+            with open(cache_file, 'w') as f:
+                json.dump(data, f, indent=2)
+            
+            logger.info(f"Cached {len(data)} team data entries")
+        except Exception as e:
+            logger.error(f"Failed to cache data: {e}")
+
+    def _get_demo_data(self) -> List[Dict[str, Any]]:
+        """Return demo data when no cache is available"""
+        return [
+            {
+                "city": "New York",
+                "temperature": 22.5,
+                "timestamp": datetime.now().isoformat(),
+                "member_name": "Demo User 1",
+                "weather_description": "Partly cloudy"
+            },
+            {
+                "city": "London",
+                "temperature": 18.0,
+                "timestamp": datetime.now().isoformat(),
+                "member_name": "Demo User 2",
+                "weather_description": "Light rain"
+            },
+            {
+                "city": "Tokyo",
+                "temperature": 25.3,
+                "timestamp": datetime.now().isoformat(),
+                "member_name": "Demo User 3",
+                "weather_description": "Clear sky"
+            }
+        ]
 
     def _parse_csv_data(self, csv_text: str) -> List[TeamCityData]:
         """Parse CSV data and convert to TeamCityData objects."""

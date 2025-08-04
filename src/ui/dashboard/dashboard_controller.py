@@ -14,6 +14,7 @@ from src.ui.components.journal_tab_manager import JournalTabManager
 from src.ui.dashboard.activities_tab_manager import ActivitiesTabManager
 from src.ui.dashboard.base_dashboard import BaseDashboard
 from src.ui.dashboard.comparison_tab_manager import ComparisonTabManager, MLComparisonTabManager
+from src.ui.dashboard.maps_tab_manager import MapsTabManager
 from src.ui.dashboard.settings_tab_manager import SettingsTabManager
 from src.ui.dashboard.weather_tab_manager import WeatherTabManager
 
@@ -36,6 +37,7 @@ class DashboardController(BaseDashboard):
         self.comparison_tab_manager = None
         self.ml_comparison_tab_manager = None
         self.journal_tab_manager = None
+        self.maps_tab_manager = None
 
         # UI components
         self.header_component = None
@@ -113,6 +115,10 @@ class DashboardController(BaseDashboard):
             self.journal_tab, self.weather_service, self.theme_manager
         )
 
+        self.maps_tab_manager = MapsTabManager(
+            self.maps_tab, self.weather_service, self.config_service
+        )
+
     def _create_all_tabs(self):
         """Create content for all tabs using their respective managers."""
         # Weather tab content is created automatically by WeatherTabManager in constructor
@@ -131,9 +137,10 @@ class DashboardController(BaseDashboard):
             self.journal_tab_manager.create_journal_tab()
 
     def _create_maps_tab(self):
-        """Create maps tab content (placeholder for now)."""
-        # This would be implemented with a dedicated maps tab manager
-        # For now, keeping the existing implementation
+        """Create maps tab content using MapsTabManager."""
+        if self.maps_tab_manager:
+            # Maps tab content is created automatically by MapsTabManager in constructor
+            pass
 
     def _create_header_component(self):
         """Create the header component."""

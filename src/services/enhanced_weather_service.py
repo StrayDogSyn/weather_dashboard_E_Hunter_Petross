@@ -285,6 +285,7 @@ class EnhancedWeatherService:
 
         # API fallback configuration
         self._primary_api = "openweather"
+        self._backup_api = "openweather_backup"
         self._fallback_api = "weatherapi"
         self._api_switch_threshold = 3  # Switch after 3 consecutive failures
         self._current_api = self._primary_api
@@ -306,6 +307,9 @@ class EnhancedWeatherService:
         # API endpoints
         self.base_url = self.config.weather.base_url
         self.api_key = self.config.weather.api_key
+        
+        # WeatherAPI base URL
+        self.weatherapi_base_url = self.config.get_setting("api.weatherapi_base_url", "https://api.weatherapi.com/v1")
 
     def _load_cache(self) -> None:
         """Load enhanced weather cache from file."""
@@ -428,19 +432,26 @@ class EnhancedWeatherService:
 
     def _should_use_fallback_api(self) -> bool:
         """Determine if we should switch to fallback API."""
-        return (
-            self._consecutive_failures >= self._api_switch_threshold
-            and self._current_api == self._primary_api
-        )
+        return self._consecutive_failures >= self._api_switch_threshold
 
     def _switch_to_fallback_api(self) -> None:
         """Switch to fallback API configuration."""
         if self._current_api == self._primary_api:
+            # First try backup OpenWeather key
+            if self.config.get_setting("api.openweather_backup_api_key"):
+                self._current_api = self._backup_api
+                self.logger.info(f"🔄 Switching to backup OpenWeather API key")
+            else:
+                # Skip to WeatherAPI if no backup key
+                self._current_api = self._fallback_api
+                self.logger.info(f"🔄 Switching to WeatherAPI fallback")
+        elif self._current_api == self._backup_api:
+            # Switch from backup to WeatherAPI
             self._current_api = self._fallback_api
-            self.logger.info(f"🔄 Switching to fallback API: {self._fallback_api}")
-            # Reset failure count when switching
-            self._consecutive_failures = 0
-            self._reset_backoff()
+            self.logger.info(f"🔄 Switching to WeatherAPI fallback")
+        # Reset failure count when switching
+        self._consecutive_failures = 0
+        self._reset_backoff()
 
     def _get_stale_cache_data(self, cache_key: str) -> Optional[Dict[str, Any]]:
         """Get stale cache data when API is unavailable but cache exists."""
@@ -464,6 +475,51 @@ class EnhancedWeatherService:
             return stale_data
 
         return None
+
+    def _convert_to_weatherapi(self, endpoint: str, params: Dict[str, Any], api_key: str) -> tuple[Optional[str], Dict[str, Any]]:
+        """Convert OpenWeather API endpoint to WeatherAPI format.
+        
+        Args:
+            endpoint: OpenWeather endpoint (e.g., 'weather', 'forecast')
+            params: OpenWeather parameters
+            api_key: WeatherAPI key
+            
+        Returns:
+            Tuple of (weatherapi_url, weatherapi_params) or (None, {}) if conversion fails
+        """
+        try:
+            location = params.get('q', '')
+            if not location:
+                return None, {}
+            
+            weatherapi_params = {
+                'key': api_key,
+                'q': location,
+                'aqi': 'yes'  # Include air quality data
+            }
+            
+            # Convert endpoints
+            if endpoint == 'weather':
+                # Current weather
+                url = f"{self.weatherapi_base_url}/current.json"
+            elif endpoint == 'forecast':
+                # Weather forecast
+                url = f"{self.weatherapi_base_url}/forecast.json"
+                weatherapi_params['days'] = 7  # 7-day forecast
+                weatherapi_params['alerts'] = 'yes'
+            elif endpoint.startswith('air_pollution'):
+                # Air quality - use current endpoint with aqi=yes
+                url = f"{self.weatherapi_base_url}/current.json"
+            else:
+                # Unsupported endpoint
+                self.logger.warning(f"🔄 WeatherAPI does not support endpoint: {endpoint}")
+                return None, {}
+                
+            return url, weatherapi_params
+            
+        except Exception as e:
+            self.logger.error(f"🔄 Error converting to WeatherAPI format: {e}")
+            return None, {}
 
     def _is_cache_valid_with_ttl(self, cache_key: str, cache_type: str) -> bool:
         """Check if cached data is still valid based on TTL."""
@@ -555,12 +611,28 @@ class EnhancedWeatherService:
             if self._current_api == "openweather":
                 params.update({"appid": self.api_key, "units": self.config.weather.units})
                 url = f"{self.base_url}/{endpoint}"
-            else:
-                # WeatherAPI fallback configuration
-                # Note: This would need WeatherAPI key and different endpoint structure
-                self.logger.warning("🔄 WeatherAPI fallback not fully implemented")
-                params.update({"appid": self.api_key, "units": self.config.weather.units})
+            elif self._current_api == "openweather_backup":
+                # Use backup OpenWeather API key
+                backup_key = self.config.get_setting("api.openweather_backup_api_key")
+                params.update({"appid": backup_key, "units": self.config.weather.units})
                 url = f"{self.base_url}/{endpoint}"
+            elif self._current_api == "weatherapi":
+                # WeatherAPI configuration
+                weatherapi_key = self.config.get_setting("api.weatherapi_api_key")
+                if weatherapi_key:
+                    # Convert OpenWeather endpoint to WeatherAPI format
+                    weatherapi_url, weatherapi_params = self._convert_to_weatherapi(endpoint, params, weatherapi_key)
+                    if weatherapi_url:
+                        url = weatherapi_url
+                        params = weatherapi_params
+                    else:
+                        self.logger.warning("🔄 WeatherAPI endpoint conversion failed, using OpenWeather format")
+                        params.update({"appid": self.api_key, "units": self.config.weather.units})
+                        url = f"{self.base_url}/{endpoint}"
+                else:
+                    self.logger.warning("🔄 WeatherAPI key not available, using primary OpenWeather")
+                    params.update({"appid": self.api_key, "units": self.config.weather.units})
+                    url = f"{self.base_url}/{endpoint}"
 
             self.logger.debug(f"🌐 Making API request to {self._current_api}: {endpoint}")
 

@@ -191,6 +191,22 @@ class AppConfig:
                 f"{'[SET]' if api_key else '[EMPTY]'}"
             )
 
+        # Backup OpenWeather API Key
+        if backup_key := os.getenv("OPENWEATHER_API_KEY_BACKUP"):
+            self.api.openweather_backup_api_key = backup_key
+            print(
+                f"Debug - AppConfig: Loaded OPENWEATHER_API_KEY_BACKUP: "
+                f"{'[SET]' if backup_key else '[EMPTY]'}"
+            )
+
+        # WeatherAPI.com API Key
+        if weatherapi_key := os.getenv("WEATHERAPI_API_KEY"):
+            self.api.weatherapi_api_key = weatherapi_key
+            print(
+                f"Debug - AppConfig: Loaded WEATHERAPI_API_KEY: "
+                f"{'[SET]' if weatherapi_key else '[EMPTY]'}"
+            )
+
         # AI Service API Keys
         if gemini_key := os.getenv("GEMINI_API_KEY"):
             self.api.gemini_api_key = gemini_key

@@ -29,8 +29,19 @@ class InteractiveWeatherMapsWidget(ctk.CTkFrame):
         self.weather_service = weather_service
         self.logger = logging.getLogger(__name__)
 
-        # Initialize maps service
-        api_key = getattr(weather_service, "api_key", "demo_key")
+        # Initialize maps service with Google Maps API key from config service
+        try:
+            # Get Google Maps API key from config service
+            config_service = getattr(weather_service, 'config_service', None)
+            if config_service:
+                google_maps_api_key = config_service.get_setting("api.google_maps_api_key")
+                api_key = google_maps_api_key if google_maps_api_key else "demo_key"
+            else:
+                api_key = "demo_key"
+        except Exception as e:
+            self.logger.warning(f"Could not get Google Maps API key: {e}")
+            api_key = "demo_key"
+            
         self.maps_service = WeatherMapsService(api_key)
 
         # Current map state
