@@ -1,5 +1,6 @@
 import customtkinter as ctk
-from PIL import Image, ImageTk, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
+from customtkinter import CTkImage
 import requests
 from io import BytesIO
 import threading
@@ -415,8 +416,8 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
     def _display_map_image(self, image):
         """Display the loaded map image"""
         try:
-            # Convert PIL image to PhotoImage
-            photo = ImageTk.PhotoImage(image)
+            # Convert PIL image to CTkImage
+            photo = CTkImage(light_image=image, dark_image=image, size=image.size)
             
             # Update map label
             self.map_label.configure(image=photo, text="")
