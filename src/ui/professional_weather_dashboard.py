@@ -3926,28 +3926,46 @@ class ProfessionalWeatherDashboard(SafeCTk):
         )
 
     def _create_maps_tab(self):
-        """Create Maps tab with thread-safe maps integration."""
+        """Create the maps tab with proper configuration"""
         try:
-            # Import the new thread-safe maps manager
-            from .dashboard.maps_tab_manager import ThreadSafeMapsTabManager, MAPS_AVAILABLE
+            # Import the maps component
+            from src.ui.dashboard.maps_tab_manager import ThreadSafeMapsTabManager
             
-            if MAPS_AVAILABLE:
-                # Create the thread-safe maps manager with proper services
-                self.maps_tab_manager = ThreadSafeMapsTabManager(
-                    self.maps_tab,
-                    weather_service=self.weather_service,
-                    config_service=self.config_service
-                )
-                self.logger.info("Maps tab created successfully with thread-safe maps")
+            # Ensure config has Google Maps API key
+            if not hasattr(self.config_service, 'get') if self.config_service else True:
+                # Create a dict-like config if needed
+                config_dict = {
+                    'google_maps_api_key': getattr(self.config_service, 'google_maps_api_key', '') if self.config_service else '',
+                    'weather_api_key': getattr(self.config_service, 'weather_api_key', '') if self.config_service else ''
+                }
             else:
-                # Show maps unavailable message
-                self._create_maps_unavailable_message()
-                self.logger.warning("Maps dependencies not available, showing fallback message")
+                config_dict = self.config_service
+            
+            # Create maps tab with all required parameters
+            self.maps_tab_manager = ThreadSafeMapsTabManager(
+                self.maps_tab,
+                weather_service=self.weather_service,
+                config_service=config_dict
+            )
+            
+            self.logger.info("Maps tab created successfully")
             
         except Exception as e:
-            self.logger.error(f"Failed to create maps tab: {e}")
-            # Fallback for demo mode
-            self._create_enhanced_maps_tab()
+            self.logger.warning(f"Could not create maps tab: {e}")
+            # Create placeholder tab
+            self._create_maps_placeholder_tab()
+    
+    def _create_maps_placeholder_tab(self):
+        """Create a placeholder when maps can't be loaded"""
+        placeholder_frame = ctk.CTkFrame(self.maps_tab)
+        placeholder_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        message_label = ctk.CTkLabel(
+            placeholder_frame,
+            text="Maps feature requires additional configuration.\nPlease add Google Maps API key in settings.",
+            font=("Arial", 14)
+        )
+        message_label.pack(expand=True)
 
     def _create_maps_unavailable_message(self):
         """Create message when maps dependencies are unavailable."""

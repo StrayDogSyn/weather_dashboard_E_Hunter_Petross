@@ -7,6 +7,7 @@ import logging
 from typing import Optional, Dict, Tuple, List
 from datetime import datetime
 import math
+from src.utils.maps_config import MapsConfiguration
 
 class StaticMapsComponent(ctk.CTkFrame):
     """Maps component using Google Static Maps API - reliable and no WebView needed"""
@@ -38,11 +39,13 @@ class StaticMapsComponent(ctk.CTkFrame):
         
     def _get_api_key(self):
         """Get Google Maps API key from config"""
-        try:
-            if self.config and hasattr(self.config, 'get'):
-                return self.config.get('google_maps_api_key', '')
-            return ''
-        except:
+        key = MapsConfiguration.get_google_maps_api_key(self.config)
+        
+        if key and MapsConfiguration.validate_api_key(key):
+            self.logger.info("Valid Google Maps API key found")
+            return key
+        else:
+            self.logger.warning("No valid Google Maps API key available")
             return ''
     
     def _create_ui(self):
