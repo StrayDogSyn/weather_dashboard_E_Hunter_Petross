@@ -159,6 +159,12 @@ class AstronomicalData:
             data["moonset"] = datetime.fromisoformat(data["moonset"])
         if isinstance(data["day_length"], (int, float)):
             data["day_length"] = timedelta(seconds=data["day_length"])
+        elif isinstance(data["day_length"], str):
+            try:
+                data["day_length"] = timedelta(seconds=float(data["day_length"]))
+            except (ValueError, TypeError):
+                # Fallback to a default day length if conversion fails
+                data["day_length"] = timedelta(hours=12)
         return cls(**data)
 
 
@@ -485,17 +491,30 @@ class EnhancedWeatherService:
         if "timestamp" not in cached_data:
             return None
 
-        cache_age = time.time() - time.mktime(
-            datetime.fromisoformat(cached_data["timestamp"]).timetuple()
-        )
+        try:
+            # Handle both string and datetime objects
+            timestamp_value = cached_data["timestamp"]
+            if isinstance(timestamp_value, str):
+                cache_time = datetime.fromisoformat(timestamp_value)
+            elif isinstance(timestamp_value, datetime):
+                cache_time = timestamp_value
+            else:
+                self.logger.warning(f"Invalid timestamp type in stale cache: {type(timestamp_value)}")
+                return None
+                
+            cache_age = time.time() - time.mktime(cache_time.timetuple())
 
-        # Allow stale data up to the stale_acceptable limit
-        if cache_age < self._cache_ttl["stale_acceptable"]:
-            self.logger.info(f"📋 Using stale cache data (age: {cache_age:.0f}s)")
-            stale_data = cached_data["data"].copy()
-            stale_data["stale"] = True
-            stale_data["cache_age"] = cache_age
-            return stale_data
+            # Allow stale data up to the stale_acceptable limit
+            if cache_age < self._cache_ttl["stale_acceptable"]:
+                self.logger.info(f"📋 Using stale cache data (age: {cache_age:.0f}s)")
+                stale_data = cached_data["data"].copy()
+                stale_data["stale"] = True
+                stale_data["cache_age"] = cache_age
+                return stale_data
+                
+        except Exception as e:
+            self.logger.error(f"Error processing stale cache timestamp: {e}")
+            return None
 
         return None
 
@@ -553,12 +572,29 @@ class EnhancedWeatherService:
         if "timestamp" not in cached_data:
             return False
 
-        cache_age = time.time() - time.mktime(
-            datetime.fromisoformat(cached_data["timestamp"]).timetuple()
-        )
-        ttl = self._cache_ttl.get(cache_type, 600)  # Default 10 minutes
-
-        return cache_age < ttl
+        try:
+            # Debug logging to identify timestamp format issues
+            timestamp_value = cached_data["timestamp"]
+            self.logger.debug(f"DEBUG: Cache timestamp type: {type(timestamp_value)}, value: {timestamp_value}")
+            
+            # Handle both string and datetime objects
+            if isinstance(timestamp_value, str):
+                cache_time = datetime.fromisoformat(timestamp_value)
+            elif isinstance(timestamp_value, datetime):
+                cache_time = timestamp_value
+            else:
+                self.logger.warning(f"Invalid timestamp type in cache: {type(timestamp_value)}")
+                return False
+                
+            cache_age = time.time() - time.mktime(cache_time.timetuple())
+            ttl = self._cache_ttl.get(cache_type, 600)  # Default 10 minutes
+            
+            self.logger.debug(f"DEBUG: Cache age: {cache_age}s, TTL: {ttl}s, Valid: {cache_age < ttl}")
+            return cache_age < ttl
+            
+        except Exception as e:
+            self.logger.error(f"Error validating cache timestamp: {e}")
+            return False
 
     def _get_offline_fallback(self, data_type: str, location: str = "Unknown") -> Dict[str, Any]:
         """Get enhanced offline fallback data when API is unavailable."""
@@ -1575,6 +1611,9 @@ class EnhancedWeatherService:
         self._save_cache()
 
         self.logger.info(f"✅ Enhanced weather data retrieved for {location}")
+        
+        # Debug logging as requested by user
+        self.logger.info(f"DEBUG: get_weather({location}) returned: {weather_data.temperature}°C, {weather_data.description}")
         
         # Notify observers of new weather data
         self.notify_observers(weather_data)
