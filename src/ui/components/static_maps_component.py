@@ -1,5 +1,6 @@
 import customtkinter as ctk
-from PIL import Image, ImageTk, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
+from customtkinter import CTkImage
 import requests
 from io import BytesIO
 import threading
@@ -186,8 +187,8 @@ class StaticMapsComponent(ctk.CTkFrame):
                 image = Image.open(BytesIO(response.content))
                 self.current_image = image
                 
-                # Convert to PhotoImage for display
-                photo = ImageTk.PhotoImage(image)
+                # Convert to CTkImage for display
+                photo = CTkImage(light_image=image, dark_image=image, size=image.size)
                 
                 # Update UI on main thread
                 self.after(0, lambda: self._display_image(photo))
@@ -226,8 +227,8 @@ class StaticMapsComponent(ctk.CTkFrame):
         api_text = "Google Maps API key required\nfor full functionality"
         draw.text((320, 350), api_text, fill='red', font=font, anchor='mm')
         
-        # Convert to PhotoImage
-        photo = ImageTk.PhotoImage(img)
+        # Convert to CTkImage
+        photo = CTkImage(light_image=img, dark_image=img, size=img.size)
         self.after(0, lambda: self._display_image(photo))
     
     def _show_error_map(self):
