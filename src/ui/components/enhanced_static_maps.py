@@ -225,7 +225,7 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         self.refresh_btn = ctk.CTkButton(
             self.sidebar,
             text="🔄 Refresh Map",
-            command=self._update_map
+            command=self._refresh_map
         )
         self.refresh_btn.pack(fill="x", padx=10, pady=5)
     
@@ -265,9 +265,13 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         """Search for a location and update map"""
         query = self.search_entry.get().strip()
         if not query:
+            self._update_status("Please enter a location to search", error=True, duration=3000)
             return
         
         self._update_status("Searching...")
+        
+        # Disable search button during search
+        self.search_btn.configure(state="disabled")
         
         # Run geocoding in background thread
         threading.Thread(
@@ -299,11 +303,13 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
                 # Update map on main thread
                 self.after(0, lambda: self._update_location(lat, lng, query))
             else:
-                self.after(0, lambda: self._update_status("Location not found", error=True))
+                self.after(0, lambda: self._update_status("Location not found", error=True, duration=3000))
+                self.after(0, lambda: self.search_btn.configure(state="normal"))
                 
         except Exception as e:
             self.logger.error(f"Geocoding error: {e}")
-            self.after(0, lambda: self._update_status("Search failed", error=True))
+            self.after(0, lambda: self._update_status("Search failed", error=True, duration=3000))
+            self.after(0, lambda: self.search_btn.configure(state="normal"))
     
     def _update_location(self, lat, lng, location_name=None):
         """Update map center to new location"""
@@ -311,7 +317,12 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         self.center_lng = lng
         
         if location_name:
-            self._update_status(f"Found: {location_name}")
+            self._update_status(f"Found: {location_name}", duration=3000)
+            # Clear search entry after successful search
+            self.search_entry.delete(0, 'end')
+        
+        # Re-enable search button
+        self.search_btn.configure(state="normal")
         
         self._update_map()
     
@@ -320,31 +331,53 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         if self.zoom_level < 20:
             self.zoom_level += 1
             self.zoom_label.configure(text=f"Zoom: {self.zoom_level}")
+            self._update_status(f"Zoomed in to level {self.zoom_level}", duration=1500)
             self._update_map()
+        else:
+            self._update_status("Maximum zoom level reached", error=True, duration=2000)
     
     def _zoom_out(self):
         """Zoom out on the map"""
         if self.zoom_level > 1:
             self.zoom_level -= 1
             self.zoom_label.configure(text=f"Zoom: {self.zoom_level}")
+            self._update_status(f"Zoomed out to level {self.zoom_level}", duration=1500)
             self._update_map()
+        else:
+            self._update_status("Minimum zoom level reached", error=True, duration=2000)
     
     def _on_map_type_change(self, value):
         """Handle map type change"""
         self.map_type = value
+        self._update_status(f"Changed to {value} view", duration=2000)
         self._update_map()
     
     def _toggle_weather_layer(self, layer_key):
         """Toggle weather layer on/off"""
         checkbox = self.weather_checkboxes[layer_key]
         self.weather_layers[layer_key] = checkbox.get()
+        
+        status = "enabled" if checkbox.get() else "disabled"
+        layer_name = layer_key.replace('_', ' ').title()
+        self._update_status(f"{layer_name} layer {status}", duration=2000)
+        
         self._update_map()
     
     def _get_current_location(self):
         """Get user's current location (placeholder - would need geolocation API)"""
-        # For demo, use a default location
-        self._update_location(40.7128, -74.0060, "New York City")
-        self._update_status("Using default location")
+        self._update_status("Getting current location...")
+        
+        # Disable button during operation
+        self.current_location_btn.configure(state="disabled")
+        
+        def _restore_location():
+            # For demo, use a default location (New York City)
+            self._update_location(40.7128, -74.0060, "New York City (Demo)")
+            self._update_status("Using demo location - New York City", duration=3000)
+            self.current_location_btn.configure(state="normal")
+        
+        # Simulate async operation
+        self.after(500, _restore_location)
     
     def _update_map(self):
         """Update the map display with current settings and overlays"""
@@ -831,10 +864,25 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         except Exception as e:
             self.logger.error(f"Failed to update weather data: {e}")
     
+    def _refresh_map(self):
+        """Refresh map with user feedback"""
+        self._update_status("Refreshing map...")
+        
+        # Disable refresh button during operation
+        self.refresh_btn.configure(state="disabled")
+        
+        def _complete_refresh():
+            self._update_map()
+            self._update_status("Map refreshed", duration=2000)
+            self.refresh_btn.configure(state="normal")
+        
+        # Small delay to show feedback
+        self.after(200, _complete_refresh)
+    
     def refresh_weather_data(self):
         """Refresh weather data and update map"""
         if any(self.weather_layers.values()):
-            self._update_map()
+            self._refresh_map()
     
     def cleanup(self):
         """Clean up resources"""
