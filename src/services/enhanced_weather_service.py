@@ -218,6 +218,7 @@ class EnhancedWeatherData(WeatherData):
     air_quality: Optional[AirQualityData] = None
     astronomical: Optional[AstronomicalData] = None
     alerts: List[WeatherAlert] = None
+    forecast_data: Optional['ForecastData'] = None
 
     def __post_init__(self):
         if self.alerts is None:
@@ -914,6 +915,8 @@ class EnhancedWeatherService:
                 locations = self._search_by_zipcode(query, limit)
             elif search_type == "coordinates":
                 locations = self._search_by_coordinates(query)
+            elif search_type == "airport":
+                locations = self._search_by_airport(query, limit)
             else:
                 # Default to geocoding search for city names and general
                 # queries
@@ -1081,7 +1084,7 @@ class EnhancedWeatherService:
             return []
 
     def _detect_query_type(self, query: str) -> str:
-        """Detect the type of location query (zipcode, coordinates, or general)."""
+        """Detect the type of location query (zipcode, coordinates, airport code, or general)."""
         import re
 
         query = query.strip()
@@ -1090,6 +1093,11 @@ class EnhancedWeatherService:
         coord_pattern = r"^-?\d+\.?\d*\s*,\s*-?\d+\.?\d*$"
         if re.match(coord_pattern, query):
             return "coordinates"
+
+        # Check for airport codes (3-letter IATA or 4-letter ICAO)
+        airport_pattern = r"^[A-Z]{3,4}$"
+        if re.match(airport_pattern, query.upper()) and len(query) in [3, 4]:
+            return "airport"
 
         # Check for US zipcode (5 digits or 5+4 format)
         us_zip_pattern = r"^\d{5}(-\d{4})?$"
@@ -1135,8 +1143,22 @@ class EnhancedWeatherService:
             data = self._make_geocoding_request("geo/1.0/zip", {"zip": query_param})
 
             if data and "lat" in data and "lon" in data:
+                # Get proper location name, fallback to reverse geocoding if needed
+                location_name = data.get("name")
+                if not location_name or location_name == zipcode:
+                    # Try to get a better name using reverse geocoding
+                    try:
+                        reverse_data = self._make_geocoding_request(
+                            "geo/1.0/reverse", 
+                            {"lat": data.get("lat"), "lon": data.get("lon"), "limit": 1}
+                        )
+                        if reverse_data and len(reverse_data) > 0:
+                            location_name = reverse_data[0].get("name", zipcode)
+                    except Exception:
+                        location_name = zipcode
+                
                 location = LocationSearchResult(
-                    name=data.get("name", zipcode),
+                    name=location_name,
                     country=data.get("country", ""),
                     state="",  # Zip endpoint doesn't provide state
                     lat=data.get("lat"),
@@ -1266,6 +1288,116 @@ class EnhancedWeatherService:
 
         self.logger.warning(f"All geocoding attempts failed for: {query}")
         return []
+
+    def _search_by_airport(self, airport_code: str, limit: int = 5) -> List[LocationSearchResult]:
+        """Search location by airport code (IATA/ICAO) with comprehensive airport database."""
+        try:
+            airport_code = airport_code.upper().strip()
+            self.logger.debug(f"✈️ Searching by airport code: {airport_code}")
+            
+            # Comprehensive airport database with major airports
+            airport_database = {
+                # Major US airports
+                "JFK": {"name": "John F. Kennedy International Airport", "city": "New York", "state": "NY", "country": "US", "lat": 40.6413, "lon": -73.7781},
+                "LAX": {"name": "Los Angeles International Airport", "city": "Los Angeles", "state": "CA", "country": "US", "lat": 33.9425, "lon": -118.4081},
+                "ORD": {"name": "O'Hare International Airport", "city": "Chicago", "state": "IL", "country": "US", "lat": 41.9742, "lon": -87.9073},
+                "ATL": {"name": "Hartsfield-Jackson Atlanta International Airport", "city": "Atlanta", "state": "GA", "country": "US", "lat": 33.6407, "lon": -84.4277},
+                "DFW": {"name": "Dallas/Fort Worth International Airport", "city": "Dallas", "state": "TX", "country": "US", "lat": 32.8998, "lon": -97.0403},
+                "DEN": {"name": "Denver International Airport", "city": "Denver", "state": "CO", "country": "US", "lat": 39.8561, "lon": -104.6737},
+                "SFO": {"name": "San Francisco International Airport", "city": "San Francisco", "state": "CA", "country": "US", "lat": 37.6213, "lon": -122.3790},
+                "SEA": {"name": "Seattle-Tacoma International Airport", "city": "Seattle", "state": "WA", "country": "US", "lat": 47.4502, "lon": -122.3088},
+                "LAS": {"name": "McCarran International Airport", "city": "Las Vegas", "state": "NV", "country": "US", "lat": 36.0840, "lon": -115.1537},
+                "PHX": {"name": "Phoenix Sky Harbor International Airport", "city": "Phoenix", "state": "AZ", "country": "US", "lat": 33.4484, "lon": -112.0740},
+                "IAH": {"name": "George Bush Intercontinental Airport", "city": "Houston", "state": "TX", "country": "US", "lat": 29.9902, "lon": -95.3368},
+                "MIA": {"name": "Miami International Airport", "city": "Miami", "state": "FL", "country": "US", "lat": 25.7959, "lon": -80.2870},
+                "BOS": {"name": "Logan International Airport", "city": "Boston", "state": "MA", "country": "US", "lat": 42.3656, "lon": -71.0096},
+                "MSP": {"name": "Minneapolis-Saint Paul International Airport", "city": "Minneapolis", "state": "MN", "country": "US", "lat": 42.2124, "lon": -121.7269},
+                "DTW": {"name": "Detroit Metropolitan Wayne County Airport", "city": "Detroit", "state": "MI", "country": "US", "lat": 42.2162, "lon": -83.3554},
+                "PHL": {"name": "Philadelphia International Airport", "city": "Philadelphia", "state": "PA", "country": "US", "lat": 39.8744, "lon": -75.2424},
+                "LGA": {"name": "LaGuardia Airport", "city": "New York", "state": "NY", "country": "US", "lat": 40.7769, "lon": -73.8740},
+                "BWI": {"name": "Baltimore/Washington International Airport", "city": "Baltimore", "state": "MD", "country": "US", "lat": 39.1774, "lon": -76.6684},
+                "DCA": {"name": "Ronald Reagan Washington National Airport", "city": "Washington", "state": "DC", "country": "US", "lat": 38.8512, "lon": -77.0402},
+                "IAD": {"name": "Washington Dulles International Airport", "city": "Washington", "state": "VA", "country": "US", "lat": 38.9531, "lon": -77.4565},
+                
+                # Major international airports
+                "LHR": {"name": "Heathrow Airport", "city": "London", "state": "", "country": "GB", "lat": 51.4700, "lon": -0.4543},
+                "CDG": {"name": "Charles de Gaulle Airport", "city": "Paris", "state": "", "country": "FR", "lat": 49.0097, "lon": 2.5479},
+                "FRA": {"name": "Frankfurt Airport", "city": "Frankfurt", "state": "", "country": "DE", "lat": 50.0379, "lon": 8.5622},
+                "AMS": {"name": "Amsterdam Airport Schiphol", "city": "Amsterdam", "state": "", "country": "NL", "lat": 52.3105, "lon": 4.7683},
+                "MAD": {"name": "Madrid-Barajas Airport", "city": "Madrid", "state": "", "country": "ES", "lat": 40.4839, "lon": -3.5680},
+                "FCO": {"name": "Leonardo da Vinci International Airport", "city": "Rome", "state": "", "country": "IT", "lat": 41.8003, "lon": 12.2389},
+                "ZUR": {"name": "Zurich Airport", "city": "Zurich", "state": "", "country": "CH", "lat": 47.4647, "lon": 8.5492},
+                "VIE": {"name": "Vienna International Airport", "city": "Vienna", "state": "", "country": "AT", "lat": 48.1103, "lon": 16.5697},
+                "ARN": {"name": "Stockholm Arlanda Airport", "city": "Stockholm", "state": "", "country": "SE", "lat": 59.6519, "lon": 17.9186},
+                "CPH": {"name": "Copenhagen Airport", "city": "Copenhagen", "state": "", "country": "DK", "lat": 55.6181, "lon": 12.6561},
+                
+                # Major Asia-Pacific airports
+                "NRT": {"name": "Narita International Airport", "city": "Tokyo", "state": "", "country": "JP", "lat": 35.7720, "lon": 140.3929},
+                "HND": {"name": "Haneda Airport", "city": "Tokyo", "state": "", "country": "JP", "lat": 35.5494, "lon": 139.7798},
+                "ICN": {"name": "Incheon International Airport", "city": "Seoul", "state": "", "country": "KR", "lat": 37.4602, "lon": 126.4407},
+                "PEK": {"name": "Beijing Capital International Airport", "city": "Beijing", "state": "", "country": "CN", "lat": 40.0799, "lon": 116.6031},
+                "PVG": {"name": "Shanghai Pudong International Airport", "city": "Shanghai", "state": "", "country": "CN", "lat": 31.1443, "lon": 121.8083},
+                "HKG": {"name": "Hong Kong International Airport", "city": "Hong Kong", "state": "", "country": "HK", "lat": 22.3080, "lon": 113.9185},
+                "SIN": {"name": "Singapore Changi Airport", "city": "Singapore", "state": "", "country": "SG", "lat": 1.3644, "lon": 103.9915},
+                "BKK": {"name": "Suvarnabhumi Airport", "city": "Bangkok", "state": "", "country": "TH", "lat": 13.6900, "lon": 100.7501},
+                "KUL": {"name": "Kuala Lumpur International Airport", "city": "Kuala Lumpur", "state": "", "country": "MY", "lat": 2.7456, "lon": 101.7072},
+                "SYD": {"name": "Sydney Kingsford Smith Airport", "city": "Sydney", "state": "NSW", "country": "AU", "lat": -33.9399, "lon": 151.1753},
+                "MEL": {"name": "Melbourne Airport", "city": "Melbourne", "state": "VIC", "country": "AU", "lat": -37.6690, "lon": 144.8410},
+                
+                # Major Canadian airports
+                "YYZ": {"name": "Toronto Pearson International Airport", "city": "Toronto", "state": "ON", "country": "CA", "lat": 43.6777, "lon": -79.6248},
+                "YVR": {"name": "Vancouver International Airport", "city": "Vancouver", "state": "BC", "country": "CA", "lat": 49.1967, "lon": -123.1815},
+                "YUL": {"name": "Montreal-Pierre Elliott Trudeau International Airport", "city": "Montreal", "state": "QC", "country": "CA", "lat": 45.4706, "lon": -73.7408},
+                "YYC": {"name": "Calgary International Airport", "city": "Calgary", "state": "AB", "country": "CA", "lat": 51.1315, "lon": -114.0106},
+            }
+            
+            if airport_code in airport_database:
+                airport_info = airport_database[airport_code]
+                
+                # Create display name with city and airport name
+                if airport_info["state"]:
+                    display_name = f"{airport_info['city']}, {airport_info['state']}, {airport_info['country']} ({airport_code})"
+                else:
+                    display_name = f"{airport_info['city']}, {airport_info['country']} ({airport_code})"
+                
+                location = LocationSearchResult(
+                    name=display_name,
+                    country=airport_info["country"],
+                    state=airport_info["state"],
+                    lat=airport_info["lat"],
+                    lon=airport_info["lon"],
+                )
+                
+                self.logger.info(f"✅ Found airport: {display_name}")
+                return [location]
+            
+            # If not found in database, try geocoding as fallback
+            self.logger.debug(f"🔄 Airport {airport_code} not in database, trying geocoding fallback")
+            fallback_queries = [
+                f"{airport_code} airport",
+                f"{airport_code} international airport",
+                airport_code
+            ]
+            
+            for query in fallback_queries:
+                try:
+                    results = self._search_by_geocoding(query, limit)
+                    if results:
+                        # Enhance the result to indicate it's an airport
+                        for result in results:
+                            if "airport" not in result.name.lower():
+                                result.name = f"{result.name} ({airport_code})"
+                        return results
+                except Exception as e:
+                    self.logger.debug(f"Geocoding fallback failed for {query}: {e}")
+                    continue
+            
+            self.logger.warning(f"Airport code {airport_code} not found")
+            return []
+            
+        except Exception as e:
+            self.logger.warning(f"Airport search failed for {airport_code}: {e}")
+            return []
 
     def _generate_query_variations(self, query: str) -> List[str]:
         """Generate multiple query variations to improve search success."""

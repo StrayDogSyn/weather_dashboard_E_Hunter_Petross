@@ -884,15 +884,22 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             if weather_data:
                 self.weather_data = weather_data
                 
-                # Extract location if available
-                if 'lat' in weather_data and 'lng' in weather_data:
-                    self.center_lat = weather_data['lat']
-                    self.center_lng = weather_data['lng']
-                elif 'coord' in weather_data:
-                    coord = weather_data['coord']
-                    if 'lat' in coord and 'lon' in coord:
-                        self.center_lat = coord['lat']
-                        self.center_lng = coord['lon']
+                # Extract location from EnhancedWeatherData object
+                if hasattr(weather_data, 'location'):
+                    location = weather_data.location
+                    if hasattr(location, 'latitude') and hasattr(location, 'longitude'):
+                        self.center_lat = location.latitude
+                        self.center_lng = location.longitude
+                # Fallback for dictionary format
+                elif isinstance(weather_data, dict):
+                    if 'lat' in weather_data and 'lng' in weather_data:
+                        self.center_lat = weather_data['lat']
+                        self.center_lng = weather_data['lng']
+                    elif 'coord' in weather_data:
+                        coord = weather_data['coord']
+                        if 'lat' in coord and 'lon' in coord:
+                            self.center_lat = coord['lat']
+                            self.center_lng = coord['lon']
                 
                 # Update map if weather layers are active
                 if any(self.weather_layers.values()):

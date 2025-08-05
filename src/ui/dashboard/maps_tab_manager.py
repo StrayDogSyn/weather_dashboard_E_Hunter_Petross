@@ -215,10 +215,13 @@ class ThreadSafeMapsTabManager:
                 def _update():
                     self.map_widget.update_weather_data(weather_data)
                 
-                if hasattr(self, 'safe_after_idle'):
-                    self.safe_after_idle(_update)
+                if hasattr(self.parent, 'safe_after_idle'):
+                    self.parent.safe_after_idle(_update)
+                elif hasattr(self.parent, 'after_idle'):
+                    self.parent.after_idle(_update)
                 else:
-                    self.after_idle(_update)
+                    # Direct call if no after_idle available
+                    _update()
                     
         except Exception as e:
             self.logger.error(f"Failed to update map weather: {e}")
@@ -236,10 +239,13 @@ class ThreadSafeMapsTabManager:
                     def _update():
                         self.map_widget.update_location(lat, lon, name)
                     
-                    if hasattr(self, 'safe_after_idle'):
-                        self.safe_after_idle(_update)
+                    if hasattr(self.parent, 'safe_after_idle'):
+                        self.parent.safe_after_idle(_update)
+                    elif hasattr(self.parent, 'after_idle'):
+                        self.parent.after_idle(_update)
                     else:
-                        self.after_idle(_update)
+                        # Direct call if no after_idle available
+                        _update()
                         
         except Exception as e:
             self.logger.error(f"Failed to update map location: {e}")

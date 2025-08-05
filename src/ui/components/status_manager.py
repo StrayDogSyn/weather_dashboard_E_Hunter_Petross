@@ -173,8 +173,8 @@ class StatusMessageManager:
         else:
             self.status_label.configure(text=message)
 
-        # Add subtle animation
-        AnimationManager.fade_in(self.status_frame, duration=200)
+        # Animation disabled to prevent lag
+        # AnimationManager.fade_in(self.status_frame, duration=200)
 
         # Auto-clear timer
         if auto_clear:
@@ -206,13 +206,13 @@ class StatusMessageManager:
         self.set_status(
             message=message,
             status_type=StatusType.LOADING,
-            show_progress=show_progress,
-            typing_effect=True,
+            show_progress=False,  # Disable progress bar to prevent lag
+            typing_effect=False,  # Disable typing effect to prevent lag
         )
 
-        # Start progress animation
-        if show_progress:
-            self._animate_progress()
+        # Progress animation disabled to prevent lag
+        # if show_progress:
+        #     self._animate_progress()
 
     def set_success_state(self, message: str, auto_clear: int = 3000):
         """Set success state."""
@@ -240,7 +240,7 @@ class StatusMessageManager:
         """Show random weather fact."""
         fact = random.choice(self.weather_facts)
         self.set_status(
-            message=fact, status_type=StatusType.FACT, auto_clear=10000, typing_effect=True
+            message=fact, status_type=StatusType.FACT, auto_clear=10000, typing_effect=False
         )
 
     def show_info(self, message: str, auto_clear: int = 5000):
@@ -307,26 +307,10 @@ class StatusMessageManager:
         type_char()
 
     def _animate_progress(self):
-        """Animate progress bar for loading states."""
-        try:
-            if not self.parent.winfo_exists():
-                return
-            if (
-                self.current_status == StatusType.LOADING
-                and self.progress_bar
-                and self.progress_bar.winfo_viewable()
-            ):
-
-                # Indeterminate progress animation
-                current_value = self.progress_bar.get()
-                new_value = (current_value + 0.02) % 1.0
-                self.progress_bar.set(new_value)
-
-                # Continue animation
-                self.safe_after(50, self._animate_progress)
-        except tk.TclError:
-            # Widget has been destroyed
-            return
+        """Animate progress bar for loading states - DISABLED to prevent lag."""
+        # Animation disabled to prevent performance issues
+        # This method is kept for compatibility but does nothing
+        return
 
     def _start_auto_cycle(self):
         """Start auto-cycling through tips and facts."""
