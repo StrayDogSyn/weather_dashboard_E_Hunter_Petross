@@ -85,7 +85,7 @@ class MLWeatherService:
             # Initialize sklearn components only if available
             if SKLEARN_AVAILABLE:
                 self.scaler = StandardScaler()
-                self.pca = PCA(n_components=3)
+                self.pca = None  # Will be initialized dynamically based on data
                 self.kmeans = KMeans(n_clusters=5, random_state=42)
                 self.nn_model = NearestNeighbors(n_neighbors=5, metric="cosine")
                 self.ml_enabled = True
@@ -345,6 +345,9 @@ class MLWeatherService:
 
                 # Apply PCA for dimensionality reduction if needed
                 if len(feature_columns) > 3:
+                    # Dynamically set PCA components based on data size
+                    n_components = min(3, len(df), len(feature_columns))
+                    self.pca = PCA(n_components=n_components)
                     features_pca = self.pca.fit_transform(features_scaled)
                 else:
                     features_pca = features_scaled

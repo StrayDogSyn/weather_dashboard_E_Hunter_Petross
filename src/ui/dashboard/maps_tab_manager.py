@@ -116,7 +116,7 @@ class ThreadSafeMapsTabManager:
                     self.map_widget.pack(fill="both", expand=True)
                     
                     # Update map title for basic version
-                    self.map_title.configure(text="Weather Map - Static View")
+                    self.map_title.configure(text="Codefront - Google Navigation Mode")
                     
                 else:
                     raise ImportError("No maps components available")
@@ -136,7 +136,7 @@ class ThreadSafeMapsTabManager:
                         self.weather_service.add_observer(self._on_weather_update)
                 
                 # Update map title
-                self.map_title.configure(text="Weather Map - Static View")
+                self.map_title.configure(text="Codefront - Google Navigation Mode")
                 
                 # Update status
                 self._update_status("Map loaded successfully", "normal")

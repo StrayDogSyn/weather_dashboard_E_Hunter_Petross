@@ -603,7 +603,7 @@ class MLComparisonPanel(ctk.CTkFrame):
             fig.tight_layout(pad=1.0)
 
             # Create canvas frame for better control
-            if not hasattr(self, "canvas_frame") or not self.canvas_frame.winfo_exists():
+            if not hasattr(self, "canvas_frame") or self.canvas_frame is None or not self.canvas_frame.winfo_exists():
                 self.canvas_frame = ctk.CTkFrame(self.chart_frame, fg_color="transparent")
                 self.canvas_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
@@ -652,7 +652,7 @@ class MLComparisonPanel(ctk.CTkFrame):
                 logger.warning(f"Error cleaning up chart canvas: {e}")
 
         # Clear canvas frame
-        if hasattr(self, "canvas_frame") and self.canvas_frame and self.canvas_frame.winfo_exists():
+        if hasattr(self, "canvas_frame") and self.canvas_frame is not None and self.canvas_frame.winfo_exists():
             self.canvas_frame.destroy()
             self.canvas_frame = None
 
@@ -675,7 +675,7 @@ class MLComparisonPanel(ctk.CTkFrame):
 
     def _show_placeholder(self):
         """Show placeholder text when no visualization is selected."""
-        if not hasattr(self, "placeholder_label") or not self.placeholder_label.winfo_exists():
+        if not hasattr(self, "placeholder_label") or self.placeholder_label is None or not self.placeholder_label.winfo_exists():
             self.placeholder_label = ctk.CTkLabel(
                 self.chart_frame,
                 text="Select a visualization type from the dropdown above\nto see ML-powered weather analysis",

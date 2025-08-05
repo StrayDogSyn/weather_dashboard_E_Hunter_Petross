@@ -4073,7 +4073,7 @@ The interactive maps feature requires additional packages:
             font=(DataTerminalTheme.FONT_FAMILY, 18, "bold"),
             text_color=DataTerminalTheme.ACCENT,
         )
-        title.pack(pady=(20, 15))
+        title.pack(pady=(20, 25), padx=20)
 
         # Location input
         location_frame = ctk.CTkFrame(layers_frame, fg_color="transparent")

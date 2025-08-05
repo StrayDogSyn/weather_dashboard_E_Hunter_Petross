@@ -160,9 +160,12 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
     
     def _create_sidebar(self):
         """Create left sidebar with map controls and weather layers"""
-        self.sidebar = ctk.CTkFrame(self.content_frame, width=250, corner_radius=10)
-        self.sidebar.grid(row=0, column=0, sticky="ns", padx=10, pady=10)
+        self.sidebar = ctk.CTkFrame(self.content_frame, width=300, corner_radius=12)
+        self.sidebar.grid(row=0, column=0, sticky="ns", padx=15, pady=15)
         self.sidebar.grid_propagate(False)
+        
+        # Configure column weight for better layout
+        self.sidebar.grid_columnconfigure(0, weight=1)
         
         # Map Controls Section
         self.controls_label = ctk.CTkLabel(
@@ -170,46 +173,55 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             text="Map Controls",
             font=("Arial", 16, "bold")
         )
-        self.controls_label.grid(row=0, column=0, pady=(10, 5), sticky="ew")
+        self.controls_label.grid(row=0, column=0, pady=(20, 15), padx=10, sticky="ew")
         
         # Zoom controls
         self.zoom_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        self.zoom_frame.grid(row=1, column=0, sticky="ew", padx=10, pady=5)
+        self.zoom_frame.grid(row=1, column=0, sticky="ew", padx=15, pady=8)
+        self.zoom_frame.grid_columnconfigure(1, weight=1)
         
         self.zoom_out_btn = ctk.CTkButton(
             self.zoom_frame,
             text="-",
-            width=40,
+            width=45,
+            height=32,
             command=self._zoom_out
         )
-        self.zoom_out_btn.grid(row=0, column=0, sticky="w")
+        self.zoom_out_btn.grid(row=0, column=0, sticky="w", padx=(0, 5))
         
         self.zoom_label = ctk.CTkLabel(
             self.zoom_frame,
-            text=f"Zoom: {self.zoom_level}"
+            text=f"Zoom: {self.zoom_level}",
+            font=("Arial", 12)
         )
-        self.zoom_label.grid(row=0, column=1, sticky="ew")
+        self.zoom_label.grid(row=0, column=1, sticky="ew", padx=5)
         
         self.zoom_in_btn = ctk.CTkButton(
             self.zoom_frame,
             text="+",
-            width=40,
+            width=45,
+            height=32,
             command=self._zoom_in
         )
-        self.zoom_in_btn.grid(row=0, column=2, sticky="e")
+        self.zoom_in_btn.grid(row=0, column=2, sticky="e", padx=(5, 0))
         
         # Map type selection
-        self.map_type_label = ctk.CTkLabel(self.sidebar, text="Map Type:")
-        self.map_type_label.grid(row=2, column=0, pady=(10, 5), sticky="ew")
+        self.map_type_label = ctk.CTkLabel(
+            self.sidebar, 
+            text="Map Type:",
+            font=("Arial", 12, "bold")
+        )
+        self.map_type_label.grid(row=2, column=0, pady=(20, 8), padx=15, sticky="ew")
         
         self.map_type_var = ctk.StringVar(value=self.map_type)
         self.map_type_menu = ctk.CTkOptionMenu(
             self.sidebar,
             values=["roadmap", "satellite", "hybrid", "terrain"],
             variable=self.map_type_var,
-            command=self._on_map_type_change
+            command=self._on_map_type_change,
+            height=35
         )
-        self.map_type_menu.pack(fill="x", padx=10, pady=5)
+        self.map_type_menu.grid(row=3, column=0, sticky="ew", padx=15, pady=(0, 10))
         
         # Weather Layers Section
         self.weather_label = ctk.CTkLabel(
@@ -217,9 +229,9 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             text="Weather Layers",
             font=("Arial", 16, "bold")
         )
-        self.weather_label.pack(pady=(20, 10))
+        self.weather_label.grid(row=4, column=0, pady=(25, 15), padx=10, sticky="ew")
         
-        # Weather layer checkboxes
+        # Weather layer checkboxes with proper grid layout
         self.weather_checkboxes = {}
         weather_options = [
             ("temperature", "🌡️ Temperature"),
@@ -229,30 +241,32 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             ("clouds", "☁️ Clouds")
         ]
         
-        for key, label in weather_options:
+        for i, (key, label) in enumerate(weather_options):
             checkbox = ctk.CTkCheckBox(
                 self.sidebar,
                 text=label,
                 command=lambda k=key: self._toggle_weather_layer(k)
             )
-            checkbox.pack(anchor="w", padx=20, pady=2)
+            checkbox.grid(row=5+i, column=0, sticky="w", padx=20, pady=3)
             self.weather_checkboxes[key] = checkbox
         
         # Current location button
         self.current_location_btn = ctk.CTkButton(
             self.sidebar,
             text="📍 Current Location",
-            command=self._get_current_location
+            command=self._get_current_location,
+            height=35
         )
-        self.current_location_btn.pack(fill="x", padx=10, pady=(20, 10))
+        self.current_location_btn.grid(row=10, column=0, sticky="ew", padx=15, pady=(25, 10))
         
         # Refresh button
         self.refresh_btn = ctk.CTkButton(
             self.sidebar,
             text="🔄 Refresh Map",
-            command=self._refresh_map
+            command=self._refresh_map,
+            height=35
         )
-        self.refresh_btn.pack(fill="x", padx=10, pady=5)
+        self.refresh_btn.grid(row=11, column=0, sticky="ew", padx=15, pady=(5, 15))
     
     def _open_in_browser(self):
         """Open current map view in web browser"""
