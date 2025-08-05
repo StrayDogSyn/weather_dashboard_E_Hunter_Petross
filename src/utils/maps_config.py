@@ -35,6 +35,7 @@ class MapsConfiguration:
                 logger.info("Using Google Maps API key from .env file")
                 return key
         except ImportError:
+
             pass
         
         logger.warning("No Google Maps API key found")

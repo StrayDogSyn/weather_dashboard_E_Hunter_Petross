@@ -5,12 +5,9 @@ Reusable component for displaying weather forecast with chart and cards.
 
 from datetime import datetime, timedelta
 
-import customtkinter as ctk
-
 from src.ui.components.forecast_day_card import ForecastDayCard
 from src.ui.safe_widgets import SafeCTkFrame, SafeCTkLabel
 from src.ui.theme import DataTerminalTheme
-
 
 class ForecastSection(SafeCTkFrame):
     """Reusable forecast section component with chart and cards."""
@@ -114,6 +111,7 @@ class ForecastSection(SafeCTkFrame):
                 day_card.animate_in(delay=i * 100)
             except AttributeError:
                 # Animation method not available
+
                 pass
 
     def _on_forecast_card_click(self, card):

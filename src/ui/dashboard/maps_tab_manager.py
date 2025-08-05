@@ -1,9 +1,7 @@
-import customtkinter as ctk
 from typing import Optional, Dict, Any, List, Callable
 import logging
 import threading
-import time
-from datetime import datetime, timedelta
+import customtkinter as ctk
 
 # Import enhanced static maps component
 try:

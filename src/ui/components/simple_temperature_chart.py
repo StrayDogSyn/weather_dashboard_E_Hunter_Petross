@@ -1,9 +1,7 @@
-import tkinter as tk
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
-
+import tkinter as tk
 import customtkinter as ctk
-
 
 class SimpleTemperatureChart(ctk.CTkFrame):
     """A professional interactive temperature chart widget with advanced features."""

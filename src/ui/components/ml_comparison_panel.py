@@ -7,17 +7,15 @@ from datetime import datetime
 from tkinter import filedialog, messagebox
 from typing import Any, Dict, List, Optional
 
+# Matplotlib for embedding charts
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import customtkinter as ctk
 
-# Matplotlib for embedding charts
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
-from ...services.enhanced_weather_service import EnhancedWeatherService
+from ...services.weather import EnhancedWeatherService
 from ...services.github_team_service import GitHubTeamService
 
 # Services
-from ...services.ml_weather_service import (
+from ...services.weather.ml_weather_service import (
     MLWeatherService,
     RecommendationResult,
     SimilarityResult,
@@ -27,7 +25,6 @@ from ..theme_manager import ThemeManager
 from .error_handler import ErrorHandler
 
 logger = logging.getLogger(__name__)
-
 
 class PreferenceDialog(ctk.CTkToplevel):
     """Dialog for collecting user weather preferences."""
@@ -200,7 +197,6 @@ class PreferenceDialog(ctk.CTkToplevel):
         x = (self.winfo_screenwidth() // 2) - (500 // 2)
         y = (self.winfo_screenheight() // 2) - (600 // 2)
         self.geometry(f"500x600+{x}+{y}")
-
 
 class MLComparisonPanel(ctk.CTkFrame):
     """Advanced ML-powered city comparison panel."""

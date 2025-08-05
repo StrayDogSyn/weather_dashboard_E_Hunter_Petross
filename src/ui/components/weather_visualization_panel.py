@@ -1,14 +1,12 @@
 """Beautiful weather visualization using only Canvas - no WebView needed"""
 
-import customtkinter as ctk
 from tkinter import Canvas
-import math
 import random
-from datetime import datetime
 import threading
 from typing import Optional, Dict, List, Tuple
 import logging
 import time
+import customtkinter as ctk
 
 from ..theme import DataTerminalTheme
 from ..safe_widgets import SafeWidget

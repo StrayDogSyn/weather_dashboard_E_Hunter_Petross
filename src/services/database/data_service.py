@@ -161,7 +161,6 @@ class DataService:
                 cutoff_date = datetime.now() - timedelta(days=180)
                 await self._activity_repo.cleanup_old_activities(cutoff_date)
 
-                self._logger.debug("Data cleanup completed")
 
             except asyncio.CancelledError:
                 break
@@ -181,7 +180,6 @@ class DataService:
                 # Clean old backups
                 await self._backup_manager.cleanup_old_backups()
 
-                self._logger.debug("Automated backup completed")
 
             except asyncio.CancelledError:
                 break

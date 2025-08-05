@@ -1,8 +1,8 @@
 import logging
-import tkinter as tk
 from datetime import datetime, timedelta
-
+import tkinter as tk
 import customtkinter as ctk
+
 from dotenv import load_dotenv
 
 # Import safe widgets
@@ -19,20 +19,18 @@ from src.ui.safe_widgets import (
     SafeCTkTextbox,
 )
 
-from src.services.activity_service import ActivityService
-from src.services.config_service import ConfigService
-from src.services.enhanced_weather_service import (
-    EnhancedWeatherData,
+from src.services.ai import ActivityService
+from src.services.config import ConfigService
+from src.services.weather import (
+    WeatherData,
     EnhancedWeatherService,
 )
-from src.models.weather.forecast_models import ForecastData
 from src.services.github_team_service import GitHubTeamService
 from src.ui.components import (
     AnimationManager,
     ErrorManager,
     LoadingSkeleton,
     MicroInteractions,
-    ShimmerEffect,
     StatusMessageManager,
     VisualPolishManager,
     WeatherBackgroundManager,
@@ -46,7 +44,7 @@ from src.ui.dashboard.settings_tab_manager import SettingsTabManager
 from src.ui.theme import DataTerminalTheme
 from src.ui.theme_manager import theme_manager
 from src.utils.api_optimizer import APIOptimizer
-from src.utils.cache_manager import CacheManager
+from src.services.database import CacheManager
 from src.utils.component_recycler import ComponentRecycler
 from src.utils.loading_manager import LoadingManager
 from src.utils.startup_optimizer import StartupOptimizer
@@ -70,7 +68,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
 
         # Initialize performance optimization services first
         self.cache_manager = CacheManager(
-            max_size_mb=100,  # 100MB cache
+            max_size=100,  # 100MB cache
             enable_compression=True,
             compression_threshold=1024,  # Compress items > 1KB
             lru_factor=0.8,  # Evict when 80% full
@@ -3173,7 +3171,6 @@ class ProfessionalWeatherDashboard(SafeCTk):
         """Import application data."""
         try:
             import json
-            from tkinter import filedialog
 
             # Ask user for file to import
             filename = filedialog.askopenfilename(
@@ -3584,8 +3581,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             # Make optimized request
             self.api_optimizer.submit_request(api_request)
 
-            # For now, fallback to direct weather service call
-            # TODO: Implement proper async handling for API optimizer responses
+            # Fallback to direct weather service call while API optimizer processes request
             response = self.weather_service.get_enhanced_weather(self.current_city)
 
             if response:
@@ -3613,7 +3609,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             # For Windows compatibility, use threading timeout instead of signal
             import threading
 
-            from src.services.enhanced_weather_service import (
+            from src.services.weather import (
                 APIKeyError,
                 NetworkError,
                 RateLimitError,
@@ -3772,11 +3768,11 @@ class ProfessionalWeatherDashboard(SafeCTk):
         from src.models.location import Location
         from src.models.weather import WeatherCondition
 
-        # Note: EnhancedWeatherData may need to be defined or imported from appropriate module
+        # Note: WeatherData may need to be defined or imported from appropriate module
         # Create basic offline weather data
         location = Location(name=self.current_city, country="Unknown", latitude=0.0, longitude=0.0)
 
-        return EnhancedWeatherData(
+        return WeatherData(
             location=location,
             timestamp=datetime.now(),
             condition=WeatherCondition.CLEAR,

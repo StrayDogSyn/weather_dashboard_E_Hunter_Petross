@@ -7,7 +7,6 @@ Provides a comprehensive Google Maps JavaScript API integration with:
 - Robust error handling and fallback mechanisms
 """
 
-import asyncio
 import json
 import logging
 import os
@@ -18,25 +17,22 @@ from pathlib import Path
 from typing import Dict, List, Optional, Callable, Any
 from datetime import datetime
 
-import customtkinter as ctk
-
 try:
     import tkinterweb
+import customtkinter as ctk
     TKINTERWEB_AVAILABLE = True
 except ImportError:
     TKINTERWEB_AVAILABLE = False
     
 try:
-    import webview
     WEBVIEW_AVAILABLE = True
 except ImportError:
     WEBVIEW_AVAILABLE = False
 
 from ..safe_widgets import SafeWidget
-from ...services.enhanced_weather_service import EnhancedWeatherService
-from ...services.config_service import ConfigService
+from ...services.weather import EnhancedWeatherService
+from ...services.config.config_service import ConfigService
 from .static_map_fallback import StaticMapFallback
-
 
 class ThreadSafeGoogleMapsWidget(SafeWidget, ctk.CTkFrame):
     """Thread-safe Google Maps widget with comprehensive error handling."""
@@ -813,7 +809,7 @@ class ThreadSafeGoogleMapsWidget(SafeWidget, ctk.CTkFrame):
                 pass  # Widget may have been destroyed
         
         self.safe_after_idle(_update)
-    
+
     def _process_pending_operations(self):
         """Process any operations that were queued during initialization."""
         while self._pending_operations:
@@ -1105,7 +1101,7 @@ class ThreadSafeGoogleMapsWidget(SafeWidget, ctk.CTkFrame):
                 pass
             
             self.logger.info("ThreadSafeGoogleMapsWidget cleaned up")
-            
+
         except Exception as e:
             self.logger.error(f"Cleanup error: {e}")
     

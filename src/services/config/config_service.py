@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from ..config.app_config import AppConfig, UIConfig, WeatherConfig
+from .settings import AppConfig, UIConfig, WeatherConfig
 
 
 class ConfigurationError(Exception):
@@ -60,7 +60,6 @@ class ConfigService:
             if self._config.api.openweather_base_url:
                 self._config.weather.base_url = self._config.api.openweather_base_url
 
-            self._logger.debug("Weather configuration synchronized with API configuration")
 
         except Exception as e:
             self._logger.warning(f"Failed to sync weather configuration: {e}")
@@ -128,32 +127,7 @@ class ConfigService:
             self._logger.warning(f"Failed to get setting '{key}': {e}")
             return default
 
-    def get_database_config(self) -> Dict[str, Any]:
-        """Get database configuration.
 
-        Returns:
-            Database configuration dictionary
-        """
-        data_dir = self.get_data_directory()
-        return {
-            "database_path": str(data_dir / "weather_dashboard.db"),
-            "connection_pool_size": 10,
-            "timeout": 30,
-            "journal_mode": "WAL",
-            "foreign_keys": True,
-        }
-
-    def get_cache_config(self) -> Dict[str, Any]:
-        """Get cache configuration.
-
-        Returns:
-            Cache configuration dictionary
-        """
-        return {
-            "ttl_seconds": self._config.weather.cache_duration,
-            "max_size": self._config.data.max_cache_size,
-            "cleanup_interval": 3600,  # 1 hour
-        }
 
     def validate_configuration(self) -> bool:
         """Validate the current configuration.
@@ -265,15 +239,6 @@ class ConfigService:
         """Get the API request timeout."""
         return self._config.api.request_timeout
 
-    def get_window_config(self) -> Dict[str, Any]:
-        """Get window configuration settings."""
-        return {
-            "title": self._config.ui.window_title,
-            "width": self._config.ui.window_width,
-            "height": self._config.ui.window_height,
-            "min_width": self._config.ui.min_width,
-            "min_height": self._config.ui.min_height,
-        }
 
     def get_ui_colors(self) -> Dict[str, str]:
         """Get UI color configuration."""
@@ -371,4 +336,3 @@ class ConfigService:
 
     def dispose(self) -> None:
         """Dispose of configuration service resources."""
-        self._logger.debug("Configuration service disposed")

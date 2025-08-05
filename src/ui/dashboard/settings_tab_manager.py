@@ -1,5 +1,5 @@
-import customtkinter as ctk
 
+import customtkinter as ctk
 from src.ui.theme import DataTerminalTheme
 
 

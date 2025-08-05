@@ -3,7 +3,6 @@
 import logging
 from datetime import datetime, timedelta
 
-import customtkinter as ctk
 
 from src.ui.safe_widgets import SafeCTkFrame, SafeCTkLabel, SafeCTkButton
 from src.ui.components.forecast_day_card import ForecastDayCard
@@ -215,6 +214,7 @@ class WeatherTabManager:
         # Import and create chart
         try:
             from src.ui.components.simple_temperature_chart import SimpleTemperatureChart
+import customtkinter as ctk
 
             self.temp_chart = SimpleTemperatureChart(
                 forecast_container, fg_color=DataTerminalTheme.CARD_BG

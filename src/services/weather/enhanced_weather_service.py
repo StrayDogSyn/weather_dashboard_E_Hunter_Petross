@@ -17,16 +17,13 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from ..models.location import (
-    Location,
-    LocationResult,
-)
-from ..models.weather import (
-    ForecastData,
+from .models import (
     WeatherCondition,
     WeatherData,
+    ForecastData,
+    Location,
 )
-from .config_service import ConfigService
+from ..config.config_service import ConfigService
 
 
 # Custom Exception Types for Different Failure Modes
@@ -338,7 +335,6 @@ class EnhancedWeatherService:
             self._cache_file.parent.mkdir(exist_ok=True)
             with open(self._cache_file, "w", encoding="utf-8") as f:
                 json.dump(self._cache, f, indent=2, default=str)
-            self.logger.debug("💾 Enhanced cache saved successfully")
         except Exception as e:
             self.logger.warning(f"Failed to save enhanced cache: {e}")
 
@@ -590,7 +586,6 @@ class EnhancedWeatherService:
             cache_age = time.time() - time.mktime(cache_time.timetuple())
             ttl = self._cache_ttl.get(cache_type, 600)  # Default 10 minutes
             
-            self.logger.debug(f"DEBUG: Cache age: {cache_age}s, TTL: {ttl}s, Valid: {cache_age < ttl}")
             return cache_age < ttl
             
         except Exception as e:
@@ -694,7 +689,6 @@ class EnhancedWeatherService:
                     params.update({"appid": self.api_key, "units": self.config.weather.units})
                     url = f"{self.base_url}/{endpoint}"
 
-            self.logger.debug(f"🌐 Making API request to {self._current_api}: {endpoint}")
 
             # Use session with connection pooling and retries
             response = self._session.get(url, params=params)
@@ -717,7 +711,6 @@ class EnhancedWeatherService:
                 # Location not found - handle differently for air quality vs weather
                 if "air_pollution" in endpoint:
                     # Air quality data not available for this location - return None gracefully
-                    self.logger.debug("🌬️ Air quality data not available for this location")
                     return None
                 else:
                     # Weather/geocoding location not found - this is an error
@@ -804,7 +797,6 @@ class EnhancedWeatherService:
                 params.update({"appid": self.api_key})
                 url = f"https://api.openweathermap.org/{endpoint}"
 
-            self.logger.debug(f"🌐 Making geocoding request to {self._current_api}: {endpoint}")
 
             # Use session with connection pooling and retries
             response = self._session.get(url, params=params)
@@ -825,7 +817,6 @@ class EnhancedWeatherService:
                 raise APIKeyError("Invalid API key for geocoding")
             elif response.status_code == 404:
                 # Location not found - not a service error
-                self.logger.debug("🏙️ Geocoding location not found")
                 return None
             else:
                 # Other HTTP errors
@@ -898,7 +889,6 @@ class EnhancedWeatherService:
         if cache_key in self._cache and self._is_cache_valid(
             self._cache[cache_key], 3600
         ):  # 1 hour cache
-            self.logger.debug(f"📋 Using cached search results for {query}")
             cached_data = self._cache[cache_key]["data"]
             return [LocationSearchResult(**item) for item in cached_data]
 
@@ -907,7 +897,6 @@ class EnhancedWeatherService:
 
             # Detect query type and use appropriate search method
             search_type = self._detect_query_type(query)
-            self.logger.debug(f"🔍 Detected query type: {search_type} for '{query}'")
 
             locations = []
 
@@ -924,7 +913,6 @@ class EnhancedWeatherService:
 
             # If primary search fails, try fallback methods
             if not locations and search_type != "geocoding":
-                self.logger.debug("🔄 Primary search failed, trying geocoding fallback")
                 locations = self._search_by_geocoding(query, limit)
 
             # Cache the results
@@ -1137,7 +1125,6 @@ class EnhancedWeatherService:
                 # International postal code - try without country code first
                 query_param = formatted_zip
 
-            self.logger.debug(f"🏷️ Searching by zipcode: {query_param}")
 
             # Use zip endpoint for direct zipcode lookup
             data = self._make_geocoding_request("geo/1.0/zip", {"zip": query_param})
@@ -1168,7 +1155,6 @@ class EnhancedWeatherService:
 
             # If zip endpoint fails, try geocoding as fallback for
             # international postal codes
-            self.logger.debug(f"🔄 Zip endpoint failed, trying geocoding fallback for: {zipcode}")
             return self._search_by_geocoding(zipcode, limit)
 
         except Exception as e:
@@ -1203,7 +1189,6 @@ class EnhancedWeatherService:
                     f"⚠️ Using extreme coordinates: {lat}, {lon} - results may be limited"
                 )
 
-            self.logger.debug(f"🌍 Reverse geocoding coordinates: {lat}, {lon}")
 
             # Use reverse geocoding
             data = self._make_geocoding_request(
@@ -1223,7 +1208,6 @@ class EnhancedWeatherService:
 
             # If reverse geocoding fails, still return the coordinates as a
             # valid location
-            self.logger.debug("🔄 Reverse geocoding failed, returning coordinates as location")
             location = LocationSearchResult(
                 name=f"Location at {lat}, {lon}", country="", state="", lat=lat, lon=lon
             )
@@ -1283,7 +1267,6 @@ class EnhancedWeatherService:
                     return locations
 
             except Exception as e:
-                self.logger.debug(f"Query variant '{query_variant}' failed: {e}")
                 continue
 
         self.logger.warning(f"All geocoding attempts failed for: {query}")
@@ -1293,7 +1276,6 @@ class EnhancedWeatherService:
         """Search location by airport code (IATA/ICAO) with comprehensive airport database."""
         try:
             airport_code = airport_code.upper().strip()
-            self.logger.debug(f"✈️ Searching by airport code: {airport_code}")
             
             # Comprehensive airport database with major airports
             airport_database = {
@@ -1372,7 +1354,6 @@ class EnhancedWeatherService:
                 return [location]
             
             # If not found in database, try geocoding as fallback
-            self.logger.debug(f"🔄 Airport {airport_code} not in database, trying geocoding fallback")
             fallback_queries = [
                 f"{airport_code} airport",
                 f"{airport_code} international airport",
@@ -1389,7 +1370,6 @@ class EnhancedWeatherService:
                                 result.name = f"{result.name} ({airport_code})"
                         return results
                 except Exception as e:
-                    self.logger.debug(f"Geocoding fallback failed for {query}: {e}")
                     continue
             
             self.logger.warning(f"Airport code {airport_code} not found")
@@ -1464,7 +1444,6 @@ class EnhancedWeatherService:
 
         # Check cache first with TTL validation
         if self._is_cache_valid_with_ttl(cache_key, "air_quality"):
-            self.logger.debug("📋 Using cached air quality data")
             return AirQualityData.from_dict(self._cache[cache_key]["data"])
 
         try:
@@ -1473,7 +1452,6 @@ class EnhancedWeatherService:
             data = self._make_request("data/2.5/air_pollution", {"lat": lat, "lon": lon})
 
             if not data or "list" not in data or not data["list"]:
-                self.logger.debug(f"🌬️ No air quality data available for coordinates {lat}, {lon}")
                 return None
 
             pollution_data = data["list"][0]
@@ -1509,7 +1487,7 @@ class EnhancedWeatherService:
         except Exception as e:
             # Handle specific air quality API errors more gracefully
             if "Location not found" in str(e) or "404" in str(e):
-                self.logger.debug(f"🌬️ Air quality data not available for coordinates {lat}, {lon}")
+                self.logger.info(f"Air quality data not available for location: {lat}, {lon}")
             else:
                 self.logger.warning(f"Air quality fetch failed: {e}")
             return None
@@ -1573,7 +1551,6 @@ class EnhancedWeatherService:
 
         # Check cache first with TTL validation
         if self._is_cache_valid_with_ttl(cache_key, "current_weather"):
-            self.logger.debug(f"📋 Using cached enhanced weather data for {location}")
             cached_data = self._cache[cache_key]["data"]
 
             # Reconstruct enhanced weather data
@@ -1785,8 +1762,26 @@ class EnhancedWeatherService:
 
         return directions[index]
 
-    def get_weather(self, location: str) -> EnhancedWeatherData:
-        """Get weather data - compatibility method that delegates to get_enhanced_weather."""
+    def get_weather(self, location: str, use_cache: bool = True) -> EnhancedWeatherData:
+        """Fetch weather data for specified location.
+        
+        Args:
+            location: Location name to fetch weather for
+            use_cache: Whether to use cached data if available
+            
+        Returns:
+            EnhancedWeatherData object containing current conditions
+            
+        Raises:
+            APIError: If weather API is unavailable
+            ValueError: If location name is invalid
+            NetworkError: If network connectivity issues occur
+        """
+        if not use_cache:
+            # Clear cache for this location to force fresh data
+            cache_key = f"enhanced_{location.lower()}"
+            if cache_key in self._cache:
+                del self._cache[cache_key]
         return self.get_enhanced_weather(location)
 
     def get_current_weather(self, location: str = None) -> Dict[str, Any]:
@@ -1886,7 +1881,6 @@ class EnhancedWeatherService:
             # Check cache first with TTL validation
             cache_key = f"forecast_{location.lower()}"
             if self._is_cache_valid_with_ttl(cache_key, "forecast"):
-                self.logger.debug(f"📋 Using cached forecast data for {location}")
                 return self._cache[cache_key]["data"]
 
             # Fetch forecast data from API
@@ -1903,7 +1897,6 @@ class EnhancedWeatherService:
                 }
                 self._save_cache()
 
-                self.logger.debug(f"✅ Forecast data retrieved for {location}")
                 return forecast_data
             else:
                 self.logger.warning(f"No forecast data received for {location}")
@@ -1919,7 +1912,6 @@ class EnhancedWeatherService:
 
         # Check cache with TTL validation
         if self._is_cache_valid_with_ttl(cache_key, "forecast"):
-            self.logger.debug(f"📋 Using cached forecast for {location}")
             return ForecastData.from_openweather_forecast(self._cache[cache_key]["data"])
 
         try:

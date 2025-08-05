@@ -4,14 +4,13 @@ import csv
 import json
 import logging
 import threading
-import tkinter as tk
 from datetime import datetime
-from tkinter import filedialog, messagebox
 from typing import Any, Callable, Dict, List
-
+import tkinter as tk
 import customtkinter as ctk
 
-from ...services.enhanced_weather_service import EnhancedWeatherService
+
+from ...services.weather import EnhancedWeatherService
 from ...services.github_team_service import GitHubTeamService
 from ..theme_manager import ThemeManager
 from .error_handler import ErrorHandler

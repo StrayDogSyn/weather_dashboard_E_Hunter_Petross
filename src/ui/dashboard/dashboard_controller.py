@@ -6,7 +6,6 @@ the primary application flow.
 
 import logging
 
-import customtkinter as ctk
 
 from src.ui.safe_widgets import SafeCTkTabview
 from src.ui.components.common.header import HeaderComponent

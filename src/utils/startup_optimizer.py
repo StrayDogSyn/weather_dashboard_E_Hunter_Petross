@@ -297,7 +297,6 @@ class StartupOptimizer:
 
         # Check cache first
         if config.cache_result and name in self._cache:
-            self.logger.debug(f"Loading '{name}' from cache")
             result = LoadResult(
                 component_name=name,
                 success=True,
@@ -427,7 +426,6 @@ class StartupOptimizer:
             return False
 
         if self.is_component_loaded(name):
-            self.logger.debug(f"Component '{name}' already loaded")
             return True
 
         result = self._load_component(name)
@@ -445,7 +443,6 @@ class StartupOptimizer:
             else:
                 self._cache.clear()
                 self.loaded_components.clear()
-                self.logger.debug("Invalidated all component cache")
 
     def shutdown(self) -> None:
         """Shutdown the optimizer and clean up resources."""

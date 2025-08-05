@@ -6,19 +6,16 @@ and smooth transitions for better user experience.
 
 import random
 import threading
-import tkinter as tk
 from enum import Enum
 from typing import Dict, Optional
-
+import tkinter as tk
 import customtkinter as ctk
+
 from src.ui.safe_widgets import (
     SafeCTkFrame,
     SafeCTkLabel,
     SafeCTkProgressBar,
 )
-
-from .animation_manager import AnimationManager
-
 
 class StatusType(Enum):
     """Status message types."""
@@ -30,7 +27,6 @@ class StatusType(Enum):
     INFO = "info"
     TIP = "tip"
     FACT = "fact"
-
 
 class StatusMessageManager:
     """Enhanced status message manager with dynamic content."""
@@ -393,7 +389,6 @@ class StatusMessageManager:
             except (tk.TclError, ValueError):
                 pass
         self.scheduled_calls.clear()
-
 
 class TooltipManager:
     """Contextual tooltip system for enhanced user experience."""

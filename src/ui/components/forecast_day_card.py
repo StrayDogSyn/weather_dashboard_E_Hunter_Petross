@@ -1,10 +1,8 @@
 from typing import Callable, Optional
 
-import customtkinter as ctk
-
 from src.ui.safe_widgets import SafeCTkFrame, SafeCTkLabel, SafeCTkButton
 from src.ui.theme_manager import theme_manager
-
+import customtkinter as ctk
 
 class ForecastDayCard(SafeCTkFrame):
     """Enhanced forecast card widget for displaying daily weather information with interactive features."""
@@ -398,6 +396,7 @@ class ForecastDayCard(SafeCTkFrame):
             self.configure(border_width=1)
         except Exception as e:
             # Silently handle any animation errors
+
             pass
 
     def destroy(self):

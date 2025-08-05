@@ -1,9 +1,6 @@
 """Static map fallback for demo purposes."""
 
-import tkinter as tk
-from tkinter import ttk
 import logging
-from typing import Optional, Tuple
 
 class StaticMapFallback(ttk.Frame):
     """A static map fallback widget for demo purposes."""

@@ -1,4 +1,3 @@
-import customtkinter as ctk
 
 from src.ui.theme import DataTerminalTheme
 from src.ui.safe_widgets import SafeCTkFrame, SafeCTkLabel, SafeCTkButton, SafeCTkScrollableFrame

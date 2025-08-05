@@ -10,15 +10,14 @@ Provides advanced search functionality including:
 import json
 import os
 import threading
-import tkinter as tk
 from datetime import datetime
 from typing import Callable, Dict, List, Optional
-
 import customtkinter as ctk
 
-from src.services.enhanced_weather_service import LocationResult
 
-from ...services.geocoding_service import GeocodingService
+from src.services.weather import LocationResult
+
+from ...services.weather.geocoding_service import GeocodingService
 
 
 class EnhancedSearchBar(ctk.CTkFrame):
@@ -275,7 +274,7 @@ class EnhancedSearchBar(ctk.CTkFrame):
         def search_task():
             try:
                 # Import custom exceptions for proper error handling
-                from src.services.enhanced_weather_service import (
+                from src.services.weather import (
                     APIKeyError,
                     NetworkError,
                     RateLimitError,
@@ -612,7 +611,7 @@ class EnhancedSearchBar(ctk.CTkFrame):
         def get_ip_location():
             try:
                 # Import custom exceptions for proper error handling
-                from src.services.enhanced_weather_service import (
+                from src.services.weather import (
                     APIKeyError,
                     NetworkError,
                     RateLimitError,
@@ -934,7 +933,7 @@ class EnhancedSearchBar(ctk.CTkFrame):
 
         airport = airports.get(code.upper())
         if airport:
-            from src.services.enhanced_weather_service import LocationResult
+            from src.services.weather import LocationResult
 
             return [
                 LocationResult(
@@ -1103,7 +1102,7 @@ class EnhancedSearchBar(ctk.CTkFrame):
 
         # Convert favorites to LocationResult objects
         for fav in self.favorites.get("favorite_locations", []):
-            from src.services.enhanced_weather_service import LocationResult
+            from src.services.weather import LocationResult
 
             location_result = LocationResult(
                 name=fav.get("name", ""),

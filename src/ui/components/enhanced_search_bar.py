@@ -1,9 +1,7 @@
-import customtkinter as ctk
 from typing import List, Optional, Callable
 import json
 import os
-from datetime import datetime
-from src.services.enhanced_weather_service import EnhancedWeatherService
+import customtkinter as ctk
 
 
 class EnhancedSearchBar(ctk.CTkFrame):

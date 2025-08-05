@@ -1,7 +1,6 @@
-import tkinter as tk
+
 
 import customtkinter as ctk
-
 from src.ui.styles.component_styles import ComponentStyles
 from src.ui.styles.layout_styles import LayoutStyles
 

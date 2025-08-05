@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from src.services.logging_config import get_logger
 
 @dataclass
 class APIConfig:
@@ -41,7 +42,6 @@ class APIConfig:
     max_retries: int = 3
     retry_delay: float = 1.0
 
-
 @dataclass
 class UIConfig:
     """UI configuration settings."""
@@ -72,7 +72,6 @@ class UIConfig:
     border_width: int = 2
     corner_radius: int = 8
 
-
 @dataclass
 class DataConfig:
     """Data management configuration."""
@@ -84,7 +83,6 @@ class DataConfig:
     recent_searches_file: str = "recent_searches.json"
     max_recent_searches: int = 10
     max_favorites: int = 50
-
 
 @dataclass
 class WeatherConfig:
@@ -137,7 +135,6 @@ class WeatherConfig:
                 "Hazardous": (301, 500),
             }
 
-
 @dataclass
 class LoggingConfig:
     """Logging configuration."""
@@ -149,7 +146,6 @@ class LoggingConfig:
     backup_count: int = 5
     console_logging: bool = True
     file_logging: bool = True
-
 
 class AppConfig:
     """Main application configuration class."""
@@ -186,60 +182,64 @@ class AppConfig:
         # API configuration
         if api_key := os.getenv("OPENWEATHER_API_KEY"):
             self.api.openweather_api_key = api_key
-            print(
-                f"Debug - AppConfig: Loaded OPENWEATHER_API_KEY: "
-                f"{'[SET]' if api_key else '[EMPTY]'}"
+            logger = get_logger(__name__)
+            logger.debug(
+                f"Loaded OPENWEATHER_API_KEY: {'[SET]' if api_key else '[EMPTY]'}"
             )
 
         # Backup OpenWeather API Key
         if backup_key := os.getenv("OPENWEATHER_API_KEY_BACKUP"):
             self.api.openweather_backup_api_key = backup_key
-            print(
-                f"Debug - AppConfig: Loaded OPENWEATHER_API_KEY_BACKUP: "
-                f"{'[SET]' if backup_key else '[EMPTY]'}"
+            logger = get_logger(__name__)
+            logger.debug(
+                f"Loaded OPENWEATHER_API_KEY_BACKUP: {'[SET]' if backup_key else '[EMPTY]'}"
             )
 
         # WeatherAPI.com API Key
         if weatherapi_key := os.getenv("WEATHERAPI_API_KEY"):
             self.api.weatherapi_api_key = weatherapi_key
-            print(
-                f"Debug - AppConfig: Loaded WEATHERAPI_API_KEY: "
-                f"{'[SET]' if weatherapi_key else '[EMPTY]'}"
+            logger = get_logger(__name__)
+            logger.debug(
+                f"Loaded WEATHERAPI_API_KEY: {'[SET]' if weatherapi_key else '[EMPTY]'}"
             )
 
         # AI Service API Keys
         if gemini_key := os.getenv("GEMINI_API_KEY"):
             self.api.gemini_api_key = gemini_key
-            print(
-                f"Debug - AppConfig: Loaded GEMINI_API_KEY: {'[SET]' if gemini_key else '[EMPTY]'}"
+            logger = get_logger(__name__)
+            logger.debug(
+                f"Loaded GEMINI_API_KEY: {'[SET]' if gemini_key else '[EMPTY]'}"
             )
 
         if openai_key := os.getenv("OPENAI_API_KEY"):
             self.api.openai_api_key = openai_key
-            print(
-                f"Debug - AppConfig: Loaded OPENAI_API_KEY: {'[SET]' if openai_key else '[EMPTY]'}"
+            logger = get_logger(__name__)
+            logger.debug(
+                f"Loaded OPENAI_API_KEY: {'[SET]' if openai_key else '[EMPTY]'}"
             )
 
         # Maps API Key
         if maps_key := os.getenv("GOOGLE_MAPS_API_KEY"):
             self.api.google_maps_api_key = maps_key
-            print(
-                f"Debug - AppConfig: Loaded GOOGLE_MAPS_API_KEY: "
-                f"{'[SET]' if maps_key else '[EMPTY]'}"
+            logger = get_logger(__name__)
+            logger.debug(
+                f"Loaded GOOGLE_MAPS_API_KEY: {'[SET]' if maps_key else '[EMPTY]'}"
             )
 
         # GitHub Token
         if github_token := os.getenv("GITHUB_TOKEN"):
             self.api.github_token = github_token
-            print(
-                f"Debug - AppConfig: Loaded GITHUB_TOKEN: "
-                f"{'[SET]' if github_token else '[EMPTY]'}"
+            logger = get_logger(__name__)
+            logger.debug(
+                f"Loaded GITHUB_TOKEN: {'[SET]' if github_token else '[EMPTY]'}"
             )
 
         if timeout := os.getenv("API_TIMEOUT"):
             try:
                 self.api.request_timeout = int(timeout)
             except ValueError:
+                logger = get_logger(__name__)
+
                 pass
 
         # Logging configuration
@@ -277,7 +277,7 @@ class AppConfig:
                     self._update_dataclass(self.logging, config_data["logging"])
 
         except Exception as e:
-            logger = logging.getLogger(__name__)
+            logger = get_logger(__name__)
             logger.warning(f"Could not load config file {config_file}: {e}")
 
     def _update_dataclass(self, obj: Any, data: Dict[str, Any]) -> None:
@@ -310,7 +310,7 @@ class AppConfig:
         Returns:
             True if configuration is valid, False otherwise
         """
-        logger = logging.getLogger(__name__)
+        logger = get_logger(__name__)
 
         # Check required API key
         if not self.api.openweather_api_key:
@@ -343,7 +343,6 @@ class AppConfig:
             "weather": asdict(self.weather),
             "logging": asdict(self.logging),
         }
-
 
 # Weather condition mappings
 WEATHER_ICONS = {

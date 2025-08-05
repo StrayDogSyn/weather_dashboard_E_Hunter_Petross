@@ -1,14 +1,12 @@
 """Base dashboard class with core setup functionality."""
 
 import logging
-import tkinter as tk
 
-import customtkinter as ctk
 from dotenv import load_dotenv
 
-from src.services.activity_service import ActivityService
-from src.services.config_service import ConfigService
-from src.services.enhanced_weather_service import (
+from src.services.ai import ActivityService
+from src.services.config import ConfigService
+from src.services.weather import (
     EnhancedWeatherService
 )
 from src.services.github_team_service import GitHubTeamService
@@ -23,10 +21,11 @@ from src.ui.components import (
 from src.ui.theme import DataTerminalTheme
 from src.ui.theme_manager import theme_manager
 from src.utils.api_optimizer import APIOptimizer
-from src.utils.cache_manager import CacheManager
+from src.services.database import CacheManager
 from src.utils.component_recycler import ComponentRecycler
 from src.utils.loading_manager import LoadingManager
 from src.utils.startup_optimizer import StartupOptimizer
+import customtkinter as ctk
 
 # Load environment variables
 load_dotenv()
@@ -34,7 +33,6 @@ load_dotenv()
 # Configure appearance
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
-
 
 class BaseDashboard(ctk.CTk):
     """Base dashboard class with core setup and initialization."""
@@ -74,7 +72,7 @@ class BaseDashboard(ctk.CTk):
     def _initialize_optimization_services(self):
         """Initialize performance optimization services."""
         self.cache_manager = CacheManager(
-            max_size_mb=100,  # 100MB cache
+            max_size=100,  # 100MB cache
             enable_compression=True,
             compression_threshold=1024,  # Compress items > 1KB
             lru_factor=0.8,  # Evict when 80% full

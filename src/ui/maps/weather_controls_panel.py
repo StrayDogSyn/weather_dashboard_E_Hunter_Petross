@@ -9,8 +9,8 @@ import logging
 import threading
 from typing import Dict, Callable, Optional, Any
 from datetime import datetime
-
 import customtkinter as ctk
+
 from ..safe_widgets import SafeWidget
 
 

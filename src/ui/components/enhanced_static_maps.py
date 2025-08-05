@@ -1,15 +1,14 @@
-import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageFont
-from customtkinter import CTkImage
 import requests
 from io import BytesIO
 import threading
 import logging
 import webbrowser
 from typing import Optional, Dict, Tuple, List
-from datetime import datetime
 import math
 import os
+import customtkinter as ctk
+from customtkinter import CTkImage
 
 class EnhancedStaticMapsComponent(ctk.CTkFrame):
     """Enhanced maps component with full functionality including browser launch and weather layers"""

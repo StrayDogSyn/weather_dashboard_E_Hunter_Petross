@@ -63,7 +63,6 @@ class WeatherRepository(BaseRepository):
             await self._session.commit()
             await self._session.refresh(weather_record)
 
-            self._logger.debug(f"Saved weather data for {weather_data['location']}")
             return weather_record
 
         except Exception as e:
@@ -324,7 +323,6 @@ class PreferencesRepository(BaseRepository):
             await self._session.commit()
             await self._session.refresh(preferences)
 
-            self._logger.debug(f"Saved preferences for {user_id}")
             return preferences
 
         except Exception as e:
@@ -465,7 +463,6 @@ class ActivityRepository(BaseRepository):
             await self._session.commit()
             await self._session.refresh(activity_log)
 
-            self._logger.debug(f"Logged activity: {activity_data['activity_name']}")
             return activity_log
 
         except Exception as e:
@@ -614,7 +611,6 @@ class JournalRepository(BaseRepository):
             await self._session.commit()
             await self._session.refresh(entry)
 
-            self._logger.debug(f"Created journal entry for {user_id}")
             return entry
 
         except Exception as e:

@@ -19,7 +19,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol
 
-
 class CompressionType:
     """Compression types for cache entries."""
 
@@ -27,7 +26,6 @@ class CompressionType:
     GZIP = "gzip"
     ZLIB = "zlib"
     PICKLE = "pickle"
-
 
 class CacheStats:
     """Cache statistics tracking."""
@@ -57,14 +55,12 @@ class CacheStats:
         """Reset all statistics."""
         self.__init__()
 
-
 class Serializable(Protocol):
     """Protocol for serializable objects."""
 
     def to_dict(self) -> Dict[str, Any]: ...
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Serializable": ...
-
 
 class CacheEntry:
     """Enhanced cache entry with compression and memory tracking."""
@@ -240,7 +236,6 @@ class CacheEntry:
             "size": self.size_estimate(),
         }
 
-
 class CacheManager:
     """Enhanced thread-safe cache manager with LRU eviction and compression."""
 
@@ -362,6 +357,7 @@ class CacheManager:
             elif size > self._compression_threshold:
                 return CompressionType.PICKLE
         except Exception:
+
             pass
 
         return CompressionType.NONE
@@ -801,7 +797,7 @@ class CacheManager:
                     expired_count = self.cleanup_expired()
 
                     if expired_count > 0:
-                        self._logger.debug(f"Cleanup removed {expired_count} expired entries")
+                        self.logger.info(f"Cleaned up {expired_count} expired cache entries")
 
                     # Enforce limits
                     self._enforce_limits()
@@ -839,8 +835,6 @@ class CacheManager:
 
                 with open(self._persistence_file, "w", encoding="utf-8") as f:
                     json.dump(cache_data, f, indent=2, default=str)
-
-                self._logger.debug(f"Cache saved to {self._persistence_file}")
 
         except Exception as e:
             self._logger.error(f"Failed to save cache: {e}")
@@ -951,7 +945,6 @@ class CacheManager:
             with open(self._persistence_file, "w", encoding="utf-8") as f:
                 json.dump(cache_data, f, indent=2, default=str)
 
-            self._logger.debug(f"Cache saved to {self._persistence_file}")
             return True
 
         except Exception as e:

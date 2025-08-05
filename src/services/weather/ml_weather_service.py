@@ -2,12 +2,12 @@
 
 import logging
 from typing import List, Dict, Any, Optional, Tuple
-import numpy as np
-from datetime import datetime, timezone
-import json
 
 # Conditional imports with fallback
 try:
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
     from sklearn.cluster import KMeans
     from sklearn.preprocessing import StandardScaler
     from sklearn.decomposition import PCA
@@ -16,11 +16,21 @@ try:
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
-    logging.warning("Scikit-learn not available. ML features will be limited.")
+    logging.warning("Required ML libraries (scikit-learn, pandas, numpy, matplotlib) not available. ML features will be limited.")
+    # Create dummy classes for type hints
+    class np:
+        ndarray = object
+    class pd:
+        DataFrame = object
+    class plt:
+        Figure = object
+        @staticmethod
+        def subplots(*args, **kwargs):
+            return None, None
+        @staticmethod
+        def show():
+            pass
 
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)

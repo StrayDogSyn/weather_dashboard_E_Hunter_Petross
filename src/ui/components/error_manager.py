@@ -5,12 +5,12 @@ with smooth animations and theme integration.
 """
 
 import threading
-import tkinter as tk
 from datetime import datetime
 from enum import Enum
 from typing import Callable, Dict, List, Optional
-
+import tkinter as tk
 import customtkinter as ctk
+
 from src.ui.safe_widgets import (
     SafeCTkFrame,
     SafeCTkLabel,
@@ -19,7 +19,6 @@ from src.ui.safe_widgets import (
 
 from .animation_manager import AnimationManager, MicroInteractions
 
-
 class ErrorLevel(Enum):
     """Error severity levels."""
 
@@ -27,7 +26,6 @@ class ErrorLevel(Enum):
     WARNING = "warning"
     ERROR = "error"
     CRITICAL = "critical"
-
 
 class ErrorCard:
     """Styled error card with animations and theme integration."""
@@ -266,7 +264,6 @@ class ErrorCard:
         except (ValueError, IndexError):
             return color
 
-
 class NotificationToast:
     """Lightweight notification toast for quick messages."""
 
@@ -397,7 +394,6 @@ class NotificationToast:
         for toast in self.active_toasts[:]:
             self._safe_destroy(toast)
         self.active_toasts.clear()
-
 
 class ErrorManager:
     """Comprehensive error management system."""

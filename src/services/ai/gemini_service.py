@@ -16,8 +16,8 @@ try:
 except ImportError:
     openai = None
 
-from ..models.weather.current_weather import WeatherData
-from .config_service import ConfigService
+from ..weather.models import WeatherData
+from ..config.config_service import ConfigService
 
 
 class ActivityService:

@@ -97,7 +97,6 @@ class LoadingManager:
                 # Call success callback directly to avoid threading issues
                 if on_success and result is not None:
                     try:
-                        self.logger.debug(f"Calling success callback for {task_name} directly")
                         self._safe_callback(on_success, result)
                     except Exception as e:
                         self.logger.error(

@@ -272,7 +272,7 @@ class ProgressiveWeatherApp:
     def _initialize_weather_service(self):
         """Initialize the weather service for search functionality."""
         try:
-            from src.services.config_service import ConfigService
+            from src.services.config.config_service import ConfigService
             from src.services.enhanced_weather_service import EnhancedWeatherService
 
             # Initialize config service first
@@ -454,7 +454,7 @@ def main():
     try:
         # Import and create the professional dashboard directly
         from src.ui.professional_weather_dashboard import ProfessionalWeatherDashboard
-        from src.services.config_service import ConfigService
+        from src.services.config.config_service import ConfigService
         from src.ui.safe_widgets import SafeWidget
 
         # Initialize config service

@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Callable, Optional
 
-
 class ToastType(Enum):
     """Types of toast notifications."""
 
@@ -20,7 +19,6 @@ class ToastType(Enum):
     ERROR = "error"
     INFO = "info"
     WARNING = "warning"
-
 
 @dataclass
 class ToastConfig:
@@ -32,7 +30,6 @@ class ToastConfig:
     action_text: Optional[str] = None
     action_callback: Optional[Callable] = None
     dismissible: bool = True
-
 
 class ToastNotification:
     """Individual toast notification widget."""
@@ -170,7 +167,6 @@ class ToastNotification:
             self.on_dismiss(self)
         except tk.TclError:
             pass  # Widget already destroyed
-
 
 class ToastManager:
     """Manages multiple toast notifications."""

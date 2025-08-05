@@ -1,9 +1,7 @@
 import weakref
-import tkinter as tk
 from typing import Optional
-
+import tkinter as tk
 import customtkinter as ctk
-
 
 class SafeWidget:
     """Mixin for safe widget lifecycle management."""
@@ -95,14 +93,12 @@ class SafeWidget:
                 pass
         cls._after_ids.clear()
 
-
 class SafeCTkFrame(SafeWidget, ctk.CTkFrame):
     """Safe CTkFrame with lifecycle management."""
 
     def __init__(self, *args, **kwargs):
         ctk.CTkFrame.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
-
 
 class SafeCTk(SafeWidget, ctk.CTk):
     """Safe main window with lifecycle management."""
@@ -111,14 +107,12 @@ class SafeCTk(SafeWidget, ctk.CTk):
         ctk.CTk.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
 
-
 class SafeCTkLabel(SafeWidget, ctk.CTkLabel):
     """Safe CTkLabel with lifecycle management."""
 
     def __init__(self, *args, **kwargs):
         ctk.CTkLabel.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
-
 
 class SafeCTkButton(SafeWidget, ctk.CTkButton):
     """Safe CTkButton with lifecycle management."""
@@ -127,14 +121,12 @@ class SafeCTkButton(SafeWidget, ctk.CTkButton):
         ctk.CTkButton.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
 
-
 class SafeCTkEntry(SafeWidget, ctk.CTkEntry):
     """Safe CTkEntry with lifecycle management."""
 
     def __init__(self, *args, **kwargs):
         ctk.CTkEntry.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
-
 
 class SafeCTkProgressBar(SafeWidget, ctk.CTkProgressBar):
     """Safe CTkProgressBar with lifecycle management."""
@@ -143,14 +135,12 @@ class SafeCTkProgressBar(SafeWidget, ctk.CTkProgressBar):
         ctk.CTkProgressBar.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
 
-
 class SafeCTkTabview(SafeWidget, ctk.CTkTabview):
     """Safe CTkTabview with lifecycle management."""
 
     def __init__(self, *args, **kwargs):
         ctk.CTkTabview.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
-
 
 class SafeCTkScrollableFrame(SafeWidget, ctk.CTkScrollableFrame):
     """Safe CTkScrollableFrame with lifecycle management."""
@@ -159,14 +149,12 @@ class SafeCTkScrollableFrame(SafeWidget, ctk.CTkScrollableFrame):
         ctk.CTkScrollableFrame.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
 
-
 class SafeCTkTextbox(SafeWidget, ctk.CTkTextbox):
     """Safe CTkTextbox with lifecycle management."""
 
     def __init__(self, *args, **kwargs):
         ctk.CTkTextbox.__init__(self, *args, **kwargs)
         SafeWidget.__init__(self)
-
 
 class SafeCTkComboBox(SafeWidget, ctk.CTkComboBox):
     """Safe CTkComboBox with lifecycle management."""

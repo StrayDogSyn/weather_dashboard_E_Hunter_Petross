@@ -5,8 +5,8 @@ Provides detailed forecast information in a popup window when a forecast card is
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
 import customtkinter as ctk
+
 
 from ..themes.data_terminal_theme import DataTerminalTheme
 

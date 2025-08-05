@@ -9,7 +9,7 @@ import requests
 from geopy.exc import GeocoderServiceError, GeocoderTimedOut
 from geopy.geocoders import Nominatim
 
-from ..models.location import LocationResult
+from .enhanced_weather_service import LocationSearchResult as LocationResult
 
 
 class GeocodingService:

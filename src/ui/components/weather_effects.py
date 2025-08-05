@@ -10,8 +10,8 @@ import time
 import tkinter as tk
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
-
 import customtkinter as ctk
+
 
 
 @dataclass

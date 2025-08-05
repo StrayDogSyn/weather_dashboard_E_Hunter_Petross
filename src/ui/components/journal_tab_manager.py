@@ -7,7 +7,6 @@ from datetime import date, datetime
 from tkinter import filedialog, messagebox
 from typing import Any, Dict, List, Optional
 
-import customtkinter as ctk
 
 from ...models.journal import JournalEntry, JournalRepository, JournalService, Mood
 from ..safe_widgets import (
@@ -574,6 +573,7 @@ class JournalTabManager:
             )
             # Remove HTML tags for preview
             import re
+import customtkinter as ctk
 
             preview_text = re.sub(r"<[^>]+>", "", preview_text)
 

@@ -3,10 +3,8 @@
 Reusable search bar component for location/city search functionality.
 """
 
-import customtkinter as ctk
-
 from src.ui.theme import DataTerminalTheme
-
+import customtkinter as ctk
 
 class SearchBar(ctk.CTkFrame):
     """Reusable search bar component with enhanced functionality."""
@@ -145,6 +143,7 @@ class SearchBar(ctk.CTkFrame):
 
         except (ImportError, AttributeError):
             # Enhanced interactions not available, use basic functionality
+
             pass
 
     def _handle_search(self):
@@ -275,7 +274,6 @@ class SearchBar(ctk.CTkFrame):
     def hide_suggestions(self):
         """Hide search suggestions (for future enhancement)."""
         # This could be enhanced to hide the suggestions dropdown
-
 
 class EnhancedSearchBar(SearchBar):
     """Enhanced search bar with autocomplete and location services."""
