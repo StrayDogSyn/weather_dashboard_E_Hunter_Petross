@@ -1848,7 +1848,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.search_entry = ctk.CTkEntry(
             search_controls,
             placeholder_text="🔍 Enter city name...",
-            width=300,
+            width=450,
             height=40,
             corner_radius=20,
             border_color=DataTerminalTheme.BORDER,

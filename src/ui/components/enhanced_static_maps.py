@@ -85,7 +85,7 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         self.search_entry = ctk.CTkEntry(
             self.search_frame,
             placeholder_text="Search for a location...",
-            width=300
+            width=450
         )
         self.search_entry.grid(row=0, column=1, sticky="ew")
         self.search_entry.bind("<Return>", self._on_search)

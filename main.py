@@ -89,13 +89,27 @@ except ImportError:
     ctk = None
 
 
-class WeatherApp:
+class WeatherApp(ctk.CTk):
     """Main Weather Application class with enhanced service initialization."""
     
     def __init__(self):
         """Initialize the weather application with proper service handling."""
+        super().__init__()
+        
         self.logger = logging.getLogger(__name__)
         self.weather_service = None
+        
+        # Initialize TimerManager first
+        try:
+            from src.utils.timer_manager import TimerManager
+            self.timer_manager = TimerManager(self)
+            self.logger.info("TimerManager initialized successfully")
+        except ImportError as e:
+            self.logger.error(f"TimerManager import error: {e}")
+            self.timer_manager = None
+        
+        # Set up window close protocol
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
         try:
             # Import from correct location
@@ -122,6 +136,25 @@ class WeatherApp:
         except Exception as e:
             self.logger.error(f"Weather service initialization error: {e}")
             self.weather_service = None
+    
+    def on_closing(self):
+        """Clean shutdown"""
+        self.logger.info("Shutting down application...")
+        
+        # Stop all timers
+        if hasattr(self, 'timer_manager') and self.timer_manager:
+            self.timer_manager.shutdown()
+        
+        # Stop background services
+        if hasattr(self, 'api_optimizer'):
+            self.api_optimizer.shutdown()
+            
+        # Close thread pools
+        if hasattr(self, 'async_loader'):
+            self.async_loader.executor.shutdown(wait=False)
+        
+        # Destroy window
+        self.destroy()
 
 
 class ProgressiveWeatherApp:

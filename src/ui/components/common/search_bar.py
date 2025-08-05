@@ -86,7 +86,7 @@ class SearchBar(ctk.CTkFrame):
         self.search_entry = ctk.CTkEntry(
             search_controls,
             placeholder_text=self.placeholder,
-            width=300,
+            width=450,
             height=40,
             corner_radius=20,
             border_color=DataTerminalTheme.BORDER,
