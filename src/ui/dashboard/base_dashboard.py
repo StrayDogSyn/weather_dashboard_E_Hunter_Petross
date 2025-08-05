@@ -81,7 +81,7 @@ class BaseDashboard(ctk.CTk):
             compression_threshold=1024,  # Compress items > 1KB
             lru_factor=0.8,  # Evict when 80% full
         )
-        self.startup_optimizer = StartupOptimizer()
+        self.startup_optimizer = StartupOptimizer(app=self, timer_manager=self.timer_manager)
         self.component_recycler = ComponentRecycler()
         self.api_optimizer = APIOptimizer()
 
