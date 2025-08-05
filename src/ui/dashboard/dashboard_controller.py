@@ -8,6 +8,7 @@ import logging
 
 
 from src.ui.safe_widgets import SafeCTkTabview
+from src.utils.error_wrapper import ensure_main_thread
 from src.ui.components.common.header import HeaderComponent
 from src.ui.components.common.status_bar_component import StatusBarComponent
 from src.ui.components.journal_tab_manager import JournalTabManager
@@ -186,6 +187,7 @@ class DashboardController(BaseDashboard):
                 lambda: self.status_bar_component.clear_status()
             )
 
+    @ensure_main_thread
     def update_weather_data(self, weather_data):
         """Update weather data across all relevant tabs.
 

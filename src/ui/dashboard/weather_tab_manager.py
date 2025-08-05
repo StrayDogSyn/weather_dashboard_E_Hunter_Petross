@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 
 from src.ui.safe_widgets import SafeCTkFrame, SafeCTkLabel, SafeCTkButton
+from src.utils.error_wrapper import ensure_main_thread
 from src.ui.components.forecast_day_card import ForecastDayCard
 from src.ui.theme import DataTerminalTheme
 
@@ -511,6 +512,7 @@ import customtkinter as ctk
                 # As last resort, execute directly (not ideal but prevents data loss)
                 _safe_update_weather()
 
+    @ensure_main_thread
     def _update_weather_metrics(self, weather_data):
         """Update weather metrics display."""
         try:

@@ -2,6 +2,7 @@ from typing import Optional, Dict, Any, List, Callable
 import logging
 import threading
 import customtkinter as ctk
+from src.utils.error_wrapper import ensure_main_thread
 
 # Import enhanced static maps component
 try:
@@ -205,6 +206,7 @@ class ThreadSafeMapsTabManager:
         except Exception as e:
             self.logger.error(f"Failed to update status: {e}")
     
+    @ensure_main_thread
     def _on_weather_update(self, weather_data):
         """Handle weather data updates"""
         try:

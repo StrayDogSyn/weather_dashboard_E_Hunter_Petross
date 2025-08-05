@@ -10,6 +10,7 @@ import customtkinter as ctk
 
 from ..theme import DataTerminalTheme
 from ..safe_widgets import SafeWidget
+from ...utils.error_wrapper import ensure_main_thread
 
 
 class WeatherVisualizationPanel(SafeWidget, ctk.CTkFrame):
@@ -521,6 +522,7 @@ class WeatherVisualizationPanel(SafeWidget, ctk.CTkFrame):
         except Exception as e:
             self.logger.error(f"Canvas resize error: {e}")
     
+    @ensure_main_thread
     def _start_weather_updates(self):
         """Start periodic weather updates."""
         def update_loop():

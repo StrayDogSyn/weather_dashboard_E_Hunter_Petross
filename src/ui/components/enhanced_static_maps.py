@@ -40,7 +40,7 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             'clouds': False
         }
         
-        # Auto-refresh state
+        # Auto-refresh state - DISABLED for stability
         self.auto_refresh_enabled = False
         
         # API configuration
@@ -938,26 +938,13 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             self._refresh_map()
     
     def start_auto_refresh(self, interval_minutes: int = 1):
-        """Start safe auto-refresh with specified interval.
+        """Disabled for stability.
         
         Args:
             interval_minutes: Refresh interval in minutes (default: 1)
         """
-        if self.auto_refresh_enabled:
-            self.logger.info("Auto-refresh already enabled")
-            return
-            
-        self.auto_refresh_enabled = True
-        interval_ms = interval_minutes * 60 * 1000  # Convert to milliseconds
-        
-        self.timer_manager.schedule(
-            'map_refresh',
-            interval_ms,
-            self._safe_refresh,
-            start_immediately=False
-        )
-        
-        self.logger.info(f"Auto-refresh started with {interval_minutes} minute interval")
+        self.logger.info("Map auto-refresh disabled for stability")
+        return
     
     def stop_auto_refresh(self):
         """Stop auto-refresh."""

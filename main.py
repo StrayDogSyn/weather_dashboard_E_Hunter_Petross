@@ -761,23 +761,31 @@ def main_sync():
 
 
 def main():
-    """Main entry point with async/sync mode selection."""
-    # Check for async mode preference
-    use_async = os.getenv('ASYNC_MODE', 'true').lower() == 'true'
+    """Main entry point - Force sync mode for stability."""
+    # Force sync mode for stability
+    os.environ['ASYNC_MODE'] = 'false'
     
-    if use_async and ASYNC_AVAILABLE:
-        try:
-            # Try async mode first
-            asyncio.run(main_async())
-        except Exception as e:
-            logging.error(f"Async mode failed: {e}")
-            logging.info("Falling back to synchronous mode...")
-            main_sync()
-    else:
-        # Use synchronous mode
-        if not ASYNC_AVAILABLE:
-            logging.info("Async components not available, using sync mode")
+    # Setup logging first
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    
+    try:
+        logger.info("Starting in SYNC mode for stability")
+        
+        # Use synchronous mode only
         main_sync()
+        
+    except KeyboardInterrupt:
+        logger.info("Application interrupted by user")
+    except Exception as e:
+        logger.exception(f"Application failed to start: {e}")
+        # Show error dialog
+        try:
+            import tkinter.messagebox as mb
+            mb.showerror("Startup Error", f"Failed to start: {str(e)}")
+        except:
+            pass
+        raise
 
 
 if __name__ == "__main__":

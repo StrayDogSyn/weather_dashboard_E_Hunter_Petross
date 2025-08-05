@@ -19,6 +19,9 @@ from src.ui.safe_widgets import (
     SafeCTkTextbox,
 )
 
+# Import thread safety decorator
+from src.utils.error_wrapper import ensure_main_thread
+
 from src.services.ai import ActivityService
 from src.services.config import ConfigService
 from src.services.weather import (
@@ -1661,6 +1664,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
 
         return "🌤️"  # Default icon
 
+    @ensure_main_thread
     def _update_temperature_chart(self, weather_data):
         """Update temperature chart with real forecast data."""
         try:
@@ -1974,6 +1978,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         # Trigger weather data update with proper UI refresh
         self._load_weather_data_with_timeout()
 
+    @ensure_main_thread
     def _update_weather_display(self, weather_data):
         """Update UI with enhanced weather display and visual effects."""
         # STEP 3 DEBUG: Implement thread-safe UI updates
@@ -2104,6 +2109,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Error updating timestamp: {e}")
 
+    @ensure_main_thread
     def _update_weather_background_safe(self, weather_data):
         """Safely update weather background with validation."""
         try:
@@ -2121,6 +2127,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Error updating weather background: {e}")
 
+    @ensure_main_thread
     def _update_location_display_safe(self, weather_data):
         """Safely update location display with validation."""
         try:
@@ -2145,6 +2152,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Error updating location display: {e}")
 
+    @ensure_main_thread
     def _update_temperature_display_safe(self, weather_data):
         """Safely update temperature display with proper unit conversion."""
         try:
@@ -2205,6 +2213,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             if hasattr(self, "condition_label"):
                 self.condition_label.configure(text="Unknown condition")
 
+    @ensure_main_thread
     def _update_weather_metrics_safe(self, weather_data):
         """Safely update weather metrics with validation and proper conversions."""
         try:
@@ -3474,6 +3483,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Failed to initialize background data: {e}")
 
+    @ensure_main_thread
     def _update_background_components(self):
         """Update background UI components."""
         try:
@@ -3855,6 +3865,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             task_name="air_quality_data",
         )
 
+    @ensure_main_thread
     def _update_forecast_display(self, forecast_data):
         """Update forecast display with new data."""
         try:
@@ -4433,6 +4444,7 @@ The interactive maps feature requires additional packages:
             # Update maps display
             self._update_maps_weather_display()
 
+    @ensure_main_thread
     def _update_maps_weather_display(self):
         """Update the maps weather display with current weather data."""
         try:
