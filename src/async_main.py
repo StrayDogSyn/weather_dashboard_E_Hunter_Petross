@@ -92,7 +92,7 @@ class AsyncWeatherApp:
             
             # Update progressive loader if available
             if self.progressive_loader:
-                self.progressive_loader.update_progress(task_name, progress)
+                self.progressive_loader.update_step(task_name, progress)
             
             # Log significant progress milestones
             if progress in [0.25, 0.5, 0.75, 1.0]:
@@ -138,12 +138,11 @@ class AsyncWeatherApp:
             
             # Create progressive loader
             self.progressive_loader = ProgressiveLoader(
-                parent=self.root,
-                ui_lib=ui_lib
+                parent=self.root
             )
             
             # Show skeleton UI
-            self.progressive_loader.show_skeleton()
+            self.progressive_loader.show()
             
             # Update UI
             self.root.update()
@@ -171,7 +170,7 @@ class AsyncWeatherApp:
             
             # Update UI with critical services loaded
             if self.progressive_loader:
-                self.progressive_loader.update_phase("Critical services loaded")
+                self.progressive_loader.update_step("Critical services loaded", 1.0)
                 self.root.update()
             
             # Initialize remaining services in background
@@ -196,7 +195,7 @@ class AsyncWeatherApp:
             
             # Update progressive loader
             if self.progressive_loader:
-                self.progressive_loader.update_phase("Loading dashboard...")
+                self.progressive_loader.update_step("Loading dashboard...", 0.6)
                 self.root.update()
             
             # Import dashboard
@@ -234,7 +233,7 @@ class AsyncWeatherApp:
             
             # Update progressive loader
             if self.progressive_loader:
-                self.progressive_loader.update_phase("Loading weather data...")
+                self.progressive_loader.update_step("Loading weather data...", 0.8)
                 self.root.update()
             
             # Get weather service
@@ -302,7 +301,7 @@ class AsyncWeatherApp:
             
             # Cleanup progressive loader
             if self.progressive_loader:
-                self.progressive_loader.cleanup()
+                self.progressive_loader.destroy()
             
             # Destroy root window
             if self.root:

@@ -182,7 +182,7 @@ class AsyncServiceManager:
     def _init_weather_service(self):
         """Initialize enhanced weather service."""
         try:
-            from .enhanced_weather_service import EnhancedWeatherService
+            from .weather.enhanced_weather_service import EnhancedWeatherService
             
             config_service = self.services.get('config_service')
             if not config_service:
