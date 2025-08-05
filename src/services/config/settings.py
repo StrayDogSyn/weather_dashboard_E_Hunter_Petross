@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from src.services.logging_config import get_logger
+# Removed circular import - will use standard logging instead
 
 @dataclass
 class APIConfig:
@@ -182,7 +182,7 @@ class AppConfig:
         # API configuration
         if api_key := os.getenv("OPENWEATHER_API_KEY"):
             self.api.openweather_api_key = api_key
-            logger = get_logger(__name__)
+            logger = logging.getLogger(__name__)
             logger.debug(
                 f"Loaded OPENWEATHER_API_KEY: {'[SET]' if api_key else '[EMPTY]'}"
             )
@@ -190,7 +190,7 @@ class AppConfig:
         # Backup OpenWeather API Key
         if backup_key := os.getenv("OPENWEATHER_API_KEY_BACKUP"):
             self.api.openweather_backup_api_key = backup_key
-            logger = get_logger(__name__)
+            logger = logging.getLogger(__name__)
             logger.debug(
                 f"Loaded OPENWEATHER_API_KEY_BACKUP: {'[SET]' if backup_key else '[EMPTY]'}"
             )
@@ -198,7 +198,7 @@ class AppConfig:
         # WeatherAPI.com API Key
         if weatherapi_key := os.getenv("WEATHERAPI_API_KEY"):
             self.api.weatherapi_api_key = weatherapi_key
-            logger = get_logger(__name__)
+            logger = logging.getLogger(__name__)
             logger.debug(
                 f"Loaded WEATHERAPI_API_KEY: {'[SET]' if weatherapi_key else '[EMPTY]'}"
             )
@@ -206,14 +206,14 @@ class AppConfig:
         # AI Service API Keys
         if gemini_key := os.getenv("GEMINI_API_KEY"):
             self.api.gemini_api_key = gemini_key
-            logger = get_logger(__name__)
+            logger = logging.getLogger(__name__)
             logger.debug(
                 f"Loaded GEMINI_API_KEY: {'[SET]' if gemini_key else '[EMPTY]'}"
             )
 
         if openai_key := os.getenv("OPENAI_API_KEY"):
             self.api.openai_api_key = openai_key
-            logger = get_logger(__name__)
+            logger = logging.getLogger(__name__)
             logger.debug(
                 f"Loaded OPENAI_API_KEY: {'[SET]' if openai_key else '[EMPTY]'}"
             )
@@ -221,7 +221,7 @@ class AppConfig:
         # Maps API Key
         if maps_key := os.getenv("GOOGLE_MAPS_API_KEY"):
             self.api.google_maps_api_key = maps_key
-            logger = get_logger(__name__)
+            logger = logging.getLogger(__name__)
             logger.debug(
                 f"Loaded GOOGLE_MAPS_API_KEY: {'[SET]' if maps_key else '[EMPTY]'}"
             )
@@ -229,7 +229,7 @@ class AppConfig:
         # GitHub Token
         if github_token := os.getenv("GITHUB_TOKEN"):
             self.api.github_token = github_token
-            logger = get_logger(__name__)
+            logger = logging.getLogger(__name__)
             logger.debug(
                 f"Loaded GITHUB_TOKEN: {'[SET]' if github_token else '[EMPTY]'}"
             )
@@ -238,8 +238,8 @@ class AppConfig:
             try:
                 self.api.request_timeout = int(timeout)
             except ValueError:
-                logger = get_logger(__name__)
-
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Invalid API_TIMEOUT value: {timeout}")
                 pass
 
         # Logging configuration
