@@ -25,6 +25,7 @@ from src.services.database import CacheManager
 from src.utils.component_recycler import ComponentRecycler
 from src.utils.loading_manager import LoadingManager
 from src.utils.startup_optimizer import StartupOptimizer
+from src.utils.timer_manager import TimerManager
 import customtkinter as ctk
 
 # Load environment variables
@@ -43,6 +44,9 @@ class BaseDashboard(ctk.CTk):
         # Setup logging
         self.logger = logging.getLogger(__name__)
 
+        # Initialize timer manager first
+        self.timer_manager = TimerManager(self)
+        
         # Initialize performance optimization services first
         self._initialize_optimization_services()
 
@@ -225,9 +229,20 @@ class BaseDashboard(ctk.CTk):
                 )
                 self.font_size = self.config_service.get_setting("appearance.font_size", 12)
 
-            # Schedule periodic updates
-            self.after(5000, self._update_usage_stats)  # Update usage stats every 5 seconds
-            self.after(10000, self._update_cache_size)  # Update cache size every 10 seconds
+            # Schedule periodic updates using TimerManager
+            self.timer_manager.schedule(
+                'usage_stats_update',
+                5000,  # 5 seconds
+                self._update_usage_stats,
+                start_immediately=False
+            )
+            
+            self.timer_manager.schedule(
+                'cache_size_update', 
+                10000,  # 10 seconds
+                self._update_cache_size,
+                start_immediately=False
+            )
 
         except Exception as e:
             self.logger.warning(f"Failed to initialize enhanced settings: {e}")
@@ -266,6 +281,10 @@ class BaseDashboard(ctk.CTk):
         """Handle window closing."""
         try:
             self.is_destroyed = True
+
+            # Shutdown timer manager first
+            if hasattr(self, 'timer_manager'):
+                self.timer_manager.shutdown()
 
             # Clean up scheduled calls
             self._cleanup_scheduled_calls()

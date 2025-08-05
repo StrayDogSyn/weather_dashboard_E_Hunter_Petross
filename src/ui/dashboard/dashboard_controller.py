@@ -180,8 +180,10 @@ class DashboardController(BaseDashboard):
         # Trigger weather update (this would typically call the weather service)
         # For now, just update the status
         if self.status_bar_component:
-            self.status_bar_component.safe_after(
-                2000, lambda: self.status_bar_component.clear_status()
+            self.timer_manager.schedule_once(
+                'clear_location_status',
+                2000,
+                lambda: self.status_bar_component.clear_status()
             )
 
     def update_weather_data(self, weather_data):
@@ -198,8 +200,10 @@ class DashboardController(BaseDashboard):
         # Update status bar
         if self.status_bar_component:
             self.status_bar_component.show_success("Weather data updated")
-            self.status_bar_component.safe_after(
-                3000, lambda: self.status_bar_component.clear_status()
+            self.timer_manager.schedule_once(
+                'clear_weather_status',
+                3000,
+                lambda: self.status_bar_component.clear_status()
             )
 
     def update_status(self, message, status_type="info"):
