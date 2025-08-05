@@ -4,10 +4,11 @@ import threading
 import time
 import tkinter as tk
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import os
 import json
 from datetime import datetime
+import asyncio
 
 # Add src to path
 src_path = Path(__file__).parent / "src"
@@ -15,6 +16,16 @@ sys.path.insert(0, str(src_path))
 
 from utils.loading_manager import LoadingManager
 from dotenv import load_dotenv
+
+# Async loading imports
+try:
+    from src.services.async_service_manager import AsyncServiceManager
+    from src.services.async_loader import LoadingResult
+    from src.ui.components.progressive_loader import ProgressiveLoader
+    ASYNC_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Async loading not available: {e}")
+    ASYNC_AVAILABLE = False
 
 
 def ensure_directories():
@@ -436,17 +447,45 @@ class ProgressiveWeatherApp:
             self.logger.info("Application shutdown")
 
 
-def main():
-    """Main entry point for the weather dashboard."""
-    # Ensure directories exist
+async def main_async():
+    """Async main entry point for faster startup."""
+    # Setup logging first
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    
+    logger.info("Starting Weather Dashboard (Async Mode)...")
+    
+    # Ensure required directories exist
     ensure_directories()
     
-    # Setup logging
-    setup_logging()
+    # Load environment
+    load_dotenv()
     
-    logger = logging.getLogger(__name__)
-    logger.info("Starting Weather Dashboard...")
+    try:
+        # Import async main application
+        from src.async_main import AsyncWeatherApp
+        
+        # Create and run async application
+        app = AsyncWeatherApp()
+        await app.run_async()
+        
+    except Exception as e:
+        logger.error(f"Async application failed: {e}")
+        logger.info("Falling back to synchronous mode...")
+        raise
 
+
+def main_sync():
+    """Synchronous main entry point (fallback)."""
+    # Setup logging first
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    
+    logger.info("Starting Weather Dashboard (Sync Mode)...")
+    
+    # Ensure required directories exist
+    ensure_directories()
+    
     # Load environment
     load_dotenv()
 
@@ -488,6 +527,26 @@ def main():
                 logger.error(f"Error destroying dashboard: {destroy_error}")
         
         logger.info("Application shutdown complete")
+
+
+def main():
+    """Main entry point with async/sync mode selection."""
+    # Check for async mode preference
+    use_async = os.getenv('ASYNC_MODE', 'true').lower() == 'true'
+    
+    if use_async and ASYNC_AVAILABLE:
+        try:
+            # Try async mode first
+            asyncio.run(main_async())
+        except Exception as e:
+            logging.error(f"Async mode failed: {e}")
+            logging.info("Falling back to synchronous mode...")
+            main_sync()
+    else:
+        # Use synchronous mode
+        if not ASYNC_AVAILABLE:
+            logging.info("Async components not available, using sync mode")
+        main_sync()
 
 
 if __name__ == "__main__":
