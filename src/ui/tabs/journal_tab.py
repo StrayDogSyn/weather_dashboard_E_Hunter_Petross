@@ -129,7 +129,7 @@ class WeatherJournalTab(ctk.CTkFrame):
             controls_frame,
             text="Mood:",
             font=("Arial", 12),
-            text_color="#FFFFFF"
+            text_color="#CCCCCC"
         )
         mood_label.grid(row=0, column=0, sticky="w", padx=(0, 15))
         
@@ -145,7 +145,7 @@ class WeatherJournalTab(ctk.CTkFrame):
                 text=mood,
                 variable=self.mood_var,
                 value=mood.split()[1].lower(),
-                text_color="#FFFFFF",
+                text_color="#CCCCCC",
                 fg_color="#00D4FF",
                 hover_color="#0099CC"
             )
@@ -445,7 +445,7 @@ class WeatherJournalTab(ctk.CTkFrame):
         
         content_frame = ctk.CTkFrame(
             info_frame,
-            fg_color="#FFFFFF08",
+            fg_color=("#2B2B2B", "#1A1A1A"),
             corner_radius=10
         )
         content_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
@@ -454,7 +454,7 @@ class WeatherJournalTab(ctk.CTkFrame):
             content_frame,
             text=preview,
             font=("Arial", 12),
-            text_color="#FFFFFFCC",
+            text_color="#CCCCCC",
             anchor="w",
             wraplength=400
         )
@@ -465,7 +465,7 @@ class WeatherJournalTab(ctk.CTkFrame):
         if weather and weather.get('temperature'):
             weather_frame = ctk.CTkFrame(
                 info_frame,
-                fg_color="#00D4FF1A",
+                fg_color=("#2B2B2B", "#1A1A1A"),
                 corner_radius=8
             )
             weather_frame.grid(row=3, column=0, sticky="w", pady=(8, 0))
@@ -498,8 +498,8 @@ class WeatherJournalTab(ctk.CTkFrame):
             command=lambda e=entry: self.delete_entry(e),
             width=70,
             height=35,
-            fg_color="#8B000040",
-            hover_color="#A52A2A60"
+            fg_color=("#8B0000", "#A52A2A"),
+            hover_color=("#A52A2A", "#CD5C5C")
         )
         delete_btn.grid(row=1, column=0, pady=5)
     
@@ -515,7 +515,7 @@ class WeatherJournalTab(ctk.CTkFrame):
         self.mood_var.set(entry.get('mood', 'neutral'))
         
         # Scroll to top
-        self.container.focus_set()
+        self.main_container.focus_set()
     
     def delete_entry(self, entry):
         """Delete an entry after confirmation."""
