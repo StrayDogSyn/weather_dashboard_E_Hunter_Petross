@@ -630,6 +630,10 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
     def _add_attribution(self, img):
         """Add Google Maps attribution to the image"""
         try:
+            # Convert to RGB mode to avoid color allocation issues
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            
             # Create a copy to avoid modifying the original
             attributed_img = img.copy()
             draw = ImageDraw.Draw(attributed_img)

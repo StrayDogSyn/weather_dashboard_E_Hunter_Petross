@@ -96,11 +96,14 @@ def ensure_main_thread(func: Callable) -> Callable:
             try:
                 if hasattr(self, 'after'):
                     self.after(0, lambda: func(self, *args, **kwargs))
+                elif hasattr(self, 'parent') and hasattr(self.parent, 'after'):
+                    self.parent.after(0, lambda: func(self, *args, **kwargs))
                 elif hasattr(self, 'winfo_toplevel'):
                     root = self.winfo_toplevel()
                     root.after(0, lambda: func(self, *args, **kwargs))
                 else:
-                    logger.warning(f"Cannot schedule {func.__name__} on main thread - no after method")
+                    # If we can't schedule, just run it directly but log a debug message
+                    logger.debug(f"Running {func.__name__} directly - no main thread scheduler found")
                     return func(self, *args, **kwargs)
             except Exception as e:
                 logger.error(f"Failed to schedule {func.__name__} on main thread: {e}")
