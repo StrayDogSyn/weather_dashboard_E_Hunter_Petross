@@ -26,6 +26,13 @@ class ActivitySuggesterTab(ctk.CTkFrame):
         self.current_filter = "all"
         self.current_duration = "all"
         
+        # Initialize filter attributes
+        self.activity_type = ctk.StringVar(value="All Activities")
+        self.duration_filter = ctk.StringVar(value="Any Duration")
+        
+        # Weather info label for refresh_suggestions method
+        self.weather_info_label = None
+        
         # Configure grid
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -59,6 +66,15 @@ class ActivitySuggesterTab(ctk.CTkFrame):
             text_color="#00D4FF"
         )
         title.pack(side="left")
+        
+        # Weather info label
+        self.weather_info_label = ctk.CTkLabel(
+            header_frame,
+            text="Weather: Loading...",
+            font=("Arial", 12),
+            text_color="#CCCCCC"
+        )
+        self.weather_info_label.pack(side="left", padx=(20, 0))
         
         # Filter buttons with glass effect
         filter_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
@@ -97,7 +113,7 @@ class ActivitySuggesterTab(ctk.CTkFrame):
         from ..components.glassmorphic import GlassPanel
         
         card = GlassPanel(self.cards_container)
-        card.configure(fg_color="#FFFFFF1A")  # Very transparent
+        card.configure(fg_color=("#2B2B2B", "#1A1A1A"))  # Glass effect
         card.pack(fill="x", padx=10, pady=5)
         
         # Activity icon and title
@@ -122,7 +138,7 @@ class ActivitySuggesterTab(ctk.CTkFrame):
         # Description with semi-transparent background
         desc_frame = ctk.CTkFrame(
             card,
-            fg_color="#FFFFFF0D",
+            fg_color=("#2B2B2B", "#1A1A1A"),
             corner_radius=10
         )
         desc_frame.pack(fill="x", padx=15, pady=(0, 10))
@@ -131,7 +147,7 @@ class ActivitySuggesterTab(ctk.CTkFrame):
             desc_frame,
             text=activity_data['description'],
             font=("Arial", 12),
-            text_color="#FFFFFFB3",
+            text_color="#CCCCCC",
             wraplength=300,
             justify="left"
         )
@@ -155,15 +171,15 @@ class ActivitySuggesterTab(ctk.CTkFrame):
             info_frame,
             text=f"⏱️ {activity_data.get('duration', 'N/A')}",
             font=("Arial", 10),
-            text_color="#FFFFFF80"
+            text_color="#CCCCCC"
         )
         duration_label.pack(side="left", padx=(0, 10))
         
         difficulty_label = ctk.CTkLabel(
             info_frame,
-            text=f"📊 {activity_data.get('difficulty', 'N/A')}",
+            text=f"🎯 {activity_data.get('difficulty', 'N/A')}",
             font=("Arial", 10),
-            text_color="#FFFFFF80"
+            text_color="#CCCCCC"
         )
         difficulty_label.pack(side="left")
         
@@ -535,14 +551,14 @@ Consider:
             from ..components.glassmorphic import GlassPanel
             
             no_suggestions_card = GlassPanel(self.cards_container)
-            no_suggestions_card.configure(fg_color="#FFFFFF0D")
+            no_suggestions_card.configure(fg_color=("#2B2B2B", "#1A1A1A"))
             no_suggestions_card.pack(fill="x", padx=20, pady=50)
             
             no_results_label = ctk.CTkLabel(
                 no_suggestions_card,
                 text="No suggestions match your filters. Try adjusting the criteria.",
                 font=("Arial", 14),
-                text_color="#FFFFFF80",
+                text_color="#CCCCCC",
                 justify="center"
             )
             no_results_label.pack(pady=30)

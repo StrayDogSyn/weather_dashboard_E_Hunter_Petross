@@ -87,7 +87,7 @@ class GlassButton(ctk.CTkButton):
         except (ValueError, IndexError):
             return color
     
-    def _on_enter(self, event):
+    def _on_enter(self, event=None):
         """Handle mouse enter event."""
         self._is_hovered = True
         # Add subtle glow effect

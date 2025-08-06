@@ -66,7 +66,7 @@ class WeatherJournalTab(ctk.CTkFrame):
             header_frame,
             text="Weather: Loading...",
             font=("Arial", 12),
-            text_color="#FFFFFF80"
+            text_color="#CCCCCC"
         )
         self.weather_info_label.pack(side="right")
         
@@ -79,7 +79,7 @@ class WeatherJournalTab(ctk.CTkFrame):
         
         # Entry container with glass effect
         entry_container = GlassPanel(self.main_container)
-        entry_container.configure(fg_color="#FFFFFF0D")
+        entry_container.configure(fg_color=("#2B2B2B", "#1A1A1A"))
         entry_container.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
         entry_container.grid_columnconfigure(0, weight=1)
         
@@ -89,8 +89,8 @@ class WeatherJournalTab(ctk.CTkFrame):
             placeholder_text="✨ What's on your mind today?",
             height=45,
             font=("Arial", 16),
-            fg_color="#FFFFFF1A",
-            border_color="#00D4FF40",
+            fg_color=("#2B2B2B", "#1A1A1A"),
+            border_color="#00D4FF",
             text_color="#FFFFFF"
         )
         self.title_entry.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 10))
@@ -98,7 +98,7 @@ class WeatherJournalTab(ctk.CTkFrame):
         # Rich text editor with glass frame
         text_container = ctk.CTkFrame(
             entry_container,
-            fg_color="#FFFFFF0D",
+            fg_color=("#2B2B2B", "#1A1A1A"),
             corner_radius=15
         )
         text_container.grid(row=1, column=0, sticky="ew", padx=20, pady=(0, 10))
@@ -113,7 +113,7 @@ class WeatherJournalTab(ctk.CTkFrame):
             bg="#1a1a1a",
             fg="#FFFFFF",
             insertbackground="#00D4FF",
-            selectbackground="#00D4FF40",
+            selectbackground="#00D4FF",
             relief="flat",
             borderwidth=0
         )
@@ -193,7 +193,7 @@ class WeatherJournalTab(ctk.CTkFrame):
         
         # List container with glass effect
         list_container = GlassPanel(self.main_container)
-        list_container.configure(fg_color="#FFFFFF0D")
+        list_container.configure(fg_color=("#2B2B2B", "#1A1A1A"))
         list_container.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 20))
         list_container.grid_columnconfigure(0, weight=1)
         list_container.grid_rowconfigure(1, weight=1)
@@ -218,8 +218,8 @@ class WeatherJournalTab(ctk.CTkFrame):
             placeholder_text="🔍 Search entries...",
             height=35,
             font=("Arial", 12),
-            fg_color="#FFFFFF1A",
-            border_color="#00D4FF40",
+            fg_color=("#2B2B2B", "#1A1A1A"),
+            border_color="#00D4FF",
             text_color="#FFFFFF",
             width=250
         )
@@ -359,14 +359,14 @@ class WeatherJournalTab(ctk.CTkFrame):
         if not entries_to_show:
             from ..components.glassmorphic import GlassPanel
             no_entries_panel = GlassPanel(self.entries_scrollable)
-            no_entries_panel.configure(fg_color="#FFFFFF0D")
+            no_entries_panel.configure(fg_color=("#2B2B2B", "#1A1A1A"))
             no_entries_panel.grid(row=0, column=0, sticky="ew", padx=10, pady=20)
             
             no_entries_label = ctk.CTkLabel(
                 no_entries_panel,
                 text="📝 No journal entries yet. Start writing your first entry above!",
                 font=("Arial", 14),
-                text_color="#FFFFFFB3"
+                text_color="#CCCCCC"
             )
             no_entries_label.pack(pady=30)
             return
@@ -378,13 +378,16 @@ class WeatherJournalTab(ctk.CTkFrame):
             self.create_entry_card(entry, i)
     
     def create_entry_card(self, entry, row):
-        """Create a card for displaying an entry."""
-        # Entry card frame
-        card_frame = ctk.CTkFrame(self.entries_scrollable)
-        card_frame.grid(row=row, column=0, sticky="ew", padx=5, pady=5)
+        """Create a glassmorphic card for displaying an entry."""
+        from ..components.glassmorphic import GlassPanel, GlassButton
+        
+        # Entry card with glass effect
+        card_frame = GlassPanel(self.entries_scrollable)
+        card_frame.configure(fg_color=("#2B2B2B", "#1A1A1A"))
+        card_frame.grid(row=row, column=0, sticky="ew", padx=10, pady=8)
         card_frame.grid_columnconfigure(1, weight=1)
         
-        # Mood emoji
+        # Mood emoji with glow effect
         mood_emoji = {
             "happy": "😊",
             "neutral": "😐",
@@ -393,94 +396,112 @@ class WeatherJournalTab(ctk.CTkFrame):
             "tired": "😴"
         }.get(entry.get('mood', 'neutral'), "😐")
         
-        mood_label = ctk.CTkLabel(
-            card_frame,
-            text=mood_emoji,
-            font=("Arial", 24)
-        )
-        mood_label.grid(row=0, column=0, rowspan=3, padx=10, pady=10)
+        mood_frame = ctk.CTkFrame(card_frame, fg_color=("#2B2B2B", "#1A1A1A"), corner_radius=15, width=60, height=60)
+        mood_frame.grid(row=0, column=0, rowspan=3, padx=15, pady=15, sticky="n")
+        mood_frame.grid_propagate(False)
         
-        # Entry info frame
+        mood_label = ctk.CTkLabel(
+            mood_frame,
+            text=mood_emoji,
+            font=("Arial", 28)
+        )
+        mood_label.place(relx=0.5, rely=0.5, anchor="center")
+        
+        # Entry info frame with glass styling
         info_frame = ctk.CTkFrame(card_frame, fg_color="transparent")
-        info_frame.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
+        info_frame.grid(row=0, column=1, sticky="ew", padx=15, pady=15)
         info_frame.grid_columnconfigure(0, weight=1)
         
-        # Title
+        # Title with enhanced styling
         title_label = ctk.CTkLabel(
             info_frame,
-            text=entry.get('title', 'Untitled'),
-            font=("Arial", 14, "bold"),
+            text=f"✨ {entry.get('title', 'Untitled')}",
+            font=("Arial", 16, "bold"),
+            text_color="#FFFFFF",
             anchor="w"
         )
         title_label.grid(row=0, column=0, sticky="ew")
         
-        # Timestamp
+        # Timestamp with enhanced styling
         try:
             timestamp = datetime.fromisoformat(entry.get('timestamp', ''))
-            time_text = timestamp.strftime('%Y-%m-%d %H:%M')
+            time_text = timestamp.strftime('%B %d, %Y at %I:%M %p')
         except:
             time_text = entry.get('timestamp', 'Unknown time')
         
         time_label = ctk.CTkLabel(
             info_frame,
-            text=time_text,
-            font=("Arial", 10),
-            text_color="gray",
+            text=f"📅 {time_text}",
+            font=("Arial", 11),
+            text_color="#CCCCCC",
             anchor="w"
         )
-        time_label.grid(row=1, column=0, sticky="ew")
+        time_label.grid(row=1, column=0, sticky="ew", pady=(2, 0))
         
-        # Content preview
+        # Content preview with glass background
         content = entry.get('content', '')
-        preview = content[:100] + "..." if len(content) > 100 else content
+        preview = content[:150] + "..." if len(content) > 150 else content
         preview = preview.replace('\n', ' ')  # Remove line breaks for preview
         
-        content_label = ctk.CTkLabel(
+        content_frame = ctk.CTkFrame(
             info_frame,
+            fg_color="#FFFFFF08",
+            corner_radius=10
+        )
+        content_frame.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        
+        content_label = ctk.CTkLabel(
+            content_frame,
             text=preview,
-            font=("Arial", 11),
-            text_color="lightgray",
+            font=("Arial", 12),
+            text_color="#FFFFFFCC",
             anchor="w",
             wraplength=400
         )
-        content_label.grid(row=2, column=0, sticky="ew", pady=(5, 0))
+        content_label.pack(padx=12, pady=8, anchor="w")
         
-        # Weather info
+        # Weather info with enhanced styling
         weather = entry.get('weather', {})
         if weather and weather.get('temperature'):
-            weather_text = f"🌤️ {weather.get('temperature')}°C, {weather.get('condition', 'N/A')}"
-            weather_label = ctk.CTkLabel(
+            weather_frame = ctk.CTkFrame(
                 info_frame,
-                text=weather_text,
-                font=("Arial", 9),
-                text_color="lightblue",
-                anchor="w"
+                fg_color="#00D4FF1A",
+                corner_radius=8
             )
-            weather_label.grid(row=3, column=0, sticky="ew", pady=(2, 0))
+            weather_frame.grid(row=3, column=0, sticky="w", pady=(8, 0))
+            
+            weather_text = f"🌡️ {weather.get('temperature')}°C | {weather.get('condition', 'N/A')}"
+            weather_label = ctk.CTkLabel(
+                weather_frame,
+                text=weather_text,
+                font=("Arial", 11),
+                text_color="#00D4FF"
+            )
+            weather_label.pack(padx=10, pady=5)
         
-        # Action buttons
+        # Action buttons with glass effect
         button_frame = ctk.CTkFrame(card_frame, fg_color="transparent")
-        button_frame.grid(row=0, column=2, rowspan=3, padx=10, pady=10)
+        button_frame.grid(row=0, column=2, rowspan=3, padx=15, pady=15)
         
-        edit_btn = ctk.CTkButton(
+        edit_btn = GlassButton(
             button_frame,
             text="✏️ Edit",
             command=lambda e=entry: self.edit_entry(e),
-            width=60,
-            height=30
+            width=70,
+            height=35
         )
-        edit_btn.grid(row=0, column=0, pady=2)
+        edit_btn.grid(row=0, column=0, pady=5)
         
-        delete_btn = ctk.CTkButton(
+        delete_btn = GlassButton(
             button_frame,
             text="🗑️ Delete",
             command=lambda e=entry: self.delete_entry(e),
-            width=60,
-            height=30,
-            fg_color="#8B0000",
-            hover_color="#A52A2A"
+            width=70,
+            height=35,
+            fg_color="#8B000040",
+            hover_color="#A52A2A60"
         )
-        delete_btn.grid(row=1, column=0, pady=2)
+        delete_btn.grid(row=1, column=0, pady=5)
     
     def edit_entry(self, entry):
         """Load entry for editing."""
@@ -507,25 +528,21 @@ class WeatherJournalTab(ctk.CTkFrame):
                 messagebox.showerror("Error", f"Failed to delete entry: {str(e)}")
     
     def filter_entries(self, event=None):
-        """Filter entries based on search and mood filter."""
+        """Filter entries based on search text."""
         search_text = self.search_entry.get().lower().strip()
-        mood_filter = self.mood_filter.get()
         
         filtered = []
         for entry in self.entries:
-            # Check search text
+            # Check search text in title, content, and mood
             if search_text:
                 title_match = search_text in entry.get('title', '').lower()
                 content_match = search_text in entry.get('content', '').lower()
                 mood_match = search_text in entry.get('mood', '').lower()
                 
-                if not (title_match or content_match or mood_match):
-                    continue
-            
-            # Check mood filter
-            if mood_filter != "All" and entry.get('mood') != mood_filter:
-                continue
-            
-            filtered.append(entry)
+                if title_match or content_match or mood_match:
+                    filtered.append(entry)
+            else:
+                # If no search text, show all entries
+                filtered.append(entry)
         
         self.display_entries(filtered)
