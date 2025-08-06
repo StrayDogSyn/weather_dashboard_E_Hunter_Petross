@@ -47,6 +47,7 @@ from src.ui.components.ml_comparison_panel import MLComparisonPanel
 from src.ui.dashboard.settings_tab_manager import SettingsTabManager
 from src.ui.tabs.journal_tab import WeatherJournalTab
 from src.ui.tabs.activity_tab import ActivitySuggesterTab
+from src.ui.tabs.graphs_tab import GraphsTab
 from src.ui.components.temperature_chart import TemperatureChart
 from src.ui.theme import DataTerminalTheme
 from src.ui.theme_manager import theme_manager
@@ -382,6 +383,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.ml_comparison_tab = self.tabview.add("🧠 AI Analysis")
         self.activities_tab = self.tabview.add("Activities")
         self.journal_tab = self.tabview.add("📝 Journal")
+        self.graphs_tab = self.tabview.add("📊 Graphs")
         self.maps_tab = self.tabview.add("Maps")
         self.settings_tab = self.tabview.add("Settings")
 
@@ -401,6 +403,9 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.journal_tab.grid_columnconfigure(0, weight=1)
         self.journal_tab.grid_rowconfigure(0, weight=1)
 
+        self.graphs_tab.grid_columnconfigure(0, weight=1)
+        self.graphs_tab.grid_rowconfigure(0, weight=1)
+
         self.maps_tab.grid_columnconfigure(0, weight=1)
         self.maps_tab.grid_rowconfigure(0, weight=1)
 
@@ -413,6 +418,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self._create_ml_comparison_tab()
         self._create_activities_tab()
         self._create_journal_tab()
+        self._create_graphs_tab()
         self._create_maps_tab()
         self.settings_tab_manager.create_settings_tab(self.settings_tab)
 
@@ -4152,6 +4158,26 @@ class ProfessionalWeatherDashboard(SafeCTk):
             error_label = SafeCTkLabel(
                 self.journal_tab,
                 text="Journal feature temporarily unavailable",
+                font=(DataTerminalTheme.FONT_FAMILY, 14)
+            )
+            error_label.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+
+    def _create_graphs_tab(self):
+        """Create the graphs tab with temperature visualization"""
+        try:
+            # Create the graphs tab widget
+            self.graphs_widget = GraphsTab(
+                parent=self.graphs_tab,
+                weather_service=self.weather_service
+            )
+            self.graphs_widget.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+            
+        except Exception as e:
+            logging.error(f"Error creating graphs tab: {e}")
+            # Create fallback content
+            error_label = SafeCTkLabel(
+                self.graphs_tab,
+                text="Temperature graphs temporarily unavailable",
                 font=(DataTerminalTheme.FONT_FAMILY, 14)
             )
             error_label.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
