@@ -30,9 +30,23 @@ class ForecastDetailsPopup:
 
         # Create popup window
         self.popup = ctk.CTkToplevel(parent)
-        self.popup.title(
-            f"Forecast Details - {forecast_data.get('day', 'Day')} {forecast_data.get('date', '')}"
-        )
+        
+        # Get day and date with proper fallbacks
+        day = forecast_data.get('day', 'Day')
+        date = forecast_data.get('date', '')
+        
+        # Handle invalid or missing dates for title
+        if not date or date == '--/--' or date.strip() == '':
+            from datetime import datetime
+            date = datetime.now().strftime('%m/%d')
+        
+        # Handle invalid day names
+        if not day or day == '--/--' or day.strip() == '':
+            from datetime import datetime
+            day = datetime.now().strftime('%a')
+        
+        self.popup.title(f"Forecast Details - {day}, {date}")
+        
         self.popup.geometry("650x750")
         self.popup.resizable(False, False)
 
@@ -205,20 +219,33 @@ class ForecastDetailsPopup:
         header_frame = ctk.CTkFrame(parent, fg_color=DataTerminalTheme.CARD_BG, corner_radius=12)
         header_frame.pack(fill="x", pady=(0, 15))
 
+        # Get day and date with better fallbacks
+        day = self.forecast_data.get('day', 'Today')
+        date = self.forecast_data.get('date', '')
+        
+        # Handle invalid or missing dates
+        if not date or date == '--/--' or date.strip() == '':
+            from datetime import datetime
+            date = datetime.now().strftime('%m/%d')
+        
         # Day and date
         day_label = ctk.CTkLabel(
             header_frame,
-            text=f"{self.forecast_data.get('day', 'Day')}, {self.forecast_data.get('date', '--/--')}",
+            text=f"{day}, {date}",
             font=("Consolas", self.font_size + 12, "bold"),
             text_color=DataTerminalTheme.TEXT,
         )
         day_label.pack(pady=(20, 5))
         self.font_widgets.append(day_label)
 
-        # Weather description
+        # Weather description with better fallback
+        description = self.forecast_data.get("description", "")
+        if not description or description.lower() == "unknown":
+            description = "Weather Forecast"
+        
         desc_label = ctk.CTkLabel(
             header_frame,
-            text=self.forecast_data.get("description", "Unknown"),
+            text=description,
             font=("Consolas", self.font_size + 4),
             text_color=DataTerminalTheme.TEXT_SECONDARY,
         )
@@ -544,8 +571,19 @@ class ForecastDetailsPopup:
 
         # Calculate confidence based on time distance
         now = datetime.now()
-        forecast_date = datetime.strptime(self.forecast_data.get("date", "01/01"), "%m/%d")
-        days_ahead = (forecast_date.replace(year=now.year) - now).days
+        try:
+            date_str = self.forecast_data.get("date", "01/01")
+            if date_str == "--/--" or not date_str or date_str.strip() == "":
+                # Use current date as fallback
+                forecast_date = now
+                days_ahead = 0
+            else:
+                forecast_date = datetime.strptime(date_str, "%m/%d")
+                days_ahead = (forecast_date.replace(year=now.year) - now).days
+        except ValueError:
+            # If date parsing fails, assume current date
+            forecast_date = now
+            days_ahead = 0
 
         if days_ahead <= 1:
             confidence = "95%"

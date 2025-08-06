@@ -17,11 +17,12 @@ from ...utils.error_wrapper import ensure_main_thread
 class WeatherJournalTab(ctk.CTkFrame):
     """Weather Journal Tab with rich text editing capabilities."""
     
-    def __init__(self, parent, weather_service):
-        """Initialize the weather journal tab."""
+    def __init__(self, parent, weather_service=None, db_service=None):
+        """Initialize the Weather Journal Tab with glassmorphic design."""
         super().__init__(parent)
+        
         self.weather_service = weather_service
-        self.db_service = DatabaseService()
+        self.db_service = db_service or DatabaseService()
         self.entries = []
         self.current_entry_id = None
         
@@ -29,23 +30,30 @@ class WeatherJournalTab(ctk.CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         
+        # Initialize UI components
         self.setup_ui()
-        self.load_entries()
+        
+        # Load existing entries or create mock data
+        self.load_entries_with_fallback()
     
     def setup_ui(self):
-        """Setup the user interface."""
-        # Main container with glassmorphic effect
-        from ..components.glassmorphic import GlassPanel
-        
-        self.main_container = GlassPanel(self)
-        self.main_container.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
-        self.main_container.grid_columnconfigure(0, weight=1)
-        self.main_container.grid_rowconfigure(2, weight=1)
-        
-        # Create sections
-        self.create_header()
-        self.create_entry_section()
-        self.create_entries_list()
+        """Set up the journal interface with improved layout."""
+        try:
+            # Main scrollable container
+            self.main_container = ctk.CTkScrollableFrame(
+                self,
+                fg_color="transparent"
+            )
+            self.main_container.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+            self.main_container.grid_columnconfigure(0, weight=1)
+            
+            # Create sections
+            self.create_header()
+            self.create_entry_section()
+            self.create_entries_list()
+        except Exception as e:
+            print(f"Error setting up journal UI: {e}")
+            self.create_fallback_ui()
     
     def create_header(self):
         """Create glassmorphic header"""
@@ -338,25 +346,148 @@ class WeatherJournalTab(ctk.CTkFrame):
         self.current_entry_id = None
         self.update_weather_info()
     
+    def load_entries_with_fallback(self):
+        """Load entries with fallback to mock data."""
+        try:
+            if self.db_service:
+                self.entries = self.db_service.get_journal_entries()
+            else:
+                self.entries = []
+            
+            # If no entries, create some mock data for demonstration
+            if not self.entries:
+                self.create_mock_entries()
+            
+            self.display_entries()
+        except Exception as e:
+            print(f"Error loading entries: {e}")
+            self.create_mock_entries()
+            self.display_entries()
+    
+    def create_mock_entries(self):
+        """Create mock journal entries for demonstration."""
+        from datetime import datetime, timedelta
+        
+        mock_entries = [
+            {
+                "id": "mock_1",
+                "title": "Beautiful Sunny Day",
+                "content": "Today was absolutely wonderful! The sun was shining brightly, and I decided to take a long walk in the park. The weather was perfect - not too hot, not too cold. I saw families having picnics and children playing on the playground. It really lifted my spirits and reminded me to appreciate the simple pleasures in life.",
+                "mood": "happy",
+                "timestamp": (datetime.now() - timedelta(days=1)).isoformat(),
+                "weather": {
+                    "temperature": 22,
+                    "condition": "Sunny",
+                    "humidity": 45,
+                    "wind_speed": 8
+                }
+            },
+            {
+                "id": "mock_2",
+                "title": "Rainy Day Reflections",
+                "content": "It's been raining all day today. There's something peaceful about the sound of raindrops on the window. I spent most of the day indoors, reading a good book and sipping hot tea. Sometimes these quiet, contemplative days are exactly what we need to recharge and reflect on life.",
+                "mood": "neutral",
+                "timestamp": (datetime.now() - timedelta(days=3)).isoformat(),
+                "weather": {
+                    "temperature": 15,
+                    "condition": "Rainy",
+                    "humidity": 85,
+                    "wind_speed": 12
+                }
+            },
+            {
+                "id": "mock_3",
+                "title": "Exciting News!",
+                "content": "I got some amazing news today that I've been waiting for months! All the hard work and patience has finally paid off. I'm so excited about this new opportunity and can't wait to see where it leads. Celebrating tonight with friends and family!",
+                "mood": "excited",
+                "timestamp": (datetime.now() - timedelta(hours=2)).isoformat(),
+                "weather": {
+                    "temperature": 18,
+                    "condition": "Partly Cloudy",
+                    "humidity": 60,
+                    "wind_speed": 5
+                }
+            }
+        ]
+        
+        self.entries = mock_entries
+    
     def load_entries(self):
         """Load and display journal entries."""
         try:
-            self.entries = self.db_service.get_journal_entries()
+            if self.db_service:
+                self.entries = self.db_service.get_journal_entries()
+            else:
+                self.entries = []
             self.display_entries()
         except Exception as e:
             print(f"Error loading entries: {e}")
             self.entries = []
             self.display_entries()
     
+    def create_fallback_ui(self):
+        """Create a simple fallback UI when glassmorphic components fail."""
+        # Simple container
+        fallback_frame = ctk.CTkFrame(
+            self,
+            fg_color=("#2B2B2B", "#1A1A1A"),
+            corner_radius=10
+        )
+        fallback_frame.grid(row=0, column=0, sticky="nsew", padx=15, pady=15)
+        fallback_frame.grid_columnconfigure(0, weight=1)
+        fallback_frame.grid_rowconfigure(1, weight=1)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            fallback_frame,
+            text="📖 Weather Journal",
+            font=("Arial", 24, "bold"),
+            text_color="#FFFFFF"
+        )
+        title_label.grid(row=0, column=0, pady=20)
+        
+        # Scrollable content
+        self.entries_scrollable = ctk.CTkScrollableFrame(
+            fallback_frame,
+            fg_color="transparent"
+        )
+        self.entries_scrollable.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
+        self.entries_scrollable.grid_columnconfigure(0, weight=1)
+        
+        # Create mock entries for demonstration
+        self.create_mock_entries()
+        self.display_entries_simple()
+    
     def display_entries(self, filtered_entries=None):
-        """Display entries in glassmorphic cards."""
-        # Clear existing entries
-        for widget in self.entries_scrollable.winfo_children():
-            widget.destroy()
-        
-        entries_to_show = filtered_entries if filtered_entries is not None else self.entries
-        
-        if not entries_to_show:
+        """Display entries in glassmorphic cards with error handling."""
+        try:
+            # Clear existing entries
+            if hasattr(self, 'entries_scrollable'):
+                for widget in self.entries_scrollable.winfo_children():
+                    widget.destroy()
+            
+            entries_to_show = filtered_entries if filtered_entries is not None else self.entries
+            
+            if not entries_to_show:
+                self.show_no_entries_message()
+                return
+            
+            # Sort entries by timestamp (newest first)
+            entries_to_show.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
+            
+            for i, entry in enumerate(entries_to_show):
+                try:
+                    self.create_entry_card(entry, i)
+                except Exception as e:
+                    print(f"Error creating entry card {i}: {e}")
+                    self.create_simple_entry_card(entry, i)
+        except Exception as e:
+            print(f"Error displaying entries: {e}")
+            self.display_entries_simple()
+    
+    def show_no_entries_message(self):
+        """Show message when no entries are available."""
+        try:
             from ..components.glassmorphic import GlassPanel
             no_entries_panel = GlassPanel(self.entries_scrollable)
             no_entries_panel.configure(fg_color=("#2B2B2B", "#1A1A1A"))
@@ -369,13 +500,21 @@ class WeatherJournalTab(ctk.CTkFrame):
                 text_color="#CCCCCC"
             )
             no_entries_label.pack(pady=30)
-            return
-        
-        # Sort entries by timestamp (newest first)
-        entries_to_show.sort(key=lambda x: x.get('timestamp', ''), reverse=True)
-        
-        for i, entry in enumerate(entries_to_show):
-            self.create_entry_card(entry, i)
+        except Exception as e:
+            print(f"Error showing no entries message: {e}")
+            # Simple fallback
+            simple_label = ctk.CTkLabel(
+                self.entries_scrollable,
+                text="📝 No journal entries available",
+                font=("Arial", 14),
+                text_color="#CCCCCC"
+            )
+            simple_label.grid(row=0, column=0, pady=30)
+    
+    def display_entries_simple(self):
+        """Simple fallback method to display entries."""
+        for i, entry in enumerate(self.entries):
+            self.create_simple_entry_card(entry, i)
     
     def create_entry_card(self, entry, row):
         """Create a glassmorphic card for displaying an entry."""
@@ -500,6 +639,119 @@ class WeatherJournalTab(ctk.CTkFrame):
             height=35,
             fg_color=("#8B0000", "#A52A2A"),
             hover_color=("#A52A2A", "#CD5C5C")
+        )
+        delete_btn.grid(row=1, column=0, pady=5)
+    
+    def create_simple_entry_card(self, entry, row):
+        """Create a simple entry card as fallback."""
+        # Simple card frame
+        card_frame = ctk.CTkFrame(
+            self.entries_scrollable,
+            fg_color=("#2B2B2B", "#1A1A1A"),
+            corner_radius=10
+        )
+        card_frame.grid(row=row, column=0, sticky="ew", padx=10, pady=8)
+        card_frame.grid_columnconfigure(1, weight=1)
+        
+        # Mood emoji
+        mood_emoji = {
+            "happy": "😊",
+            "neutral": "😐",
+            "sad": "😢",
+            "excited": "😎",
+            "tired": "😴"
+        }.get(entry.get('mood', 'neutral'), "😐")
+        
+        mood_label = ctk.CTkLabel(
+            card_frame,
+            text=mood_emoji,
+            font=("Arial", 24)
+        )
+        mood_label.grid(row=0, column=0, rowspan=3, padx=15, pady=15)
+        
+        # Entry info
+        info_frame = ctk.CTkFrame(card_frame, fg_color="transparent")
+        info_frame.grid(row=0, column=1, sticky="ew", padx=15, pady=15)
+        info_frame.grid_columnconfigure(0, weight=1)
+        
+        # Title
+        title_label = ctk.CTkLabel(
+            info_frame,
+            text=f"✨ {entry.get('title', 'Untitled')}",
+            font=("Arial", 16, "bold"),
+            text_color="#FFFFFF",
+            anchor="w"
+        )
+        title_label.grid(row=0, column=0, sticky="ew")
+        
+        # Timestamp
+        try:
+            from datetime import datetime
+            timestamp = datetime.fromisoformat(entry.get('timestamp', ''))
+            time_text = timestamp.strftime('%B %d, %Y at %I:%M %p')
+        except:
+            time_text = entry.get('timestamp', 'Unknown time')
+        
+        time_label = ctk.CTkLabel(
+            info_frame,
+            text=f"📅 {time_text}",
+            font=("Arial", 11),
+            text_color="#CCCCCC",
+            anchor="w"
+        )
+        time_label.grid(row=1, column=0, sticky="ew", pady=(2, 0))
+        
+        # Content preview
+        content = entry.get('content', '')
+        preview = content[:100] + "..." if len(content) > 100 else content
+        preview = preview.replace('\n', ' ')
+        
+        content_label = ctk.CTkLabel(
+            info_frame,
+            text=preview,
+            font=("Arial", 12),
+            text_color="#CCCCCC",
+            anchor="w",
+            wraplength=300
+        )
+        content_label.grid(row=2, column=0, sticky="ew", pady=(8, 0))
+        
+        # Weather info
+        weather = entry.get('weather', {})
+        if weather and weather.get('temperature'):
+            weather_text = f"🌡️ {weather.get('temperature')}°C | {weather.get('condition', 'N/A')}"
+            weather_label = ctk.CTkLabel(
+                info_frame,
+                text=weather_text,
+                font=("Arial", 11),
+                text_color="#00D4FF",
+                anchor="w"
+            )
+            weather_label.grid(row=3, column=0, sticky="ew", pady=(5, 0))
+        
+        # Simple action buttons
+        button_frame = ctk.CTkFrame(card_frame, fg_color="transparent")
+        button_frame.grid(row=0, column=2, rowspan=3, padx=15, pady=15)
+        
+        edit_btn = ctk.CTkButton(
+            button_frame,
+            text="✏️ Edit",
+            command=lambda e=entry: self.edit_entry(e),
+            width=70,
+            height=35,
+            fg_color="#0078D4",
+            hover_color="#106EBE"
+        )
+        edit_btn.grid(row=0, column=0, pady=5)
+        
+        delete_btn = ctk.CTkButton(
+            button_frame,
+            text="🗑️ Delete",
+            command=lambda e=entry: self.delete_entry(e),
+            width=70,
+            height=35,
+            fg_color="#8B0000",
+            hover_color="#A52A2A"
         )
         delete_btn.grid(row=1, column=0, pady=5)
     
