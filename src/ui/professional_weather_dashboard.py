@@ -29,6 +29,7 @@ from src.services.weather import (
     EnhancedWeatherService,
 )
 from src.services.github_team_service import GitHubTeamService
+from src.services.gemini_service import GeminiService
 from src.ui.components import (
     AnimationManager,
     ErrorManager,
@@ -44,6 +45,9 @@ from src.ui.components.error_handler import ErrorHandler
 from src.ui.components.forecast_day_card import ForecastDayCard
 from src.ui.components.ml_comparison_panel import MLComparisonPanel
 from src.ui.dashboard.settings_tab_manager import SettingsTabManager
+from src.ui.tabs.journal_tab import WeatherJournalTab
+from src.ui.tabs.activity_tab import ActivitySuggesterTab
+from src.ui.components.temperature_chart import TemperatureChart
 from src.ui.theme import DataTerminalTheme
 from src.ui.theme_manager import theme_manager
 from src.utils.api_optimizer import APIOptimizer
@@ -89,6 +93,13 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 self.config_service.get_setting("api.github_token") if self.config_service else None
             )
             self.github_service = GitHubTeamService(github_token=github_token)
+            
+            # Initialize Gemini service for AI-powered activity suggestions
+            gemini_api_key = (
+                self.config_service.get_setting("api.gemini_key") if self.config_service else None
+            )
+            self.gemini_service = GeminiService(api_key=gemini_api_key)
+            
             self.loading_manager = LoadingManager(ui_widget=self)
         except Exception as e:
             self.logger.warning(f"Running in demo mode without API keys: {e}")
@@ -96,6 +107,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             self.weather_service = None
             self.activity_service = None
             self.github_service = GitHubTeamService()  # GitHub service can work without API keys
+            self.gemini_service = GeminiService()  # Gemini service can work without API keys
             self.loading_manager = LoadingManager(ui_widget=self)  # Still initialize for offline mode
 
         # Initialize visual polish managers
@@ -348,6 +360,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.comparison_tab = self.tabview.add("🏙️ Team Compare")
         self.ml_comparison_tab = self.tabview.add("🧠 AI Analysis")
         self.activities_tab = self.tabview.add("Activities")
+        self.journal_tab = self.tabview.add("📝 Journal")
         self.maps_tab = self.tabview.add("Maps")
         self.settings_tab = self.tabview.add("Settings")
 
@@ -364,6 +377,9 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.activities_tab.grid_columnconfigure(0, weight=1)
         self.activities_tab.grid_rowconfigure(0, weight=1)
 
+        self.journal_tab.grid_columnconfigure(0, weight=1)
+        self.journal_tab.grid_rowconfigure(0, weight=1)
+
         self.maps_tab.grid_columnconfigure(0, weight=1)
         self.maps_tab.grid_rowconfigure(0, weight=1)
 
@@ -375,6 +391,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self._create_comparison_tab()
         self._create_ml_comparison_tab()
         self._create_activities_tab()
+        self._create_journal_tab()
         self._create_maps_tab()
         self.settings_tab_manager.create_settings_tab(self.settings_tab)
 
@@ -583,12 +600,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
         )
         chart_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 15))
 
-        # Import and create chart
-        from src.ui.components.simple_temperature_chart import SimpleTemperatureChart
-
-        self.temp_chart = SimpleTemperatureChart(
-            chart_frame, fg_color=DataTerminalTheme.BACKGROUND, corner_radius=6
-        )
+        # Import and create enhanced chart
+        self.temp_chart = TemperatureChart(chart_frame)
         self.temp_chart.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Add 5-day forecast cards below the chart
@@ -1690,15 +1703,26 @@ class ProfessionalWeatherDashboard(SafeCTk):
             if hasattr(self.temp_chart, "set_temperature_unit") and hasattr(self, "temp_unit"):
                 self.temp_chart.set_temperature_unit(self.temp_unit)
 
-            # Update chart if it has an update method
-            if hasattr(self.temp_chart, "update_data"):
+            # Update chart with enhanced chart API
+            if hasattr(self.temp_chart, "update_chart"):
+                # Convert hourly_temps to the format expected by enhanced chart
+                chart_data = []
+                for i, temp in enumerate(hourly_temps):
+                    chart_data.append({
+                        'time': datetime.now() + timedelta(hours=i),
+                        'temperature': temp,
+                        'condition': 'clear'  # Default condition
+                    })
+                self.temp_chart.update_chart(chart_data)
+                self.logger.info("✅ Enhanced chart updated successfully")
+            elif hasattr(self.temp_chart, "update_data"):
                 self.temp_chart.update_data(hourly_temps)
                 self.logger.info("✅ Chart updated successfully using update_data method")
             elif hasattr(self.temp_chart, "set_data"):
                 self.temp_chart.set_data(hourly_temps)
                 self.logger.info("✅ Chart updated successfully using set_data method")
             else:
-                self.logger.warning("⚠️ Chart object has no update_data or set_data method")
+                self.logger.warning("⚠️ Chart object has no update_chart, update_data or set_data method")
                 
         except Exception as e:
             self.logger.error(f"❌ Failed to update temperature chart: {e}")
@@ -2412,55 +2436,20 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.ml_comparison_panel.pack(fill="both", expand=True)
 
     def _create_activities_tab(self):
-        """Create activities tab content."""
-        self._create_activities_tab_content()
+        """Create activities tab content using the new ActivitySuggesterTab."""
+        # Create the new AI-powered activity suggester tab
+        self.activity_suggester_tab = ActivitySuggesterTab(
+            self.activities_tab,
+            self.weather_service,
+            self.gemini_service
+        )
+        self.activity_suggester_tab.pack(fill="both", expand=True)
+        
+        return self.activity_suggester_tab
 
     def _create_activities_tab_content(self):
-        """Create AI-powered activities tab with improved layout."""
-        # Configure main grid
-        self.activities_tab.grid_columnconfigure(0, weight=1)
-        self.activities_tab.grid_rowconfigure(1, weight=1)
-
-        # Header with better spacing
-        header_frame = SafeCTkFrame(self.activities_tab, fg_color="transparent", height=60)
-        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(15, 8))
-        header_frame.grid_propagate(False)
-        header_frame.grid_columnconfigure(0, weight=1)
-
-        title = SafeCTkLabel(
-            header_frame,
-            text="🎯 AI Activity Suggestions",
-            font=(DataTerminalTheme.FONT_FAMILY, 20, "bold"),
-            text_color=DataTerminalTheme.PRIMARY,
-        )
-        title.grid(row=0, column=0, sticky="w", pady=15)
-
-        refresh_btn = SafeCTkButton(
-            header_frame,
-            text="🔄 Get New Suggestions",
-            width=160,
-            height=32,
-            corner_radius=16,
-            fg_color=DataTerminalTheme.PRIMARY,
-            hover_color=DataTerminalTheme.SUCCESS,
-            font=(DataTerminalTheme.FONT_FAMILY, 11, "bold"),
-            command=self._refresh_activity_suggestions,
-        )
-        refresh_btn.grid(row=0, column=1, sticky="e", pady=15, padx=(15, 0))
-
-        # Activity cards container with better structure
-        self.activities_container = SafeCTkScrollableFrame(
-            self.activities_tab, fg_color="transparent", corner_radius=0
-        )
-        self.activities_container.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 15))
-
-        # Configure activities container grid for responsive layout
-        self.activities_container.grid_columnconfigure(0, weight=1)
-        self.activities_container.grid_columnconfigure(1, weight=1)
-        self.activities_container.grid_columnconfigure(2, weight=1)
-
-        # Create sample activity cards
-        self._create_sample_activities()
+        """Legacy method - now handled by ActivitySuggesterTab."""
+        pass
 
     def _create_sample_activities(self):
         """Create dynamic activity suggestions based on current weather."""
@@ -4064,6 +4053,26 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.error_handler.show_error_toast(
             f"Weather service error: {error_details}. Using cached data."
         )
+
+    def _create_journal_tab(self):
+        """Create the journal tab with weather integration"""
+        try:
+            # Create the journal tab widget
+            self.journal_widget = WeatherJournalTab(
+                parent=self.journal_tab,
+                weather_service=self.weather_service
+            )
+            self.journal_widget.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+            
+        except Exception as e:
+            logging.error(f"Error creating journal tab: {e}")
+            # Create fallback content
+            error_label = SafeCTkLabel(
+                self.journal_tab,
+                text="Journal feature temporarily unavailable",
+                font=(DataTerminalTheme.FONT_FAMILY, 14)
+            )
+            error_label.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
 
     def _create_maps_tab(self):
         """Create the maps tab with proper configuration"""
