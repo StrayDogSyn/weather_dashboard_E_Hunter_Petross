@@ -1,6 +1,9 @@
 """Machine Learning Weather Service for advanced analytics and recommendations."""
 
 import logging
+import json
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 
 # Conditional imports with fallback
@@ -13,6 +16,10 @@ try:
     from sklearn.decomposition import PCA
     from sklearn.metrics.pairwise import cosine_similarity
     from sklearn.neighbors import NearestNeighbors
+    from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import mean_absolute_error, r2_score
+    import joblib
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
@@ -144,6 +151,18 @@ class MLWeatherService:
             self._similarity_cache = {}
             self._cluster_cache = {}
             
+            # Initialize ML prediction components
+            if SKLEARN_AVAILABLE:
+                self.models_dir = Path("models")
+                self.models_dir.mkdir(exist_ok=True)
+                self.prediction_models = {}
+                self.prediction_scalers = {}
+                self.feature_names = [
+                    'temperature', 'humidity', 'pressure', 'wind_speed',
+                    'hour', 'day_of_week', 'month', 'clouds', 'visibility'
+                ]
+                self.load_or_train_models()
+            
             logger.info(f"ML Weather Service initialized (ML enabled: {self.ml_enabled})")
             
         except Exception as e:
@@ -156,6 +175,8 @@ class MLWeatherService:
             self.nn_model = None
             self._similarity_cache = {}
             self._cluster_cache = {}
+            self.prediction_models = {}
+            self.prediction_scalers = {}
 
     def prepare_weather_data(self, weather_profiles: List[WeatherProfile]) -> pd.DataFrame:
         """Prepare weather data for ML analysis."""
@@ -1344,6 +1365,246 @@ class MLWeatherService:
 
             # Style ticks
             ax.tick_params(colors=theme.get("text", "#E0E0E0"), which="both")
+
+    # ML Prediction Methods
+    def load_or_train_models(self):
+        """Load existing models or initialize for training."""
+        if not SKLEARN_AVAILABLE:
+            return
+            
+        try:
+            # Try to load existing models
+            temp_model_path = self.models_dir / "temperature_model.joblib"
+            humid_model_path = self.models_dir / "humidity_model.joblib"
+            temp_scaler_path = self.models_dir / "temperature_scaler.joblib"
+            
+            if temp_model_path.exists() and humid_model_path.exists() and temp_scaler_path.exists():
+                self.prediction_models['temperature'] = joblib.load(temp_model_path)
+                self.prediction_models['humidity'] = joblib.load(humid_model_path)
+                self.prediction_scalers['temperature'] = joblib.load(temp_scaler_path)
+                logger.info("Loaded existing ML prediction models")
+            else:
+                logger.info("No existing models found. Models will be trained when data is available.")
+                
+        except Exception as e:
+            logger.error(f"Error loading ML models: {e}")
+    
+    def prepare_features(self, weather_data):
+        """Extract features from weather data."""
+        try:
+            dt = datetime.fromtimestamp(weather_data.get('dt', datetime.now().timestamp()))
+            
+            features = {
+                'temperature': weather_data.get('temp', 20),
+                'humidity': weather_data.get('humidity', 50),
+                'pressure': weather_data.get('pressure', 1013),
+                'wind_speed': weather_data.get('wind_speed', 5),
+                'hour': dt.hour,
+                'day_of_week': dt.weekday(),
+                'month': dt.month,
+                'clouds': weather_data.get('clouds', 50),
+                'visibility': weather_data.get('visibility', 10000) / 1000  # Convert to km
+            }
+            
+            return np.array([features[name] for name in self.feature_names]).reshape(1, -1)
+        except Exception as e:
+            logger.error(f"Error preparing features: {e}")
+            return np.zeros((1, len(self.feature_names)))
+    
+    def train_models(self, historical_data):
+        """Train ML models on historical data."""
+        if not SKLEARN_AVAILABLE or len(historical_data) < 100:
+            logger.warning("Insufficient data for training. Need at least 100 samples.")
+            return False
+        
+        try:
+            # Prepare training data
+            X = []
+            y_temp = []
+            y_humid = []
+            
+            for i in range(len(historical_data) - 1):
+                current = historical_data[i]
+                next_hour = historical_data[i + 1]
+                
+                features = self.prepare_features(current)
+                X.append(features[0])
+                y_temp.append(next_hour['temp'])
+                y_humid.append(next_hour['humidity'])
+            
+            X = np.array(X)
+            y_temp = np.array(y_temp)
+            y_humid = np.array(y_humid)
+            
+            # Train temperature model
+            self.prediction_scalers['temperature'] = StandardScaler()
+            X_scaled = self.prediction_scalers['temperature'].fit_transform(X)
+            
+            self.prediction_models['temperature'] = GradientBoostingRegressor(
+                n_estimators=100,
+                learning_rate=0.1,
+                max_depth=5,
+                random_state=42
+            )
+            self.prediction_models['temperature'].fit(X_scaled, y_temp)
+            
+            # Train humidity model
+            self.prediction_models['humidity'] = RandomForestRegressor(
+                n_estimators=100,
+                max_depth=10,
+                random_state=42
+            )
+            self.prediction_models['humidity'].fit(X_scaled, y_humid)
+            
+            # Save models
+            self.save_models()
+            
+            # Calculate and log accuracy
+            self.evaluate_models(X_scaled, y_temp, y_humid)
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error training models: {e}")
+            return False
+    
+    def save_models(self):
+        """Save trained models to disk."""
+        try:
+            if 'temperature' in self.prediction_models:
+                joblib.dump(self.prediction_models['temperature'], self.models_dir / "temperature_model.joblib")
+                joblib.dump(self.prediction_models['humidity'], self.models_dir / "humidity_model.joblib")
+                joblib.dump(self.prediction_scalers['temperature'], self.models_dir / "temperature_scaler.joblib")
+                logger.info("ML models saved successfully")
+        except Exception as e:
+            logger.error(f"Error saving models: {e}")
+    
+    def evaluate_models(self, X_scaled, y_temp, y_humid):
+        """Evaluate model performance."""
+        try:
+            # Split data for evaluation
+            X_train, X_test, y_temp_train, y_temp_test = train_test_split(
+                X_scaled, y_temp, test_size=0.2, random_state=42
+            )
+            _, _, y_humid_train, y_humid_test = train_test_split(
+                X_scaled, y_humid, test_size=0.2, random_state=42
+            )
+            
+            # Evaluate temperature model
+            temp_pred = self.prediction_models['temperature'].predict(X_test)
+            temp_mae = mean_absolute_error(y_temp_test, temp_pred)
+            temp_r2 = r2_score(y_temp_test, temp_pred)
+            
+            # Evaluate humidity model
+            humid_pred = self.prediction_models['humidity'].predict(X_test)
+            humid_mae = mean_absolute_error(y_humid_test, humid_pred)
+            humid_r2 = r2_score(y_humid_test, humid_pred)
+            
+            logger.info(f"Temperature Model - MAE: {temp_mae:.2f}, R²: {temp_r2:.3f}")
+            logger.info(f"Humidity Model - MAE: {humid_mae:.2f}, R²: {humid_r2:.3f}")
+            
+        except Exception as e:
+            logger.error(f"Error evaluating models: {e}")
+    
+    def predict_weather(self, current_weather, hours_ahead=24):
+        """Generate weather predictions."""
+        if not SKLEARN_AVAILABLE:
+            return self._fallback_predictions(current_weather, hours_ahead)
+        
+        predictions = []
+        current_data = current_weather.copy()
+        
+        try:
+            for hour in range(hours_ahead):
+                features = self.prepare_features(current_data)
+                
+                if 'temperature' in self.prediction_models and 'temperature' in self.prediction_scalers:
+                    features_scaled = self.prediction_scalers['temperature'].transform(features)
+                    
+                    # Predict
+                    temp_pred = self.prediction_models['temperature'].predict(features_scaled)[0]
+                    humid_pred = self.prediction_models['humidity'].predict(features_scaled)[0]
+                    
+                    # Add uncertainty bounds
+                    temp_std = self.calculate_prediction_uncertainty(features_scaled, 'temperature')
+                    humid_std = self.calculate_prediction_uncertainty(features_scaled, 'humidity')
+                    
+                    prediction = {
+                        'hour': hour + 1,
+                        'temperature': round(temp_pred, 1),
+                        'temperature_min': round(temp_pred - temp_std, 1),
+                        'temperature_max': round(temp_pred + temp_std, 1),
+                        'humidity': round(humid_pred, 0),
+                        'humidity_min': round(max(0, humid_pred - humid_std), 0),
+                        'humidity_max': round(min(100, humid_pred + humid_std), 0),
+                        'confidence': self.calculate_confidence(hour)
+                    }
+                    
+                    predictions.append(prediction)
+                    
+                    # Update current_data for next prediction
+                    current_data['temp'] = temp_pred
+                    current_data['humidity'] = humid_pred
+                    current_data['dt'] += 3600  # Add 1 hour
+                else:
+                    # Fallback to simple prediction
+                    predictions.append(self.simple_prediction(current_data, hour + 1))
+            
+            return predictions
+            
+        except Exception as e:
+            logger.error(f"Error in weather prediction: {e}")
+            return self._fallback_predictions(current_weather, hours_ahead)
+    
+    def calculate_prediction_uncertainty(self, features, model_type):
+        """Calculate prediction uncertainty using ensemble variance."""
+        try:
+            if model_type == 'temperature':
+                # For gradient boosting, use staged predictions
+                predictions = []
+                for pred in self.prediction_models[model_type].staged_predict(features):
+                    predictions.append(pred[0])
+                return np.std(predictions[-10:])  # Use last 10 estimators
+            else:
+                # For random forest, use tree predictions
+                predictions = []
+                for tree in self.prediction_models[model_type].estimators_:
+                    predictions.append(tree.predict(features)[0])
+                return np.std(predictions)
+        except Exception as e:
+            logger.error(f"Error calculating uncertainty: {e}")
+            return 2.0  # Default uncertainty
+    
+    def calculate_confidence(self, hours_ahead):
+        """Calculate prediction confidence based on time horizon."""
+        # Confidence decreases with prediction horizon
+        base_confidence = 0.95
+        decay_rate = 0.02
+        return max(0.5, base_confidence - (decay_rate * hours_ahead))
+    
+    def simple_prediction(self, current_data, hour):
+        """Simple fallback prediction when ML models are not available."""
+        # Simple linear trend with some randomness
+        temp_change = np.random.normal(0, 1)  # Random temperature change
+        humid_change = np.random.normal(0, 5)  # Random humidity change
+        
+        return {
+            'hour': hour,
+            'temperature': round(current_data.get('temp', 20) + temp_change, 1),
+            'temperature_min': round(current_data.get('temp', 20) + temp_change - 2, 1),
+            'temperature_max': round(current_data.get('temp', 20) + temp_change + 2, 1),
+            'humidity': round(max(0, min(100, current_data.get('humidity', 50) + humid_change)), 0),
+            'humidity_min': round(max(0, current_data.get('humidity', 50) + humid_change - 10), 0),
+            'humidity_max': round(min(100, current_data.get('humidity', 50) + humid_change + 10), 0),
+            'confidence': max(0.3, 0.8 - (0.02 * hour))
+        }
+    
+    def _fallback_predictions(self, current_weather, hours_ahead):
+        """Fallback predictions when ML is not available."""
+        predictions = []
+        for hour in range(hours_ahead):
+            predictions.append(self.simple_prediction(current_weather, hour + 1))
+        return predictions
 
     def _style_polar_chart(self, ax, theme):
         """Apply theme styling to a polar chart."""

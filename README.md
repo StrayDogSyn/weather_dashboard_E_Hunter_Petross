@@ -1,6 +1,6 @@
 # ⚡ PROJECT CODEFRONT
 
-## Advanced Weather Intelligence System v3.5
+## Advanced Weather Intelligence System v3.6
 
 ### Justice Through Code - Tech Pathways Capstone
 
@@ -8,9 +8,9 @@
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-A comprehensive weather intelligence platform demonstrating advanced Python development. Features real-time weather data, interactive maps, AI-powered analytics, and a dynamic theme system.
+A comprehensive weather intelligence platform demonstrating advanced Python development. Features real-time weather data, interactive maps, AI-powered analytics, dynamic theme system, and enhanced accessibility features.
 
-> **📋 Status**: ✅ Core Features Complete | 🎨 Multi-Theme | 🔬 ML Analytics | 🛠️ Clean Architecture | 🔧 Recently Stabilized
+> **📋 Status**: ✅ Core Features Complete | 🎨 Multi-Theme | 🔬 ML Analytics | 🛠️ Clean Architecture | 🔤 Accessibility Enhanced | 📊 Interactive Forecasts | 🔧 Fully Stabilized
 
 **Developer**: E. Hunter Petross | **Program**: Justice Through Code - Tech Pathways Capstone | **Year**: 2025 | **Technology**: Python, CustomTkinter, OpenWeatherMap API
 
@@ -23,13 +23,15 @@ A comprehensive weather intelligence platform demonstrating advanced Python deve
 ### 🌤️ Weather Data & Display ✅ COMPLETE
 
 - **Real-time weather conditions** for any city worldwide
-- **5-day detailed forecasts** with hourly breakdowns
+- **5-day detailed forecasts** with hourly breakdowns and enhanced popup details ✅
 - **Enhanced weather metrics** including humidity, wind speed, pressure, and UV index
 - **Temperature unit conversion** (Celsius/Fahrenheit) with persistent preferences
 - **Location search** with autocomplete and recent searches
 - **Weather alerts** and severe weather notifications
 - **Air quality data** with health recommendations
 - **Astronomical information** including sunrise, sunset, and moon phases
+- **Interactive forecast popups** with detailed hourly breakdowns and charts ✅
+- **Font size controls** for enhanced accessibility across all text displays ✅
 
 ### 🗺️ Enhanced Maps Integration ✅ COMPLETE
 
@@ -64,6 +66,8 @@ A comprehensive weather intelligence platform demonstrating advanced Python deve
 - **Live Theme Switching**: Instant theme changes without restart
 - **Chart Theme Integration**: All visualizations automatically adapt to selected theme
 - **Consistent Styling**: Unified color schemes across all components
+- **Theme Attribute Fixes**: Resolved all DataTerminalTheme compatibility issues ✅
+- **Enhanced Color System**: Proper theme color mapping for all UI elements ✅
 
 ### 🔧 Technical Features ✅ COMPLETE
 
@@ -80,6 +84,17 @@ A comprehensive weather intelligence platform demonstrating advanced Python deve
 - **Enhanced static maps** with weather layer overlays ✅
 - **Progressive loading** with startup optimization ✅
 - **Component recycling** for memory efficiency ✅
+- **Accessibility Features** with font size controls and enhanced readability ✅
+- **Enhanced Forecast Displays** with detailed popup windows and interactive charts ✅
+
+### 🔤 Accessibility & User Experience ✅ NEW
+
+- **Font Size Controls**: Adjustable text size across all components for improved readability ✅
+- **Interactive Forecast Popups**: Detailed weather information with hourly breakdowns and charts ✅
+- **Enhanced Visual Hierarchy**: Improved layout and information organization ✅
+- **Theme Compatibility**: Resolved all theme attribute errors for consistent styling ✅
+- **User-Friendly Controls**: Intuitive font adjustment buttons with real-time preview ✅
+- **Responsive Design**: All components adapt to font size changes seamlessly ✅
 
 ## 🚀 Quick Start
 
@@ -178,6 +193,8 @@ python main.py
 - **Responsive layout** that adapts to window size and theme changes
 - **Dynamic hover effects** that match selected theme colors
 - **Theme-synchronized data visualization** with consistent color schemes
+- **🔤 Accessibility Features**: Font size controls for enhanced readability across all components ✅
+- **📊 Enhanced Forecast Details**: Interactive popup windows with detailed hourly breakdowns ✅
 
 ## 📱 Usage
 
@@ -204,6 +221,8 @@ python main.py
 - **🌍 Enhanced City Comparison** - Traditional and AI-powered analysis modes
 - **🎯 Enhanced Activity Suggestions** - AI-powered recommendations with filtering
 - **🎨 Live Theme System** - 6 professional themes with instant switching
+- **🔤 Font Size Controls** - Adjustable text size for improved accessibility
+- **📋 Interactive Forecast Popups** - Detailed weather information with charts and metrics
 
 ## 🛠️ Technology Stack
 
@@ -345,6 +364,9 @@ The Weather Dashboard follows clean architecture principles with modular design 
 - **Data Accuracy**: 99.9% (multiple source validation) ✅
 - **Maps Loading**: < 3 seconds (progressive enhancement) ✅
 - **Error Recovery**: < 1 second (automatic fallbacks) ✅
+- **Theme Switching**: Instant (real-time updates) ✅
+- **Accessibility**: Full font size control support ✅
+- **Forecast Popups**: < 1 second load time ✅
 
 ## 🚧 Development Roadmap
 
@@ -374,6 +396,10 @@ The Weather Dashboard follows clean architecture principles with modular design 
 - ✅ **Added Missing Theme Support**: Implemented `update_theme()` method in `TemperatureChart` class to prevent `AttributeError` during theme changes
 - ✅ **Application Stability**: All blocking errors resolved - application now starts and runs cleanly with exit code 0
 - ✅ **Enhanced Error Handling**: Improved error messages and graceful degradation for API quota limitations
+- ✅ **Theme Attribute Fixes**: Resolved all `DataTerminalTheme` attribute errors (TEXT_PRIMARY, BG_SECONDARY) for proper theme compatibility
+- ✅ **Enhanced Forecast Popups**: Implemented detailed forecast popup windows with hourly breakdowns and interactive charts
+- ✅ **Font Size Controls**: Added comprehensive font size adjustment controls across all text displays for improved accessibility
+- ✅ **UI Component Enhancements**: Enhanced forecast details with better visual hierarchy and user-friendly controls
 
 ### Critical Stability Fixes (Previous)
 

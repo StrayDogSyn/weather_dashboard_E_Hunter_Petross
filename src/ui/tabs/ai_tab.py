@@ -32,6 +32,10 @@ class AITab(ctk.CTkFrame):
         # UI state
         self.is_loading = False
         
+        # Font size control
+        self.font_size = 16
+        self.text_widgets = []
+        
         # Initialize AI manager in background
         self.init_ai_manager()
         
@@ -92,6 +96,9 @@ class AITab(ctk.CTkFrame):
             font=ctk.CTkFont(size=24, weight="bold")
         )
         title_label.grid(row=0, column=0, padx=20, pady=15, sticky="w")
+        
+        # Font controls
+        self.create_font_controls(header_frame)
         
         # Controls frame
         controls_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
@@ -171,10 +178,11 @@ class AITab(ctk.CTkFrame):
         # Poetry display area
         self.poetry_text = ctk.CTkTextbox(
             poetry_frame,
-            font=ctk.CTkFont(size=14, family="Georgia"),
+            font=ctk.CTkFont(size=self.font_size, family="Georgia"),
             wrap="word"
         )
         self.poetry_text.grid(row=1, column=0, columnspan=2, sticky="nsew", padx=10, pady=10)
+        self.text_widgets.append(self.poetry_text)
         
         # Poetry metadata frame
         metadata_frame = ctk.CTkFrame(poetry_frame)
@@ -271,10 +279,11 @@ class AITab(ctk.CTkFrame):
         # Insights display
         self.insights_text = ctk.CTkTextbox(
             insights_frame,
-            font=ctk.CTkFont(size=14),
+            font=ctk.CTkFont(size=self.font_size),
             wrap="word"
         )
         self.insights_text.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.text_widgets.append(self.insights_text)
         
         # Facts section
         facts_frame = ctk.CTkFrame(insights_frame)
@@ -323,10 +332,11 @@ class AITab(ctk.CTkFrame):
         # Story display
         self.story_text = ctk.CTkTextbox(
             stories_frame,
-            font=ctk.CTkFont(size=14, family="Georgia"),
+            font=ctk.CTkFont(size=self.font_size, family="Georgia"),
             wrap="word"
         )
         self.story_text.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.text_widgets.append(self.story_text)
     
     def create_status_bar(self):
         """Create status bar"""
@@ -739,6 +749,91 @@ class AITab(ctk.CTkFrame):
             command=settings_window.destroy
         ).pack(pady=20)
     
+    def create_font_controls(self, parent):
+        """Create font size control buttons."""
+        font_frame = ctk.CTkFrame(parent, fg_color="transparent")
+        font_frame.grid(row=0, column=1, padx=(50, 0), pady=15)
+
+        # Font size label
+        font_label = ctk.CTkLabel(
+            font_frame,
+            text="Font:",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="#FFFFFF",
+        )
+        font_label.pack(side="left", padx=(0, 5))
+
+        # Decrease font button
+        decrease_btn = ctk.CTkButton(
+            font_frame,
+            text="A-",
+            width=35,
+            height=30,
+            command=self._decrease_font_size,
+            fg_color="#2B2B2B",
+            hover_color="#00D4FF",
+            font=ctk.CTkFont(size=10, weight="bold"),
+        )
+        decrease_btn.pack(side="left", padx=2)
+
+        # Current font size display
+        self.font_size_label = ctk.CTkLabel(
+            font_frame,
+            text=str(self.font_size),
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color="#FFFFFF",
+            width=25,
+        )
+        self.font_size_label.pack(side="left", padx=2)
+
+        # Increase font button
+        increase_btn = ctk.CTkButton(
+            font_frame,
+            text="A+",
+            width=35,
+            height=30,
+            command=self._increase_font_size,
+            fg_color="#2B2B2B",
+            hover_color="#00D4FF",
+            font=ctk.CTkFont(size=10, weight="bold"),
+        )
+        increase_btn.pack(side="left", padx=2)
+
+    def _increase_font_size(self):
+        """Increase font size for all AI text widgets."""
+        if self.font_size < 24:
+            self.font_size += 1
+            self._update_font_sizes()
+
+    def _decrease_font_size(self):
+        """Decrease font size for all AI text widgets."""
+        if self.font_size > 10:
+            self.font_size -= 1
+            self._update_font_sizes()
+
+    def _update_font_sizes(self):
+        """Update font sizes for all tracked text widgets."""
+        self.font_size_label.configure(text=str(self.font_size))
+        
+        for widget in self.text_widgets:
+            try:
+                current_font = widget.cget("font")
+                if isinstance(current_font, tuple):
+                    family, size, *style = current_font
+                    new_font = (family, self.font_size, *style)
+                    widget.configure(font=new_font)
+                elif isinstance(current_font, str):
+                    # Handle string font specifications
+                    parts = current_font.split()
+                    if len(parts) >= 2:
+                        family = parts[0]
+                        style = parts[2:] if len(parts) > 2 else []
+                        new_font = (family, self.font_size, *style)
+                        widget.configure(font=new_font)
+            except Exception as e:
+                logger.debug(f"Could not update font for widget: {e}")
+                pass  # Skip widgets that can't be updated
+
     def apply_theme(self):
         """Apply current theme"""
         if self.theme_manager:
