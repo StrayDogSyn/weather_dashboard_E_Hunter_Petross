@@ -502,12 +502,31 @@ Consider:
         
         # Activity type badge
         type_color = "#00FF88" if suggestion.get('type') == 'outdoor' else "#FF6B6B"
+        # Create a blended background color for transparency effect
+        def blend_color_with_bg(color: str, opacity: float = 0.125) -> str:
+            """Blend color with dark background to simulate transparency."""
+            try:
+                color = color.lstrip("#")
+                r = int(color[0:2], 16)
+                g = int(color[2:4], 16)
+                b = int(color[4:6], 16)
+                
+                # Blend with dark background
+                bg_r, bg_g, bg_b = 26, 26, 26  # Dark background
+                new_r = int(r * opacity + bg_r * (1 - opacity))
+                new_g = int(g * opacity + bg_g * (1 - opacity))
+                new_b = int(b * opacity + bg_b * (1 - opacity))
+                
+                return f"#{new_r:02x}{new_g:02x}{new_b:02x}"
+            except (ValueError, IndexError):
+                return "#1a1a1a"
+        
         type_label = ctk.CTkLabel(
             header_frame,
             text=f"🏠 {suggestion.get('type', 'general').title()}",
             font=("Helvetica", 10),
             text_color=type_color,
-            fg_color=(type_color + "20"),
+            fg_color=blend_color_with_bg(type_color),
             corner_radius=10
         )
         type_label.pack(side="right", padx=(10, 0))

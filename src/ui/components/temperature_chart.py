@@ -39,8 +39,8 @@ class TemperatureChart(GlassmorphicFrame):
             'secondary': '#FF6B6B',
             'accent': '#4ECDC4',
             'text': '#FFFFFF',
-            'grid': '#FFFFFF33',
-            'border': '#FFFFFF22'
+            'grid': '#666666',
+            'border': '#444444'
         }
         
         self.setup_chart()
@@ -77,7 +77,13 @@ class TemperatureChart(GlassmorphicFrame):
             button_class = ctk.CTkButton
             
         # Controls frame
-        controls_frame = tk.Frame(self, bg='transparent')
+        try:
+            # Try to get background color from parent
+            bg_color = self._fg_color if hasattr(self, '_fg_color') else '#2b2b2b'
+        except:
+            bg_color = '#2b2b2b'
+        
+        controls_frame = tk.Frame(self, bg=bg_color)
         controls_frame.pack(fill="x", padx=10, pady=(0, 10))
         
         # Timeframe buttons

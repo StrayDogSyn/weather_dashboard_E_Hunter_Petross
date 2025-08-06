@@ -55,6 +55,10 @@ from src.services.database import CacheManager
 from src.utils.component_recycler import ComponentRecycler
 from src.utils.loading_manager import LoadingManager
 from src.utils.startup_optimizer import StartupOptimizer
+from src.services.cache.intelligent_cache import IntelligentCache
+from src.ui.utils.lazy_image_loader import get_image_loader
+from src.services.performance_optimizer import get_performance_optimizer, time_operation
+from src.services.database.optimized_queries import get_optimized_db
 
 # Load environment variables
 load_dotenv()
@@ -83,6 +87,12 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.startup_optimizer = StartupOptimizer()
         self.component_recycler = ComponentRecycler()
         self.api_optimizer = APIOptimizer()
+        
+        # Initialize new performance optimization components
+        self.intelligent_cache = IntelligentCache(base_dir="cache")
+        self.image_loader = get_image_loader()
+        self.optimized_db = get_optimized_db()
+        self.performance_optimizer = get_performance_optimizer()
 
         # Initialize services (with fallback for demo mode)
         try:
@@ -2699,8 +2709,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
     def _update_cache_size(self):
         """Update cache size display."""
         try:
-            # Mock cache size calculation
-            cache_size_mb = 15.7
+            # Get actual cache size from intelligent cache
+            cache_size_mb = self.intelligent_cache.get_cache_size_mb()
             if hasattr(self, "cache_size_label"):
                 self.cache_size_label.configure(text=f"Cache Size: {cache_size_mb:.1f} MB")
         except Exception as e:
@@ -2710,6 +2720,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
         """Clear all cached data."""
         try:
             # Clear all cache types
+            self.intelligent_cache.clear_all()
+            self.image_loader.clear_cache()
             self._clear_cache()
             self._update_cache_size()
             self.status_label.configure(text="🗑️ All cache cleared")
@@ -2719,20 +2731,33 @@ class ProfessionalWeatherDashboard(SafeCTk):
     def _clear_weather_cache(self):
         """Clear only weather-specific cache."""
         try:
-            # In real implementation, clear only weather cache
+            # Clear weather-specific cache entries
+            self.intelligent_cache.clear_pattern("weather_*")
+            self.intelligent_cache.clear_pattern("forecast_*")
             self._update_cache_size()
             self.status_label.configure(text="🌤️ Weather cache cleared")
         except Exception as e:
             self.status_label.configure(text=f"❌ Weather cache clear failed: {str(e)}")
 
+    @time_operation("database_optimization")
     def _optimize_database(self):
-        """Optimize database performance."""
+        """Optimize database performance using OptimizedDatabase."""
         try:
-            # In real implementation, run database optimization
             self.status_label.configure(text="⚡ Database optimization started...")
-            # Mock optimization delay
-            self.safe_after(2000, lambda: self.status_label.configure(text="✅ Database optimized"))
+            
+            # Use the optimized database to create indexes and optimize settings
+            self.optimized_db.create_indexes()
+            self.optimized_db.optimize_settings()
+            
+            # Clear old cache entries
+            self.intelligent_cache.clear_expired()
+            
+            # Update performance metrics
+            self.performance_optimizer.log_metric("database_optimization", "completed")
+            
+            self.safe_after(1000, lambda: self.status_label.configure(text="✅ Database optimized with indexes"))
         except Exception as e:
+            self.logger.error(f"Database optimization failed: {e}")
             self.status_label.configure(text=f"❌ Database optimization failed: {str(e)}")
 
     def _export_data_with_range(self):
@@ -3601,71 +3626,104 @@ class ProfessionalWeatherDashboard(SafeCTk):
             self.logger.error(f"API optimizer fetch failed: {e}")
             return self._direct_fetch_weather_data()
 
+    @time_operation("weather_data_fetch")
     def _direct_fetch_weather_data(self):
-        """Direct weather data fetch as fallback."""
-        try:
-            # Import custom exceptions for proper handling
-            # For Windows compatibility, use threading timeout instead of signal
-            import threading
+        """Direct weather data fetch with intelligent caching and performance monitoring."""
+        # Check intelligent cache first
+        cache_key = f"weather_data_{self.current_city}"
+        
+        def fetch_weather_data():
+            try:
+                # Import custom exceptions for proper handling
+                # For Windows compatibility, use threading timeout instead of signal
+                import threading
 
-            from src.services.weather import (
-                APIKeyError,
-                NetworkError,
-                RateLimitError,
-                ServiceUnavailableError,
-                WeatherServiceError,
-            )
-
-            result = [None]
-            exception = [None]
-
-            def fetch_with_timeout():
-                try:
-                    # Fetch both current weather and forecast data
-                    current_weather = self.weather_service.get_enhanced_weather(self.current_city)
-                    
-                    # Try to fetch forecast data and add it to the weather object
-                    try:
-                        forecast_data = self.weather_service.get_forecast(self.current_city)
-                        self.logger.info(f"DEBUG: Fetched forecast_data type: {type(forecast_data)}")
-                        self.logger.info(f"DEBUG: Forecast data has {len(forecast_data.hourly_forecasts) if hasattr(forecast_data, 'hourly_forecasts') and forecast_data.hourly_forecasts else 0} hourly entries")
-                        
-                        # Add forecast data to the current weather object
-                        try:
-                            current_weather.forecast_data = forecast_data
-                            self.logger.info(f"DEBUG: Successfully set forecast_data on weather object")
-                        except Exception as set_error:
-                            self.logger.error(f"DEBUG: Failed to set forecast_data: {set_error}")
-                            
-                        self.logger.info(f"✅ Forecast data loaded with {len(forecast_data.hourly_forecasts)} hourly entries")
-                    except Exception as forecast_error:
-                        self.logger.warning(f"⚠️ Could not fetch forecast data: {forecast_error}")
-                        # Continue with current weather only
-                    
-                    result[0] = current_weather
-                except Exception as e:
-                    exception[0] = e
-
-            # Start fetch in thread with timeout
-            fetch_thread = threading.Thread(target=fetch_with_timeout, daemon=True)
-            fetch_thread.start()
-            fetch_thread.join(timeout=4.0)  # 4 second timeout for API call
-
-            if fetch_thread.is_alive():
-                # Timeout occurred
-                self.logger.warning(
-                    f"Weather API timeout for {self.current_city}, using cached/offline data"
+                from src.services.weather import (
+                    APIKeyError,
+                    NetworkError,
+                    RateLimitError,
+                    ServiceUnavailableError,
+                    WeatherServiceError,
                 )
-                return self._get_cached_or_offline_weather_data()
 
-            if exception[0]:
-                raise exception[0]
+                result = [None]
+                exception = [None]
 
-            if result[0]:
-                self.logger.info(f"✅ Weather data loaded successfully for {self.current_city}")
-                return result[0]
-            else:
-                raise WeatherServiceError("No weather data returned")
+                def fetch_with_timeout():
+                    try:
+                        # Fetch both current weather and forecast data
+                        current_weather = self.weather_service.get_enhanced_weather(self.current_city)
+                        
+                        # Try to fetch forecast data and add it to the weather object
+                        try:
+                            forecast_data = self.weather_service.get_forecast(self.current_city)
+                            self.logger.info(f"DEBUG: Fetched forecast_data type: {type(forecast_data)}")
+                            self.logger.info(f"DEBUG: Forecast data has {len(forecast_data.hourly_forecasts) if hasattr(forecast_data, 'hourly_forecasts') and forecast_data.hourly_forecasts else 0} hourly entries")
+                            
+                            # Add forecast data to the current weather object
+                            try:
+                                current_weather.forecast_data = forecast_data
+                                self.logger.info(f"DEBUG: Successfully set forecast_data on weather object")
+                            except Exception as set_error:
+                                self.logger.error(f"DEBUG: Failed to set forecast_data: {set_error}")
+                                
+                            self.logger.info(f"✅ Forecast data loaded with {len(forecast_data.hourly_forecasts)} hourly entries")
+                        except Exception as forecast_error:
+                            self.logger.warning(f"⚠️ Could not fetch forecast data: {forecast_error}")
+                            # Continue with current weather only
+                        
+                        result[0] = current_weather
+                    except Exception as e:
+                        exception[0] = e
+
+                # Start fetch in thread with timeout
+                fetch_thread = threading.Thread(target=fetch_with_timeout, daemon=True)
+                fetch_thread.start()
+                fetch_thread.join(timeout=4.0)  # 4 second timeout for API call
+
+                if fetch_thread.is_alive():
+                    # Timeout occurred
+                    self.logger.warning(
+                        f"Weather API timeout for {self.current_city}, using cached/offline data"
+                    )
+                    return self._get_cached_or_offline_weather_data()
+
+                if exception[0]:
+                    raise exception[0]
+
+                if result[0]:
+                    self.logger.info(f"✅ Weather data loaded successfully for {self.current_city}")
+                    # Store in optimized database
+                    try:
+                        self.optimized_db.insert_weather_data_batch([{
+                            'city': self.current_city,
+                            'temperature': result[0].temperature,
+                            'condition': result[0].condition,
+                            'humidity': result[0].humidity,
+                            'wind_speed': result[0].wind_speed,
+                            'timestamp': datetime.now().isoformat()
+                        }])
+                    except Exception as db_error:
+                        self.logger.warning(f"Failed to store weather data in optimized DB: {db_error}")
+                    
+                    return result[0]
+                else:
+                    raise WeatherServiceError("No weather data returned")
+                    
+            except Exception as e:
+                self.logger.error(f"Error fetching weather data: {e}")
+                raise
+        
+        try:
+            # Use intelligent cache with 5-minute TTL
+            return self.intelligent_cache.get_or_compute(
+                cache_key, 
+                fetch_weather_data, 
+                ttl_minutes=5
+            )
+        except Exception as e:
+            self.logger.error(f"Cache error, falling back to direct fetch: {e}")
+            return fetch_weather_data()
 
         except (RateLimitError, APIKeyError) as e:
             self.logger.warning(f"API issue for {self.current_city}: {e}")
