@@ -10,17 +10,17 @@
           "longitude": -0.1257,
           "timezone": null
         },
-        "timestamp": "2025-08-05 22:30:33.528230",
+        "timestamp": "2025-08-05 22:46:35.838460",
         "condition": "WeatherCondition.CLOUDS",
         "description": "Overcast Clouds",
-        "temperature": 12.8,
-        "feels_like": 12.0,
-        "humidity": 73,
-        "pressure": 1025,
+        "temperature": 12.5,
+        "feels_like": 11.7,
+        "humidity": 75,
+        "pressure": 1026,
         "visibility": 10,
         "uv_index": null,
-        "wind_speed": 0.5,
-        "wind_direction": 278,
+        "wind_speed": 1.4,
+        "wind_direction": 280,
         "wind_gust": null,
         "cloudiness": 100,
         "sunrise": null,
@@ -41,25 +41,25 @@
           ],
           "base": "stations",
           "main": {
-            "temp": 12.79,
-            "feels_like": 12.03,
-            "temp_min": 10.28,
-            "temp_max": 14.28,
-            "pressure": 1025,
-            "humidity": 73,
-            "sea_level": 1025,
-            "grnd_level": 1022
+            "temp": 12.46,
+            "feels_like": 11.72,
+            "temp_min": 9.87,
+            "temp_max": 13.98,
+            "pressure": 1026,
+            "humidity": 75,
+            "sea_level": 1026,
+            "grnd_level": 1021
           },
           "visibility": 10000,
           "wind": {
-            "speed": 0.45,
-            "deg": 278,
-            "gust": 0.45
+            "speed": 1.41,
+            "deg": 280,
+            "gust": 3.23
           },
           "clouds": {
             "all": 100
           },
-          "dt": 1754446860,
+          "dt": 1754448050,
           "sys": {
             "type": 2,
             "id": 2075535,
@@ -78,23 +78,23 @@
           "sunset": "2025-08-06 15:40:48",
           "moonrise": null,
           "moonset": null,
-          "moon_phase": 0.07525340222546684,
+          "moon_phase": 0.20166747331579793,
           "day_length": "15:08:48"
         },
         "forecast_data": null
       },
       "air_quality": null,
       "astronomical": {
-        "sunrise": "2025-08-06T00:32:00",
-        "sunset": "2025-08-06T15:40:48",
+        "sunrise": "2025-08-06 00:32:00",
+        "sunset": "2025-08-06 15:40:48",
         "moonrise": null,
         "moonset": null,
-        "moon_phase": 0.07525340222546684,
-        "day_length": 54528.0
+        "moon_phase": 0.20166747331579793,
+        "day_length": "15:08:48"
       },
       "alerts": []
     },
-    "timestamp": "2025-08-05T22:30:35.374411",
+    "timestamp": "2025-08-05T22:46:37.704401",
     "ttl": 600
   },
   "forecast_london": {
@@ -23177,7 +23177,7 @@
         "display": "East Providence, Rhode Island, US"
       }
     ],
-    "timestamp": "2025-08-05T20:23:44.483300"
+    "timestamp": "2025-08-05T22:46:54.797009"
   },
   "enhanced_east providence, rhode island, us": {
     "data": {
@@ -23190,12 +23190,12 @@
           "longitude": -71.3701,
           "timezone": null
         },
-        "timestamp": "2025-08-05 20:37:23.193339",
+        "timestamp": "2025-08-05 22:46:55.733895",
         "condition": "WeatherCondition.CLOUDS",
         "description": "Broken Clouds",
-        "temperature": 20.8,
-        "feels_like": 20.9,
-        "humidity": 75,
+        "temperature": 18.3,
+        "feels_like": 18.3,
+        "humidity": 81,
         "pressure": 1028,
         "visibility": 10,
         "uv_index": null,
@@ -23221,14 +23221,14 @@
           ],
           "base": "stations",
           "main": {
-            "temp": 20.77,
-            "feels_like": 20.86,
-            "temp_min": 19,
-            "temp_max": 21.99,
+            "temp": 18.29,
+            "feels_like": 18.29,
+            "temp_min": 16.38,
+            "temp_max": 19.67,
             "pressure": 1028,
-            "humidity": 75,
+            "humidity": 81,
             "sea_level": 1028,
-            "grnd_level": 1022
+            "grnd_level": 1023
           },
           "visibility": 10000,
           "wind": {
@@ -23238,7 +23238,7 @@
           "clouds": {
             "all": 75
           },
-          "dt": 1754440642,
+          "dt": 1754448415,
           "sys": {
             "type": 2,
             "id": 2027911,
@@ -23257,7 +23257,7 @@
           "sunset": "2025-08-05 19:59:15",
           "moonrise": null,
           "moonset": null,
-          "moon_phase": 0.4516644980347878,
+          "moon_phase": 0.06140148196178463,
           "day_length": "14:15:37"
         },
         "forecast_data": null
@@ -23268,12 +23268,12 @@
         "sunset": "2025-08-05T19:59:15",
         "moonrise": null,
         "moonset": null,
-        "moon_phase": 0.4516644980347878,
+        "moon_phase": 0.06140148196178463,
         "day_length": 51337.0
       },
       "alerts": []
     },
-    "timestamp": "2025-08-05T20:37:25.112689",
+    "timestamp": "2025-08-05T22:46:57.710770",
     "ttl": 600
   },
   "search_seoul, south korea_5": {
@@ -26215,15 +26215,15 @@
         {
           "dt": 1754449200,
           "main": {
-            "temp": 20.38,
-            "feels_like": 20.51,
-            "temp_min": 18.78,
-            "temp_max": 20.38,
-            "pressure": 1027,
-            "sea_level": 1027,
+            "temp": 18.29,
+            "feels_like": 18.29,
+            "temp_min": 18.29,
+            "temp_max": 18.33,
+            "pressure": 1028,
+            "sea_level": 1028,
             "grnd_level": 1023,
-            "humidity": 78,
-            "temp_kf": 1.6
+            "humidity": 81,
+            "temp_kf": -0.04
           },
           "weather": [
             {
@@ -26234,7 +26234,7 @@
             }
           ],
           "clouds": {
-            "all": 83
+            "all": 75
           },
           "wind": {
             "speed": 1.94,
@@ -26251,26 +26251,26 @@
         {
           "dt": 1754460000,
           "main": {
-            "temp": 17.65,
-            "feels_like": 17.59,
-            "temp_min": 15.89,
-            "temp_max": 17.65,
+            "temp": 17.68,
+            "feels_like": 17.64,
+            "temp_min": 16.46,
+            "temp_max": 17.68,
             "pressure": 1028,
             "sea_level": 1028,
             "grnd_level": 1023,
-            "humidity": 81,
-            "temp_kf": 1.76
+            "humidity": 82,
+            "temp_kf": 1.22
           },
           "weather": [
             {
-              "id": 804,
+              "id": 803,
               "main": "Clouds",
-              "description": "overcast clouds",
+              "description": "broken clouds",
               "icon": "04n"
             }
           ],
           "clouds": {
-            "all": 87
+            "all": 81
           },
           "wind": {
             "speed": 1.31,
@@ -26287,15 +26287,15 @@
         {
           "dt": 1754470800,
           "main": {
-            "temp": 14.86,
-            "feels_like": 14.57,
+            "temp": 16,
+            "feels_like": 15.82,
             "temp_min": 14.86,
-            "temp_max": 14.86,
+            "temp_max": 16,
             "pressure": 1029,
             "sea_level": 1029,
             "grnd_level": 1023,
             "humidity": 83,
-            "temp_kf": 0
+            "temp_kf": 1.14
           },
           "weather": [
             {
@@ -26306,7 +26306,7 @@
             }
           ],
           "clouds": {
-            "all": 99
+            "all": 91
           },
           "wind": {
             "speed": 1.74,
@@ -27667,7 +27667,7 @@
         "sunset": 1754438355
       }
     },
-    "timestamp": "2025-08-05T20:23:48.446184",
+    "timestamp": "2025-08-05T22:46:58.786955",
     "ttl": 3600
   },
   "search_reykjavik, iceland_5": {

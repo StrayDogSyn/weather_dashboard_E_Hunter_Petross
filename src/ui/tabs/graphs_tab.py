@@ -172,6 +172,9 @@ class GraphsTab(ctk.CTkFrame):
         self.canvas = FigureCanvasTkAgg(self.figure, graph_frame)
         self.canvas.get_tk_widget().pack(fill="both", expand=True, padx=10, pady=10)
         
+        # Add interactivity
+        self.add_interactivity()
+        
         # Add custom toolbar
         self.create_custom_toolbar(graph_frame)
         
@@ -735,6 +738,45 @@ class GraphsTab(ctk.CTkFrame):
             self.logger.error(f"Error exporting graph: {e}")
             self.status_label.configure(text="Error exporting graph")
             
+    def add_interactivity(self):
+        """Add hover tooltips and click interactions"""
+        self.annotation = self.ax.annotate('',
+                                          xy=(0, 0),
+                                          xytext=(20, 20),
+                                          textcoords='offset points',
+                                          bbox=dict(boxstyle='round',
+                                                  fc='#000000CC',
+                                                  ec='#00D4FF'),
+                                          arrowprops=dict(arrowstyle='->',
+                                                        color='#00D4FF',
+                                                        lw=1),
+                                          color='#FFFFFF',
+                                          fontsize=10,
+                                          visible=False)
+        
+        def on_hover(event):
+            if event.inaxes == self.ax:
+                # Find nearest data point
+                for line in self.ax.lines:
+                    cont, ind = line.contains(event)
+                    if cont:
+                        x, y = line.get_data()
+                        idx = ind['ind'][0]
+                        
+                        # Show tooltip
+                        self.annotation.xy = (x[idx], y[idx])
+                        text = f'{y[idx]:.1f}°C\n{x[idx].strftime("%H:%M")}'
+                        self.annotation.set_text(text)
+                        self.annotation.set_visible(True)
+                        self.canvas.draw_idle()
+                        return
+                
+                # Hide tooltip if not hovering
+                self.annotation.set_visible(False)
+                self.canvas.draw_idle()
+        
+        self.canvas.mpl_connect('motion_notify_event', on_hover)
+    
     def set_location(self, location: str):
         """Set the current location for data fetching"""
         self.current_location = location

@@ -48,6 +48,7 @@ from src.ui.dashboard.settings_tab_manager import SettingsTabManager
 from src.ui.tabs.journal_tab import WeatherJournalTab
 from src.ui.tabs.activity_tab import ActivitySuggesterTab
 from src.ui.tabs.graphs_tab import GraphsTab
+from src.ui.tabs.ai_tab import AITab
 from src.ui.components.temperature_chart import TemperatureChart
 from src.ui.theme import DataTerminalTheme
 from src.ui.theme_manager import theme_manager
@@ -382,6 +383,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.comparison_tab = self.tabview.add("🏙️ Team Compare")
         self.ml_comparison_tab = self.tabview.add("🧠 AI Analysis")
         self.activities_tab = self.tabview.add("Activities")
+        self.ai_tab = self.tabview.add("🤖 AI Features")
         self.journal_tab = self.tabview.add("📝 Journal")
         self.graphs_tab = self.tabview.add("📊 Graphs")
         self.maps_tab = self.tabview.add("Maps")
@@ -400,6 +402,9 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.activities_tab.grid_columnconfigure(0, weight=1)
         self.activities_tab.grid_rowconfigure(0, weight=1)
 
+        self.ai_tab.grid_columnconfigure(0, weight=1)
+        self.ai_tab.grid_rowconfigure(0, weight=1)
+
         self.journal_tab.grid_columnconfigure(0, weight=1)
         self.journal_tab.grid_rowconfigure(0, weight=1)
 
@@ -417,6 +422,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self._create_comparison_tab()
         self._create_ml_comparison_tab()
         self._create_activities_tab()
+        self._create_ai_tab()
         self._create_journal_tab()
         self._create_graphs_tab()
         self._create_maps_tab()
@@ -2482,6 +2488,18 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.activity_suggester_tab.pack(fill="both", expand=True)
         
         return self.activity_suggester_tab
+
+    def _create_ai_tab(self):
+        """Create AI features tab content using the new AITab."""
+        # Create the new AI features tab
+        self.ai_features_tab = AITab(
+            self.ai_tab,
+            self.weather_service,
+            theme_manager
+        )
+        self.ai_features_tab.pack(fill="both", expand=True)
+        
+        return self.ai_features_tab
 
     def _create_activities_tab_content(self):
         """Legacy method - now handled by ActivitySuggesterTab."""
