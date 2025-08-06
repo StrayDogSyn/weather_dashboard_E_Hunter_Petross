@@ -514,3 +514,36 @@ class TemperatureChart(GlassmorphicFrame):
             'timeframe': self.timeframe,
             'conditions': list(set(conditions)) if conditions else []
         }
+    
+    def update_theme(self, theme_data: Dict):
+        """Update chart colors based on theme data."""
+        try:
+            # Update color scheme
+            self.colors.update({
+                'background': theme_data.get('chart_bg', '#0d0d0d'),
+                'panel_bg': theme_data.get('card', '#1a1a1a'),
+                'primary': theme_data.get('primary', '#00D4FF'),
+                'secondary': theme_data.get('secondary', '#FF6B6B'),
+                'accent': theme_data.get('accent', '#4ECDC4'),
+                'text': theme_data.get('text', '#FFFFFF'),
+                'grid': theme_data.get('secondary', '#666666'),
+                'border': theme_data.get('border', '#444444')
+            })
+            
+            # Update figure background
+            if self.figure:
+                self.figure.patch.set_facecolor(self.colors['background'])
+            
+            # Update axes styling
+            if self.ax:
+                self.ax.set_facecolor(self.colors['panel_bg'])
+                self.style_axes()
+            
+            # Refresh chart with new colors
+            if self.current_data:
+                self.update_chart(self.current_data, self.timeframe)
+            else:
+                self.show_placeholder()
+                
+        except Exception as e:
+            print(f"Error updating chart theme: {e}")

@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Optional
 import customtkinter as ctk
 
 
-from ..themes.data_terminal_theme import DataTerminalTheme
+from ..theme import DataTerminalTheme
 
 
 class ForecastDetailsPopup:

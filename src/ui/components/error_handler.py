@@ -360,7 +360,7 @@ class ErrorHandler:
 
             self.shortcuts_overlay = KeyboardShortcutOverlay(self.parent, shortcuts)
 
-        self.shortcuts_overlay.show()
+        self.shortcuts_overlay._show_shortcuts()
 
     def show_feature_discovery(self, widget: tk.Widget, title: str, description: str):
         """Show feature discovery animation."""
