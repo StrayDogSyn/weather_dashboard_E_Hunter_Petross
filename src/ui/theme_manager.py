@@ -3,6 +3,11 @@ import os
 from typing import Any, Callable, Dict, Optional
 import customtkinter as ctk
 
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+
 from src.services.logging_config import get_logger
 from src.services.error_handler import safe_execute
 
@@ -254,14 +259,15 @@ class ThemeManager:
             if hasattr(app, "temp_chart"):
                 app.temp_chart.update_theme(theme)
 
-            # Update any matplotlib charts
-            plt.style.use("dark_background")
-            plt.rcParams["figure.facecolor"] = theme["chart_bg"]
-            plt.rcParams["axes.facecolor"] = theme["chart_bg"]
-            plt.rcParams["text.color"] = theme["text"]
-            plt.rcParams["axes.labelcolor"] = theme["text"]
-            plt.rcParams["xtick.color"] = theme["text"]
-            plt.rcParams["ytick.color"] = theme["text"]
+            # Update any matplotlib charts if available
+            if plt is not None:
+                plt.style.use("dark_background")
+                plt.rcParams["figure.facecolor"] = theme["chart_bg"]
+                plt.rcParams["axes.facecolor"] = theme["chart_bg"]
+                plt.rcParams["text.color"] = theme["text"]
+                plt.rcParams["axes.labelcolor"] = theme["text"]
+                plt.rcParams["xtick.color"] = theme["text"]
+                plt.rcParams["ytick.color"] = theme["text"]
         
         safe_execute(
             update_charts_impl,

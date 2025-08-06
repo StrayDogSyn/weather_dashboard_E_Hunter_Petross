@@ -36,8 +36,8 @@ class WeatherPoetryGenerator:
         # Build prompt
         prompt_template = self.poetry_styles[style]['prompt']
         prompt = prompt_template.format(
-            condition=weather_data['condition'],
-            temp=weather_data['temperature'],
+            condition=weather_data.get('condition', 'mysterious weather'),
+            temp=weather_data.get('temperature', 'comfortable'),
             location=weather_data.get('location', 'this place'),
             wind=weather_data.get('wind_description', 'gentle'),
             humidity=weather_data.get('humidity', 50)

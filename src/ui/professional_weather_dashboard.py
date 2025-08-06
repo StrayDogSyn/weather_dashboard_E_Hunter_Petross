@@ -974,10 +974,22 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 if i < len(daily_forecasts):
                     daily_data = daily_forecasts[i]
 
+                    # Get day and date with better fallbacks
+                    from datetime import datetime, timedelta
+                    
+                    day = daily_data.get("day", "")
+                    date = daily_data.get("date", "")
+                    
+                    # If day or date is missing, generate from current date + offset
+                    if not day or not date or date == "--/--":
+                        forecast_date = datetime.now() + timedelta(days=i)
+                        day = forecast_date.strftime("%a")
+                        date = forecast_date.strftime("%m/%d")
+
                     # Update card with real data including day and date
                     card.update_data(
-                        day=daily_data.get("day", "Day"),
-                        date=daily_data.get("date", "--/--"),
+                        day=day,
+                        date=date,
                         icon=daily_data.get("icon", "01d"),
                         high=daily_data.get("high_temp", 22),
                         low=daily_data.get("low_temp", 15),
@@ -1280,13 +1292,29 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 wind_speeds = day_data["wind_speeds"]
                 avg_wind = sum(wind_speeds) / len(wind_speeds) if wind_speeds else 0.0
 
+                # Parse date for day and date display
+                from datetime import datetime
+                try:
+                    date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+                    day_name = date_obj.strftime("%a")
+                    date_display = date_obj.strftime("%m/%d")
+                except ValueError:
+                    # Fallback if date parsing fails
+                    day_name = "Day"
+                    date_display = datetime.now().strftime("%m/%d")
+
                 daily_forecasts.append(
                     {
+                        "day": day_name,
+                        "date": date_display,
                         "icon": icon,
                         "high_temp": high_temp,
                         "low_temp": low_temp,
                         "precipitation": day_data["precipitation"],
                         "wind_speed": avg_wind,
+                        "description": "Weather Forecast",
+                        "humidity": 50,  # Default value
+                        "precipitation_amount": day_data["precipitation"] * 10,  # Estimate
                     }
                 )
 
