@@ -161,7 +161,7 @@ class BaseDashboard(ctk.CTk):
 
     def _configure_window(self):
         """Configure window properties."""
-        self.title("Professional Weather Dashboard")
+        self.title("PROJECT CODEFRONT - Advanced Weather Intelligence System v3.5")
         self.geometry("1400x900")
         self.minsize(1200, 800)
 

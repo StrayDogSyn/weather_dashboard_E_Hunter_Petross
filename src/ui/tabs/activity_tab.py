@@ -14,107 +14,176 @@ from ...utils.error_wrapper import ensure_main_thread
 
 
 class ActivitySuggesterTab(ctk.CTkFrame):
-    """AI-powered activity suggester based on weather conditions."""
+    """Activity Suggester Tab with AI-powered suggestions."""
     
-    def __init__(self, parent, weather_service, gemini_service=None):
-        super().__init__(parent)
+    def __init__(self, parent, weather_service, gemini_service):
+        """Initialize the activity suggester tab."""
+        super().__init__(parent, fg_color="transparent")
         self.weather_service = weather_service
         self.gemini_service = gemini_service
         self.suggestions = []
+        self.filtered_suggestions = []
+        self.current_filter = "all"
+        self.current_duration = "all"
+        
+        # Configure grid
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+        
         self.setup_ui()
         
     def setup_ui(self):
-        """Setup the main UI components."""
-        # Main container with glassmorphic styling
-        try:
-            self.container = GlassmorphicFrame(self)
-        except:
-            self.container = ctk.CTkFrame(self, fg_color=("#2b2b2b", "#1a1a1a"))
+        """Setup the user interface."""
+        # Main container with glassmorphic effect
+        from ..components.glassmorphic import GlassPanel
         
-        self.container.pack(fill="both", expand=True, padx=20, pady=20)
+        self.main_container = GlassPanel(self)
+        self.main_container.pack(fill="both", expand=True, padx=20, pady=20)
         
         # Header section
         self.create_header()
         
-        # Control panel
-        self.create_controls()
+        # Activity cards container
+        self.create_activity_section()
         
-        # Suggestions display area
-        self.create_suggestion_cards()
+    def create_header(self):
+        """Create glassmorphic header with filters"""
+        header_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
+        header_frame.pack(fill="x", padx=20, pady=(20, 10))
+        
+        # Title with glow effect
+        title = ctk.CTkLabel(
+            header_frame,
+            text="🌟 AI-Powered Activity Suggestions",
+            font=("Arial", 24, "bold"),
+            text_color="#00D4FF"
+        )
+        title.pack(side="left")
+        
+        # Filter buttons with glass effect
+        filter_frame = ctk.CTkFrame(header_frame, fg_color="transparent")
+        filter_frame.pack(side="right")
+        
+        filters = ["All Activities", "Outdoor", "Indoor", "Social", "Fitness"]
+        for filter_name in filters:
+            btn = GlassButton(
+                filter_frame,
+                text=filter_name,
+                width=100,
+                height=32,
+                command=lambda f=filter_name: self.apply_filter(f)
+            )
+            btn.pack(side="left", padx=5)
+        
+    def create_activity_section(self):
+        """Create activity cards container"""
+        # Create scrollable frame for activity cards
+        self.cards_container = ctk.CTkScrollableFrame(
+            self.main_container,
+            fg_color="transparent"
+        )
+        self.cards_container.pack(fill="both", expand=True, padx=20, pady=10)
         
         # Load initial suggestions
         self.refresh_suggestions()
+    
+    def apply_filter(self, filter_name):
+        """Apply activity filter"""
+        self.current_filter = filter_name.lower().replace(" activities", "")
+        self.filter_suggestions()
         
-    def create_header(self):
-        """Create the header section."""
-        header_frame = ctk.CTkFrame(self.container, fg_color="transparent")
-        header_frame.pack(fill="x", padx=20, pady=(20, 10))
+    def create_activity_card(self, activity_data):
+        """Create glassmorphic activity card"""
+        from ..components.glassmorphic import GlassPanel
         
-        # Title
+        card = GlassPanel(self.cards_container)
+        card.configure(fg_color="#FFFFFF1A")  # Very transparent
+        card.pack(fill="x", padx=10, pady=5)
+        
+        # Activity icon and title
+        header = ctk.CTkFrame(card, fg_color="transparent")
+        header.pack(fill="x", padx=15, pady=15)
+        
+        icon_label = ctk.CTkLabel(
+            header,
+            text=activity_data.get('icon', '🎯'),
+            font=("Arial", 32)
+        )
+        icon_label.pack(side="left", padx=(0, 10))
+        
         title_label = ctk.CTkLabel(
-            header_frame,
-            text="🤖 AI Activity Suggestions",
-            font=("Segoe UI", 24, "bold"),
-            text_color=("#FFFFFF", "#FFFFFF")
+            header,
+            text=activity_data['name'],
+            font=("Arial", 18, "bold"),
+            text_color="#FFFFFF"
         )
         title_label.pack(side="left")
         
-        # Weather info display
-        self.weather_info_label = ctk.CTkLabel(
-            header_frame,
-            text="Loading weather...",
-            font=("Segoe UI", 12),
-            text_color=("#CCCCCC", "#CCCCCC")
+        # Description with semi-transparent background
+        desc_frame = ctk.CTkFrame(
+            card,
+            fg_color="#FFFFFF0D",
+            corner_radius=10
         )
-        self.weather_info_label.pack(side="right")
+        desc_frame.pack(fill="x", padx=15, pady=(0, 10))
         
-    def create_controls(self):
-        """Create control buttons and options."""
-        controls_frame = ctk.CTkFrame(self.container, fg_color="transparent")
-        controls_frame.pack(fill="x", padx=20, pady=10)
-        
-        # Refresh button
-        try:
-            refresh_btn = GlassButton(
-                controls_frame,
-                text="🔄 Get New Suggestions",
-                command=self.refresh_suggestions
-            )
-        except:
-            refresh_btn = ctk.CTkButton(
-                controls_frame,
-                text="🔄 Get New Suggestions",
-                command=self.refresh_suggestions,
-                fg_color="#00D4FF",
-                hover_color="#0099CC"
-            )
-        refresh_btn.pack(side="left", padx=(0, 10))
-        
-        # Activity type filter
-        self.activity_type = ctk.CTkOptionMenu(
-            controls_frame,
-            values=["All Activities", "Indoor", "Outdoor", "Sports", "Relaxation", "Social"],
-            command=self.filter_suggestions
+        desc_label = ctk.CTkLabel(
+            desc_frame,
+            text=activity_data['description'],
+            font=("Arial", 12),
+            text_color="#FFFFFFB3",
+            wraplength=300,
+            justify="left"
         )
-        self.activity_type.pack(side="left", padx=10)
+        desc_label.pack(padx=10, pady=10)
         
-        # Duration filter
-        self.duration_filter = ctk.CTkOptionMenu(
-            controls_frame,
-            values=["Any Duration", "< 30 min", "30-60 min", "1-2 hours", "2+ hours"],
-            command=self.filter_suggestions
-        )
-        self.duration_filter.pack(side="left", padx=10)
+        # Action buttons
+        self.create_card_actions(card, activity_data)
         
-    def create_suggestion_cards(self):
-        """Create activity suggestion cards container."""
-        # Scrollable frame for suggestions
-        self.cards_frame = ctk.CTkScrollableFrame(
-            self.container,
-            fg_color="transparent",
-            height=400
+        return card
+    
+    def create_card_actions(self, card, activity_data):
+        """Create action buttons for activity card"""
+        actions_frame = ctk.CTkFrame(card, fg_color="transparent")
+        actions_frame.pack(fill="x", padx=15, pady=(0, 15))
+        
+        # Duration and difficulty info
+        info_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
+        info_frame.pack(side="left")
+        
+        duration_label = ctk.CTkLabel(
+            info_frame,
+            text=f"⏱️ {activity_data.get('duration', 'N/A')}",
+            font=("Arial", 10),
+            text_color="#FFFFFF80"
         )
-        self.cards_frame.pack(fill="both", expand=True, padx=20, pady=10)
+        duration_label.pack(side="left", padx=(0, 10))
+        
+        difficulty_label = ctk.CTkLabel(
+            info_frame,
+            text=f"📊 {activity_data.get('difficulty', 'N/A')}",
+            font=("Arial", 10),
+            text_color="#FFFFFF80"
+        )
+        difficulty_label.pack(side="left")
+        
+        # Action buttons
+        btn_frame = ctk.CTkFrame(actions_frame, fg_color="transparent")
+        btn_frame.pack(side="right")
+        
+        try_btn = GlassButton(
+            btn_frame,
+            text="✨ Try This",
+            width=80,
+            height=28,
+            command=lambda: self.try_activity(activity_data)
+        )
+        try_btn.pack(side="right", padx=5)
+    
+    def try_activity(self, activity_data):
+        """Handle try activity action"""
+        # You can implement activity tracking or journaling here
+        print(f"Trying activity: {activity_data['name']}")
         
     @ensure_main_thread
     def refresh_suggestions(self):
@@ -126,7 +195,13 @@ class ActivitySuggesterTab(ctk.CTkFrame):
             # Get suggestions (async if Gemini available, fallback otherwise)
             if self.gemini_service:
                 # Run async suggestion generation
-                asyncio.create_task(self.get_ai_suggestions())
+                try:
+                    loop = asyncio.get_running_loop()
+                    asyncio.create_task(self.get_ai_suggestions())
+                except RuntimeError:
+                    # No running event loop, use fallback
+                    self.suggestions = self.get_fallback_suggestions()
+                    self.display_suggestions(self.suggestions)
             else:
                 # Use fallback suggestions
                 self.suggestions = self.get_fallback_suggestions()
@@ -453,35 +528,43 @@ Consider:
     def display_suggestions(self, suggestions: List[Dict]):
         """Display suggestion cards with glassmorphic styling."""
         # Clear existing cards
-        for widget in self.cards_frame.winfo_children():
+        for widget in self.cards_container.winfo_children():
             widget.destroy()
             
         if not suggestions:
+            from ..components.glassmorphic import GlassPanel
+            
+            no_suggestions_card = GlassPanel(self.cards_container)
+            no_suggestions_card.configure(fg_color="#FFFFFF0D")
+            no_suggestions_card.pack(fill="x", padx=20, pady=50)
+            
             no_results_label = ctk.CTkLabel(
-                self.cards_frame,
+                no_suggestions_card,
                 text="No suggestions match your filters. Try adjusting the criteria.",
-                font=("Helvetica", 14),
-                text_color="#CCCCCC"
+                font=("Arial", 14),
+                text_color="#FFFFFF80",
+                justify="center"
             )
-            no_results_label.pack(pady=50)
+            no_results_label.pack(pady=30)
             return
             
         # Create cards for each suggestion
-        for i, suggestion in enumerate(suggestions):
-            card = self.create_activity_card(suggestion, i)
-            card.pack(fill="x", padx=10, pady=8)
+        for suggestion in suggestions:
+            self.create_activity_card(suggestion)
             
-    def create_activity_card(self, suggestion: Dict, index: int):
+    def create_activity_card(self, suggestion: Dict):
         """Create an individual activity suggestion card."""
         # Main card frame
         try:
-            card = GlassmorphicFrame(self.cards_frame)
+            card = GlassmorphicFrame(self.cards_container)
         except:
             card = ctk.CTkFrame(
-                self.cards_frame,
+                self.cards_container,
                 fg_color=("#2b2b2b", "#1a1a1a"),
                 corner_radius=15
             )
+            
+        card.pack(fill="x", padx=10, pady=8)
             
         # Card content
         content_frame = ctk.CTkFrame(card, fg_color="transparent")

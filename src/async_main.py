@@ -126,7 +126,7 @@ class AsyncWeatherApp:
                 self.root = ui_lib.Tk()
             
             # Configure window
-            self.root.title("Weather Dashboard")
+            self.root.title("PROJECT CODEFRONT - Advanced Weather Intelligence System v3.5")
             self.root.geometry("1200x800")
             self.root.minsize(800, 600)
             
@@ -367,7 +367,7 @@ class AsyncWeatherApp:
 def main():
     """Main entry point for the async weather dashboard."""
     try:
-        print("Starting Async Weather Dashboard...")
+        print("Starting PROJECT CODEFRONT - Advanced Weather Intelligence System...")
         
         # Create and run async application
         app = AsyncWeatherApp()

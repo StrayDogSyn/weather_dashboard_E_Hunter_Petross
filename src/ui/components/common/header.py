@@ -40,7 +40,7 @@ class HeaderComponent(ctk.CTkFrame):
         # Subtitle
         subtitle_label = ctk.CTkLabel(
             title_frame,
-            text="Professional Weather Dashboard",
+            text="PROJECT CODEFRONT",
             font=ctk.CTkFont(size=12),
             text_color=("#6b7280", "#9ca3af"),
         )

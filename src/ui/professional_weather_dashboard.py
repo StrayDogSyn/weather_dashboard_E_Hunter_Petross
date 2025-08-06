@@ -59,6 +59,8 @@ from src.services.cache.intelligent_cache import IntelligentCache
 from src.ui.utils.lazy_image_loader import get_image_loader
 from src.services.performance_optimizer import get_performance_optimizer, time_operation
 from src.services.database.optimized_queries import get_optimized_db
+from src.ui.utils.render_optimizer import RenderOptimizer
+from src.utils.memory_profiler import MemoryProfiler, profile_memory
 
 # Load environment variables
 load_dotenv()
@@ -93,6 +95,15 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.image_loader = get_image_loader()
         self.optimized_db = get_optimized_db()
         self.performance_optimizer = get_performance_optimizer()
+        
+        # Initialize render optimization and memory profiling
+        self.render_optimizer = RenderOptimizer()
+        self.memory_profiler = MemoryProfiler()
+        
+        # Configure for 60fps operation
+        self._frame_time_budget = 16.67  # 60fps = 16.67ms per frame
+        self._last_frame_time = 0
+        self._frame_skip_count = 0
 
         # Initialize services (with fallback for demo mode)
         try:
@@ -182,7 +193,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.refresh_interval = 300000  # 5 minutes in milliseconds
 
         # Configure window
-        self.title("Professional Weather Dashboard")
+        self.title("Tech Pathways Capstone - Justice Through Code")
         self.geometry("1400x900")
         self.minsize(1200, 800)
 
@@ -2013,6 +2024,9 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self._load_weather_data_with_timeout()
 
     @ensure_main_thread
+    @profile_memory("weather_display_update")
+    @RenderOptimizer.measure_render_time
+    @RenderOptimizer.debounce(100)  # Debounce rapid updates
     def _update_weather_display(self, weather_data):
         """Update UI with enhanced weather display and visual effects."""
         # STEP 3 DEBUG: Implement thread-safe UI updates
@@ -2030,49 +2044,53 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 # Track when weather data was last updated
                 self.last_weather_data_timestamp = datetime.now()
 
-                # Update last refresh timestamp
-                self._update_last_refresh_timestamp()
+                # Batch UI updates for better performance
+                with RenderOptimizer.batch_updates(self) as batch:
+                    # Update last refresh timestamp
+                    batch.add_update(lambda: self._update_last_refresh_timestamp())
 
-                # Update weather-based background with validation
-                self._update_weather_background_safe(weather_data)
+                    # Update weather-based background with validation
+                    batch.add_update(lambda: self._update_weather_background_safe(weather_data))
 
-                # Update activities if on activities tab
-                if self.tabview.get() == "Activities":
-                    self._update_activity_suggestions(weather_data)
+                    # Update activities if on activities tab
+                    if self.tabview.get() == "Activities":
+                        batch.add_update(lambda: self._update_activity_suggestions(weather_data))
 
-                # Refresh activity suggestions with new weather data
-                self._refresh_activity_suggestions()
+                    # Refresh activity suggestions with new weather data
+                    batch.add_update(lambda: self._refresh_activity_suggestions())
 
-                # Update location display with validation
-                self._update_location_display_safe(weather_data)
+                    # Update location display with validation
+                    batch.add_update(lambda: self._update_location_display_safe(weather_data))
 
-                # Update temperature display with proper unit conversion
-                self._update_temperature_display_safe(weather_data)
+                    # Update temperature display with proper unit conversion
+                    batch.add_update(lambda: self._update_temperature_display_safe(weather_data))
 
-                # Update condition display with validation
-                self._update_condition_display_safe(weather_data)
+                    # Update condition display with validation
+                    batch.add_update(lambda: self._update_condition_display_safe(weather_data))
 
-                # Show success status
-                self.status_manager.show_weather_fact()
+                    # Show success status
+                    batch.add_update(lambda: self.status_manager.show_weather_fact())
 
-                # Refresh any open hourly breakdown windows
-                self.logger.info("About to refresh open hourly windows from _update_weather_display")
-                self._refresh_open_hourly_windows()
+                    # Refresh any open hourly breakdown windows
+                    batch.add_update(lambda: (
+                        self.logger.info("About to refresh open hourly windows from _update_weather_display"),
+                        self._refresh_open_hourly_windows()
+                    ))
 
-                # Update metrics with validation and proper conversions
-                self._update_weather_metrics_safe(weather_data)
+                    # Update metrics with validation and proper conversions
+                    batch.add_update(lambda: self._update_weather_metrics_safe(weather_data))
 
-                # Update air quality display
-                self._update_air_quality_display(weather_data)
+                    # Update air quality display
+                    batch.add_update(lambda: self._update_air_quality_display(weather_data))
 
-                # Update sun times display
-                self._update_sun_times_display(weather_data)
+                    # Update sun times display
+                    batch.add_update(lambda: self._update_sun_times_display(weather_data))
 
-                # Update weather alerts display
-                self._update_weather_alerts_display(weather_data)
+                    # Update weather alerts display
+                    batch.add_update(lambda: self._update_weather_alerts_display(weather_data))
 
-                # Update forecast cards
-                self._update_forecast_cards(weather_data)
+                    # Update forecast cards
+                    batch.add_update(lambda: self._update_forecast_cards(weather_data))
 
                 # Update temperature chart
                 if hasattr(self, "temp_chart"):
@@ -2248,6 +2266,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 self.condition_label.configure(text="Unknown condition")
 
     @ensure_main_thread
+    @profile_memory("weather_metrics_update", threshold_mb=5)
+    @RenderOptimizer.throttle(50)  # Limit to 20fps for metrics
     def _update_weather_metrics_safe(self, weather_data):
         """Safely update weather metrics with validation and proper conversions."""
         try:
@@ -2936,6 +2956,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 self.logger.error(f"Fallback weather loading also failed: {fallback_error}")
                 self._handle_weather_error(fallback_error)
 
+    @profile_memory("manual_refresh")
+    @RenderOptimizer.debounce(1000, immediate=True)  # Prevent rapid refresh clicks
     def _manual_refresh(self):
         """Handle manual refresh with loading indicator."""
         try:
@@ -3198,7 +3220,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             # Ask user for file to import
             filename = filedialog.askopenfilename(
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                title="Import Weather Dashboard Data",
+                title="Import PROJECT CODEFRONT Data",
             )
 
             if filename:
@@ -3498,6 +3520,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
             self.logger.error(f"Failed to initialize background data: {e}")
 
     @ensure_main_thread
+    @profile_memory("background_update", threshold_mb=10)
+    @RenderOptimizer.throttle(200)  # Limit background updates to 5fps
     def _update_background_components(self):
         """Update background UI components."""
         try:

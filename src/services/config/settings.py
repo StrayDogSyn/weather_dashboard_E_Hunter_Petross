@@ -46,7 +46,7 @@ class APIConfig:
 class UIConfig:
     """UI configuration settings."""
 
-    window_title: str = "Professional Weather Dashboard"
+    window_title: str = "PROJECT CODEFRONT - Advanced Weather Intelligence System v3.5"
     window_width: int = 1400
     window_height: int = 900
     min_width: int = 1200

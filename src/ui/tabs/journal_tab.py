@@ -34,78 +34,109 @@ class WeatherJournalTab(ctk.CTkFrame):
     
     def setup_ui(self):
         """Setup the user interface."""
-        # Main container with glassmorphic styling
-        try:
-            self.container = GlassmorphicFrame(self)
-        except:
-            # Fallback to regular frame if GlassmorphicFrame not available
-            self.container = ctk.CTkFrame(self, fg_color="transparent")
+        # Main container with glassmorphic effect
+        from ..components.glassmorphic import GlassPanel
         
-        self.container.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
-        self.container.grid_columnconfigure(0, weight=1)
-        self.container.grid_rowconfigure(1, weight=1)
+        self.main_container = GlassPanel(self)
+        self.main_container.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
+        self.main_container.grid_columnconfigure(0, weight=1)
+        self.main_container.grid_rowconfigure(2, weight=1)
         
         # Create sections
+        self.create_header()
         self.create_entry_section()
-        self.create_search_section()
         self.create_entries_list()
     
+    def create_header(self):
+        """Create glassmorphic header"""
+        header_frame = ctk.CTkFrame(self.main_container, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 10))
+        
+        # Title with glow effect
+        title = ctk.CTkLabel(
+            header_frame,
+            text="📝 Weather Journal",
+            font=("Arial", 24, "bold"),
+            text_color="#00D4FF"
+        )
+        title.pack(side="left")
+        
+        # Weather info display
+        self.weather_info_label = ctk.CTkLabel(
+            header_frame,
+            text="Weather: Loading...",
+            font=("Arial", 12),
+            text_color="#FFFFFF80"
+        )
+        self.weather_info_label.pack(side="right")
+        
+        # Update weather info
+        self.update_weather_info()
+    
     def create_entry_section(self):
-        """Create rich text entry section with weather auto-population."""
-        entry_frame = ctk.CTkFrame(self.container, fg_color="transparent")
-        entry_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=10)
-        entry_frame.grid_columnconfigure(0, weight=1)
+        """Create glassmorphic entry section"""
+        from ..components.glassmorphic import GlassPanel
         
-        # Title
-        title_label = ctk.CTkLabel(
-            entry_frame, 
-            text="📝 Weather Journal", 
-            font=("Arial", 20, "bold")
-        )
-        title_label.grid(row=0, column=0, pady=(0, 10), sticky="w")
+        # Entry container with glass effect
+        entry_container = GlassPanel(self.main_container)
+        entry_container.configure(fg_color="#FFFFFF0D")
+        entry_container.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
+        entry_container.grid_columnconfigure(0, weight=1)
         
-        # Entry title input
+        # Entry title input with glass styling
         self.title_entry = ctk.CTkEntry(
-            entry_frame,
-            placeholder_text="Entry Title...",
-            height=40,
-            font=("Arial", 16)
+            entry_container,
+            placeholder_text="✨ What's on your mind today?",
+            height=45,
+            font=("Arial", 16),
+            fg_color="#FFFFFF1A",
+            border_color="#00D4FF40",
+            text_color="#FFFFFF"
         )
-        self.title_entry.grid(row=1, column=0, sticky="ew", pady=(0, 10))
+        self.title_entry.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 10))
         
-        # Rich text editor frame
-        text_frame = ctk.CTkFrame(entry_frame)
-        text_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10))
-        text_frame.grid_columnconfigure(0, weight=1)
+        # Rich text editor with glass frame
+        text_container = ctk.CTkFrame(
+            entry_container,
+            fg_color="#FFFFFF0D",
+            corner_radius=15
+        )
+        text_container.grid(row=1, column=0, sticky="ew", padx=20, pady=(0, 10))
+        text_container.grid_columnconfigure(0, weight=1)
         
         # Rich text editor
         self.text_editor = scrolledtext.ScrolledText(
-            text_frame,
-            height=10,
+            text_container,
+            height=8,
             wrap=tk.WORD,
             font=("Arial", 12),
             bg="#1a1a1a",
-            fg="white",
-            insertbackground="white",
-            selectbackground="#404040",
+            fg="#FFFFFF",
+            insertbackground="#00D4FF",
+            selectbackground="#00D4FF40",
             relief="flat",
             borderwidth=0
         )
-        self.text_editor.grid(row=0, column=0, sticky="ew", padx=10, pady=10)
+        self.text_editor.grid(row=0, column=0, sticky="ew", padx=15, pady=15)
         
-        # Mood selector and weather info frame
-        info_frame = ctk.CTkFrame(entry_frame, fg_color="transparent")
-        info_frame.grid(row=3, column=0, sticky="ew", pady=10)
-        info_frame.grid_columnconfigure(1, weight=1)
+        # Mood and controls frame
+        controls_frame = ctk.CTkFrame(entry_container, fg_color="transparent")
+        controls_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=(0, 20))
+        controls_frame.grid_columnconfigure(1, weight=1)
         
-        # Mood selector
-        mood_label = ctk.CTkLabel(info_frame, text="Mood:", font=("Arial", 12))
-        mood_label.grid(row=0, column=0, sticky="w", padx=(0, 10))
+        # Mood selector with glass buttons
+        mood_label = ctk.CTkLabel(
+            controls_frame,
+            text="Mood:",
+            font=("Arial", 12),
+            text_color="#FFFFFF"
+        )
+        mood_label.grid(row=0, column=0, sticky="w", padx=(0, 15))
         
         self.mood_var = tk.StringVar(value="neutral")
         moods = ["😊 Happy", "😐 Neutral", "😢 Sad", "😎 Excited", "😴 Tired"]
         
-        mood_frame = ctk.CTkFrame(info_frame, fg_color="transparent")
+        mood_frame = ctk.CTkFrame(controls_frame, fg_color="transparent")
         mood_frame.grid(row=0, column=1, sticky="w")
         
         for i, mood in enumerate(moods):
@@ -113,116 +144,94 @@ class WeatherJournalTab(ctk.CTkFrame):
                 mood_frame,
                 text=mood,
                 variable=self.mood_var,
-                value=mood.split()[1].lower()
+                value=mood.split()[1].lower(),
+                text_color="#FFFFFF",
+                fg_color="#00D4FF",
+                hover_color="#0099CC"
             )
-            btn.grid(row=0, column=i, padx=5, sticky="w")
+            btn.grid(row=0, column=i, padx=8, sticky="w")
         
-        # Weather info display
-        self.weather_info_label = ctk.CTkLabel(
-            info_frame, 
-            text="Weather: Loading...", 
-            font=("Arial", 10),
-            text_color="gray"
-        )
-        self.weather_info_label.grid(row=1, column=0, columnspan=2, sticky="w", pady=(5, 0))
-        
-        # Update weather info
-        self.update_weather_info()
-        
-        # Buttons frame
-        button_frame = ctk.CTkFrame(entry_frame, fg_color="transparent")
-        button_frame.grid(row=4, column=0, sticky="ew", pady=10)
+        # Action buttons with glass effect
+        button_frame = ctk.CTkFrame(controls_frame, fg_color="transparent")
+        button_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(15, 0))
         
         # Save button
-        try:
-            save_btn = GlassButton(
-                button_frame,
-                text="💾 Save Entry",
-                command=self.save_entry
-            )
-        except:
-            # Fallback to regular button
-            save_btn = ctk.CTkButton(
-                button_frame,
-                text="💾 Save Entry",
-                command=self.save_entry,
-                height=35
-            )
-        save_btn.grid(row=0, column=0, padx=(0, 10))
-        
-        # Clear button
-        clear_btn = ctk.CTkButton(
+        save_btn = GlassButton(
             button_frame,
-            text="🗑️ Clear",
-            command=self.clear_entry_form,
-            height=35,
-            fg_color="#8B0000",
-            hover_color="#A52A2A"
+            text="💾 Save Entry",
+            command=self.save_entry,
+            width=120,
+            height=35
         )
-        clear_btn.grid(row=0, column=1, padx=10)
+        save_btn.pack(side="left", padx=(0, 10))
         
-        # Auto-populate weather button
-        weather_btn = ctk.CTkButton(
+        # Add weather button
+        weather_btn = GlassButton(
             button_frame,
             text="🌤️ Add Weather",
             command=self.add_weather_to_entry,
-            height=35,
-            fg_color="#4A90E2",
-            hover_color="#357ABD"
-        )
-        weather_btn.grid(row=0, column=2, padx=10)
-    
-    def create_search_section(self):
-        """Create search and filter section."""
-        search_frame = ctk.CTkFrame(self.container)
-        search_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=(0, 10))
-        search_frame.grid_columnconfigure(1, weight=1)
-        
-        # Search label
-        search_label = ctk.CTkLabel(search_frame, text="🔍 Search:", font=("Arial", 12))
-        search_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
-        
-        # Search entry
-        self.search_entry = ctk.CTkEntry(
-            search_frame,
-            placeholder_text="Search entries by title, content, or mood...",
+            width=120,
             height=35
         )
-        self.search_entry.grid(row=0, column=1, sticky="ew", padx=10, pady=10)
-        self.search_entry.bind("<KeyRelease>", self.filter_entries)
+        weather_btn.pack(side="left", padx=10)
         
-        # Filter by mood
-        mood_filter_label = ctk.CTkLabel(search_frame, text="Filter:", font=("Arial", 12))
-        mood_filter_label.grid(row=0, column=2, padx=(20, 5), pady=10, sticky="w")
-        
-        self.mood_filter = ctk.CTkComboBox(
-            search_frame,
-            values=["All", "happy", "neutral", "sad", "excited", "tired"],
-            command=self.filter_entries,
-            width=120
+        # Clear button
+        clear_btn = GlassButton(
+            button_frame,
+            text="🗑️ Clear",
+            command=self.clear_entry_form,
+            width=100,
+            height=35
         )
-        self.mood_filter.set("All")
-        self.mood_filter.grid(row=0, column=3, padx=5, pady=10)
+        clear_btn.pack(side="right")
+    
+
     
     def create_entries_list(self):
-        """Create entries list section."""
-        # List frame
-        list_frame = ctk.CTkFrame(self.container)
-        list_frame.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 10))
-        list_frame.grid_columnconfigure(0, weight=1)
-        list_frame.grid_rowconfigure(1, weight=1)
+        """Create glassmorphic entries list section."""
+        from ..components.glassmorphic import GlassPanel
+        
+        # List container with glass effect
+        list_container = GlassPanel(self.main_container)
+        list_container.configure(fg_color="#FFFFFF0D")
+        list_container.grid(row=2, column=0, sticky="nsew", padx=20, pady=(0, 20))
+        list_container.grid_columnconfigure(0, weight=1)
+        list_container.grid_rowconfigure(1, weight=1)
+        
+        # Header with search
+        header_frame = ctk.CTkFrame(list_container, fg_color="transparent")
+        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(20, 10))
+        header_frame.grid_columnconfigure(1, weight=1)
         
         # List title
         list_title = ctk.CTkLabel(
-            list_frame, 
-            text="📚 Journal Entries", 
-            font=("Arial", 16, "bold")
+            header_frame,
+            text="📚 Journal Entries",
+            font=("Arial", 18, "bold"),
+            text_color="#FFFFFF"
         )
-        list_title.grid(row=0, column=0, pady=10, sticky="w", padx=10)
+        list_title.grid(row=0, column=0, sticky="w")
+        
+        # Search entry with glass styling
+        self.search_entry = ctk.CTkEntry(
+            header_frame,
+            placeholder_text="🔍 Search entries...",
+            height=35,
+            font=("Arial", 12),
+            fg_color="#FFFFFF1A",
+            border_color="#00D4FF40",
+            text_color="#FFFFFF",
+            width=250
+        )
+        self.search_entry.grid(row=0, column=1, sticky="e", padx=(20, 0))
+        self.search_entry.bind("<KeyRelease>", self.filter_entries)
         
         # Scrollable entries list
-        self.entries_scrollable = ctk.CTkScrollableFrame(list_frame)
-        self.entries_scrollable.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+        self.entries_scrollable = ctk.CTkScrollableFrame(
+            list_container,
+            fg_color="transparent"
+        )
+        self.entries_scrollable.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 20))
         self.entries_scrollable.grid_columnconfigure(0, weight=1)
     
     @ensure_main_thread
@@ -340,7 +349,7 @@ class WeatherJournalTab(ctk.CTkFrame):
             self.display_entries()
     
     def display_entries(self, filtered_entries=None):
-        """Display entries in the scrollable list."""
+        """Display entries in glassmorphic cards."""
         # Clear existing entries
         for widget in self.entries_scrollable.winfo_children():
             widget.destroy()
@@ -348,13 +357,18 @@ class WeatherJournalTab(ctk.CTkFrame):
         entries_to_show = filtered_entries if filtered_entries is not None else self.entries
         
         if not entries_to_show:
+            from ..components.glassmorphic import GlassPanel
+            no_entries_panel = GlassPanel(self.entries_scrollable)
+            no_entries_panel.configure(fg_color="#FFFFFF0D")
+            no_entries_panel.grid(row=0, column=0, sticky="ew", padx=10, pady=20)
+            
             no_entries_label = ctk.CTkLabel(
-                self.entries_scrollable,
-                text="No entries found. Create your first journal entry!",
+                no_entries_panel,
+                text="📝 No journal entries yet. Start writing your first entry above!",
                 font=("Arial", 14),
-                text_color="gray"
+                text_color="#FFFFFFB3"
             )
-            no_entries_label.grid(row=0, column=0, pady=50)
+            no_entries_label.pack(pady=30)
             return
         
         # Sort entries by timestamp (newest first)
