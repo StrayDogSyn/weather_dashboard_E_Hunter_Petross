@@ -19,8 +19,8 @@ from .professional_weather_dashboard import ProfessionalWeatherDashboard
 from .theme_manager import ThemeManager as LegacyThemeManager
 from .safe_widgets import SafeWidget
 
-__version__ = "1.0.0"
-__author__ = "Weather Dashboard Team"
+__version__ = "3.5"
+__author__ = "E. Hunter Petross - Justice Through Code Tech Pathways"
 
 __all__ = [
     # Glassmorphic components

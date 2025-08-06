@@ -102,16 +102,20 @@ class ShadowSystem:
         return glow_frame
 
     def _apply_shadow_opacity(self, color: str, opacity: float) -> str:
-        """Apply opacity to shadow color."""
+        """Apply opacity to shadow color by blending with background."""
         try:
             color = color.lstrip("#")
             r = int(color[0:2], 16)
             g = int(color[2:4], 16)
             b = int(color[4:6], 16)
 
-            # Convert to RGBA-like representation
-            alpha = int(255 * opacity)
-            return f"#{r:02x}{g:02x}{b:02x}{alpha:02x}"
+            # Blend with dark background to simulate opacity
+            bg_r, bg_g, bg_b = 13, 13, 13  # Dark background
+            new_r = int(r * opacity + bg_r * (1 - opacity))
+            new_g = int(g * opacity + bg_g * (1 - opacity))
+            new_b = int(b * opacity + bg_b * (1 - opacity))
+            
+            return f"#{new_r:02x}{new_g:02x}{new_b:02x}"
         except (ValueError, IndexError):
             return color
 

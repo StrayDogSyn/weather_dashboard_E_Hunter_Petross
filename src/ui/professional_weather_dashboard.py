@@ -19,6 +19,9 @@ from src.ui.safe_widgets import (
     SafeCTkTextbox,
 )
 
+# Import thread safety decorator
+from src.utils.error_wrapper import ensure_main_thread
+
 from src.services.ai import ActivityService
 from src.services.config import ConfigService
 from src.services.weather import (
@@ -26,6 +29,7 @@ from src.services.weather import (
     EnhancedWeatherService,
 )
 from src.services.github_team_service import GitHubTeamService
+from src.services.gemini_service import GeminiService
 from src.ui.components import (
     AnimationManager,
     ErrorManager,
@@ -41,6 +45,9 @@ from src.ui.components.error_handler import ErrorHandler
 from src.ui.components.forecast_day_card import ForecastDayCard
 from src.ui.components.ml_comparison_panel import MLComparisonPanel
 from src.ui.dashboard.settings_tab_manager import SettingsTabManager
+from src.ui.tabs.journal_tab import WeatherJournalTab
+from src.ui.tabs.activity_tab import ActivitySuggesterTab
+from src.ui.components.temperature_chart import TemperatureChart
 from src.ui.theme import DataTerminalTheme
 from src.ui.theme_manager import theme_manager
 from src.utils.api_optimizer import APIOptimizer
@@ -48,6 +55,12 @@ from src.services.database import CacheManager
 from src.utils.component_recycler import ComponentRecycler
 from src.utils.loading_manager import LoadingManager
 from src.utils.startup_optimizer import StartupOptimizer
+from src.services.cache.intelligent_cache import IntelligentCache
+from src.ui.utils.lazy_image_loader import get_image_loader
+from src.services.performance_optimizer import get_performance_optimizer, time_operation
+from src.services.database.optimized_queries import get_optimized_db
+from src.ui.utils.render_optimizer import RenderOptimizer
+from src.utils.memory_profiler import MemoryProfiler, profile_memory
 
 # Load environment variables
 load_dotenv()
@@ -76,6 +89,21 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.startup_optimizer = StartupOptimizer()
         self.component_recycler = ComponentRecycler()
         self.api_optimizer = APIOptimizer()
+        
+        # Initialize new performance optimization components
+        self.intelligent_cache = IntelligentCache(base_dir="cache")
+        self.image_loader = get_image_loader()
+        self.optimized_db = get_optimized_db()
+        self.performance_optimizer = get_performance_optimizer()
+        
+        # Initialize render optimization and memory profiling
+        self.render_optimizer = RenderOptimizer()
+        self.memory_profiler = MemoryProfiler()
+        
+        # Configure for 60fps operation
+        self._frame_time_budget = 16.67  # 60fps = 16.67ms per frame
+        self._last_frame_time = 0
+        self._frame_skip_count = 0
 
         # Initialize services (with fallback for demo mode)
         try:
@@ -86,6 +114,13 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 self.config_service.get_setting("api.github_token") if self.config_service else None
             )
             self.github_service = GitHubTeamService(github_token=github_token)
+            
+            # Initialize Gemini service for AI-powered activity suggestions
+            gemini_api_key = (
+                self.config_service.get_setting("api.gemini_key") if self.config_service else None
+            )
+            self.gemini_service = GeminiService(api_key=gemini_api_key)
+            
             self.loading_manager = LoadingManager(ui_widget=self)
         except Exception as e:
             self.logger.warning(f"Running in demo mode without API keys: {e}")
@@ -93,6 +128,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             self.weather_service = None
             self.activity_service = None
             self.github_service = GitHubTeamService()  # GitHub service can work without API keys
+            self.gemini_service = GeminiService()  # Gemini service can work without API keys
             self.loading_manager = LoadingManager(ui_widget=self)  # Still initialize for offline mode
 
         # Initialize visual polish managers
@@ -157,7 +193,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.refresh_interval = 300000  # 5 minutes in milliseconds
 
         # Configure window
-        self.title("Professional Weather Dashboard")
+        self.title("Tech Pathways Capstone - Justice Through Code")
         self.geometry("1400x900")
         self.minsize(1200, 800)
 
@@ -345,6 +381,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.comparison_tab = self.tabview.add("🏙️ Team Compare")
         self.ml_comparison_tab = self.tabview.add("🧠 AI Analysis")
         self.activities_tab = self.tabview.add("Activities")
+        self.journal_tab = self.tabview.add("📝 Journal")
         self.maps_tab = self.tabview.add("Maps")
         self.settings_tab = self.tabview.add("Settings")
 
@@ -361,6 +398,9 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.activities_tab.grid_columnconfigure(0, weight=1)
         self.activities_tab.grid_rowconfigure(0, weight=1)
 
+        self.journal_tab.grid_columnconfigure(0, weight=1)
+        self.journal_tab.grid_rowconfigure(0, weight=1)
+
         self.maps_tab.grid_columnconfigure(0, weight=1)
         self.maps_tab.grid_rowconfigure(0, weight=1)
 
@@ -372,6 +412,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self._create_comparison_tab()
         self._create_ml_comparison_tab()
         self._create_activities_tab()
+        self._create_journal_tab()
         self._create_maps_tab()
         self.settings_tab_manager.create_settings_tab(self.settings_tab)
 
@@ -580,12 +621,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
         )
         chart_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 15))
 
-        # Import and create chart
-        from src.ui.components.simple_temperature_chart import SimpleTemperatureChart
-
-        self.temp_chart = SimpleTemperatureChart(
-            chart_frame, fg_color=DataTerminalTheme.BACKGROUND, corner_radius=6
-        )
+        # Import and create enhanced chart
+        self.temp_chart = TemperatureChart(chart_frame)
         self.temp_chart.pack(fill="both", expand=True, padx=10, pady=10)
 
         # Add 5-day forecast cards below the chart
@@ -1661,6 +1698,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
 
         return "🌤️"  # Default icon
 
+    @ensure_main_thread
     def _update_temperature_chart(self, weather_data):
         """Update temperature chart with real forecast data."""
         try:
@@ -1686,15 +1724,26 @@ class ProfessionalWeatherDashboard(SafeCTk):
             if hasattr(self.temp_chart, "set_temperature_unit") and hasattr(self, "temp_unit"):
                 self.temp_chart.set_temperature_unit(self.temp_unit)
 
-            # Update chart if it has an update method
-            if hasattr(self.temp_chart, "update_data"):
+            # Update chart with enhanced chart API
+            if hasattr(self.temp_chart, "update_chart"):
+                # Convert hourly_temps to the format expected by enhanced chart
+                chart_data = []
+                for i, temp in enumerate(hourly_temps):
+                    chart_data.append({
+                        'time': datetime.now() + timedelta(hours=i),
+                        'temperature': temp,
+                        'condition': 'clear'  # Default condition
+                    })
+                self.temp_chart.update_chart(chart_data)
+                self.logger.info("✅ Enhanced chart updated successfully")
+            elif hasattr(self.temp_chart, "update_data"):
                 self.temp_chart.update_data(hourly_temps)
                 self.logger.info("✅ Chart updated successfully using update_data method")
             elif hasattr(self.temp_chart, "set_data"):
                 self.temp_chart.set_data(hourly_temps)
                 self.logger.info("✅ Chart updated successfully using set_data method")
             else:
-                self.logger.warning("⚠️ Chart object has no update_data or set_data method")
+                self.logger.warning("⚠️ Chart object has no update_chart, update_data or set_data method")
                 
         except Exception as e:
             self.logger.error(f"❌ Failed to update temperature chart: {e}")
@@ -1848,7 +1897,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.search_entry = ctk.CTkEntry(
             search_controls,
             placeholder_text="🔍 Enter city name...",
-            width=300,
+            width=450,
             height=40,
             corner_radius=20,
             border_color=DataTerminalTheme.BORDER,
@@ -1974,6 +2023,10 @@ class ProfessionalWeatherDashboard(SafeCTk):
         # Trigger weather data update with proper UI refresh
         self._load_weather_data_with_timeout()
 
+    @ensure_main_thread
+    @profile_memory("weather_display_update")
+    @RenderOptimizer.measure_render_time
+    @RenderOptimizer.debounce(100)  # Debounce rapid updates
     def _update_weather_display(self, weather_data):
         """Update UI with enhanced weather display and visual effects."""
         # STEP 3 DEBUG: Implement thread-safe UI updates
@@ -1991,49 +2044,53 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 # Track when weather data was last updated
                 self.last_weather_data_timestamp = datetime.now()
 
-                # Update last refresh timestamp
-                self._update_last_refresh_timestamp()
+                # Batch UI updates for better performance
+                with RenderOptimizer.batch_updates(self) as batch:
+                    # Update last refresh timestamp
+                    batch.add_update(lambda: self._update_last_refresh_timestamp())
 
-                # Update weather-based background with validation
-                self._update_weather_background_safe(weather_data)
+                    # Update weather-based background with validation
+                    batch.add_update(lambda: self._update_weather_background_safe(weather_data))
 
-                # Update activities if on activities tab
-                if self.tabview.get() == "Activities":
-                    self._update_activity_suggestions(weather_data)
+                    # Update activities if on activities tab
+                    if self.tabview.get() == "Activities":
+                        batch.add_update(lambda: self._update_activity_suggestions(weather_data))
 
-                # Refresh activity suggestions with new weather data
-                self._refresh_activity_suggestions()
+                    # Refresh activity suggestions with new weather data
+                    batch.add_update(lambda: self._refresh_activity_suggestions())
 
-                # Update location display with validation
-                self._update_location_display_safe(weather_data)
+                    # Update location display with validation
+                    batch.add_update(lambda: self._update_location_display_safe(weather_data))
 
-                # Update temperature display with proper unit conversion
-                self._update_temperature_display_safe(weather_data)
+                    # Update temperature display with proper unit conversion
+                    batch.add_update(lambda: self._update_temperature_display_safe(weather_data))
 
-                # Update condition display with validation
-                self._update_condition_display_safe(weather_data)
+                    # Update condition display with validation
+                    batch.add_update(lambda: self._update_condition_display_safe(weather_data))
 
-                # Show success status
-                self.status_manager.show_weather_fact()
+                    # Show success status
+                    batch.add_update(lambda: self.status_manager.show_weather_fact())
 
-                # Refresh any open hourly breakdown windows
-                self.logger.info("About to refresh open hourly windows from _update_weather_display")
-                self._refresh_open_hourly_windows()
+                    # Refresh any open hourly breakdown windows
+                    batch.add_update(lambda: (
+                        self.logger.info("About to refresh open hourly windows from _update_weather_display"),
+                        self._refresh_open_hourly_windows()
+                    ))
 
-                # Update metrics with validation and proper conversions
-                self._update_weather_metrics_safe(weather_data)
+                    # Update metrics with validation and proper conversions
+                    batch.add_update(lambda: self._update_weather_metrics_safe(weather_data))
 
-                # Update air quality display
-                self._update_air_quality_display(weather_data)
+                    # Update air quality display
+                    batch.add_update(lambda: self._update_air_quality_display(weather_data))
 
-                # Update sun times display
-                self._update_sun_times_display(weather_data)
+                    # Update sun times display
+                    batch.add_update(lambda: self._update_sun_times_display(weather_data))
 
-                # Update weather alerts display
-                self._update_weather_alerts_display(weather_data)
+                    # Update weather alerts display
+                    batch.add_update(lambda: self._update_weather_alerts_display(weather_data))
 
-                # Update forecast cards
-                self._update_forecast_cards(weather_data)
+                    # Update forecast cards
+                    batch.add_update(lambda: self._update_forecast_cards(weather_data))
 
                 # Update temperature chart
                 if hasattr(self, "temp_chart"):
@@ -2104,6 +2161,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Error updating timestamp: {e}")
 
+    @ensure_main_thread
     def _update_weather_background_safe(self, weather_data):
         """Safely update weather background with validation."""
         try:
@@ -2121,6 +2179,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Error updating weather background: {e}")
 
+    @ensure_main_thread
     def _update_location_display_safe(self, weather_data):
         """Safely update location display with validation."""
         try:
@@ -2145,6 +2204,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Error updating location display: {e}")
 
+    @ensure_main_thread
     def _update_temperature_display_safe(self, weather_data):
         """Safely update temperature display with proper unit conversion."""
         try:
@@ -2205,6 +2265,9 @@ class ProfessionalWeatherDashboard(SafeCTk):
             if hasattr(self, "condition_label"):
                 self.condition_label.configure(text="Unknown condition")
 
+    @ensure_main_thread
+    @profile_memory("weather_metrics_update", threshold_mb=5)
+    @RenderOptimizer.throttle(50)  # Limit to 20fps for metrics
     def _update_weather_metrics_safe(self, weather_data):
         """Safely update weather metrics with validation and proper conversions."""
         try:
@@ -2403,55 +2466,20 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.ml_comparison_panel.pack(fill="both", expand=True)
 
     def _create_activities_tab(self):
-        """Create activities tab content."""
-        self._create_activities_tab_content()
+        """Create activities tab content using the new ActivitySuggesterTab."""
+        # Create the new AI-powered activity suggester tab
+        self.activity_suggester_tab = ActivitySuggesterTab(
+            self.activities_tab,
+            self.weather_service,
+            self.gemini_service
+        )
+        self.activity_suggester_tab.pack(fill="both", expand=True)
+        
+        return self.activity_suggester_tab
 
     def _create_activities_tab_content(self):
-        """Create AI-powered activities tab with improved layout."""
-        # Configure main grid
-        self.activities_tab.grid_columnconfigure(0, weight=1)
-        self.activities_tab.grid_rowconfigure(1, weight=1)
-
-        # Header with better spacing
-        header_frame = SafeCTkFrame(self.activities_tab, fg_color="transparent", height=60)
-        header_frame.grid(row=0, column=0, sticky="ew", padx=20, pady=(15, 8))
-        header_frame.grid_propagate(False)
-        header_frame.grid_columnconfigure(0, weight=1)
-
-        title = SafeCTkLabel(
-            header_frame,
-            text="🎯 AI Activity Suggestions",
-            font=(DataTerminalTheme.FONT_FAMILY, 20, "bold"),
-            text_color=DataTerminalTheme.PRIMARY,
-        )
-        title.grid(row=0, column=0, sticky="w", pady=15)
-
-        refresh_btn = SafeCTkButton(
-            header_frame,
-            text="🔄 Get New Suggestions",
-            width=160,
-            height=32,
-            corner_radius=16,
-            fg_color=DataTerminalTheme.PRIMARY,
-            hover_color=DataTerminalTheme.SUCCESS,
-            font=(DataTerminalTheme.FONT_FAMILY, 11, "bold"),
-            command=self._refresh_activity_suggestions,
-        )
-        refresh_btn.grid(row=0, column=1, sticky="e", pady=15, padx=(15, 0))
-
-        # Activity cards container with better structure
-        self.activities_container = SafeCTkScrollableFrame(
-            self.activities_tab, fg_color="transparent", corner_radius=0
-        )
-        self.activities_container.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 15))
-
-        # Configure activities container grid for responsive layout
-        self.activities_container.grid_columnconfigure(0, weight=1)
-        self.activities_container.grid_columnconfigure(1, weight=1)
-        self.activities_container.grid_columnconfigure(2, weight=1)
-
-        # Create sample activity cards
-        self._create_sample_activities()
+        """Legacy method - now handled by ActivitySuggesterTab."""
+        pass
 
     def _create_sample_activities(self):
         """Create dynamic activity suggestions based on current weather."""
@@ -2701,8 +2729,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
     def _update_cache_size(self):
         """Update cache size display."""
         try:
-            # Mock cache size calculation
-            cache_size_mb = 15.7
+            # Get actual cache size from intelligent cache
+            cache_size_mb = self.intelligent_cache.get_cache_size_mb()
             if hasattr(self, "cache_size_label"):
                 self.cache_size_label.configure(text=f"Cache Size: {cache_size_mb:.1f} MB")
         except Exception as e:
@@ -2712,6 +2740,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
         """Clear all cached data."""
         try:
             # Clear all cache types
+            self.intelligent_cache.clear_all()
+            self.image_loader.clear_cache()
             self._clear_cache()
             self._update_cache_size()
             self.status_label.configure(text="🗑️ All cache cleared")
@@ -2721,20 +2751,33 @@ class ProfessionalWeatherDashboard(SafeCTk):
     def _clear_weather_cache(self):
         """Clear only weather-specific cache."""
         try:
-            # In real implementation, clear only weather cache
+            # Clear weather-specific cache entries
+            self.intelligent_cache.clear_pattern("weather_*")
+            self.intelligent_cache.clear_pattern("forecast_*")
             self._update_cache_size()
             self.status_label.configure(text="🌤️ Weather cache cleared")
         except Exception as e:
             self.status_label.configure(text=f"❌ Weather cache clear failed: {str(e)}")
 
+    @time_operation("database_optimization")
     def _optimize_database(self):
-        """Optimize database performance."""
+        """Optimize database performance using OptimizedDatabase."""
         try:
-            # In real implementation, run database optimization
             self.status_label.configure(text="⚡ Database optimization started...")
-            # Mock optimization delay
-            self.safe_after(2000, lambda: self.status_label.configure(text="✅ Database optimized"))
+            
+            # Use the optimized database to create indexes and optimize settings
+            self.optimized_db.create_indexes()
+            self.optimized_db.optimize_settings()
+            
+            # Clear old cache entries
+            self.intelligent_cache.clear_expired()
+            
+            # Update performance metrics
+            self.performance_optimizer.log_metric("database_optimization", "completed")
+            
+            self.safe_after(1000, lambda: self.status_label.configure(text="✅ Database optimized with indexes"))
         except Exception as e:
+            self.logger.error(f"Database optimization failed: {e}")
             self.status_label.configure(text=f"❌ Database optimization failed: {str(e)}")
 
     def _export_data_with_range(self):
@@ -2913,6 +2956,8 @@ class ProfessionalWeatherDashboard(SafeCTk):
                 self.logger.error(f"Fallback weather loading also failed: {fallback_error}")
                 self._handle_weather_error(fallback_error)
 
+    @profile_memory("manual_refresh")
+    @RenderOptimizer.debounce(1000, immediate=True)  # Prevent rapid refresh clicks
     def _manual_refresh(self):
         """Handle manual refresh with loading indicator."""
         try:
@@ -3175,7 +3220,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             # Ask user for file to import
             filename = filedialog.askopenfilename(
                 filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-                title="Import Weather Dashboard Data",
+                title="Import PROJECT CODEFRONT Data",
             )
 
             if filename:
@@ -3474,6 +3519,9 @@ class ProfessionalWeatherDashboard(SafeCTk):
         except Exception as e:
             self.logger.error(f"Failed to initialize background data: {e}")
 
+    @ensure_main_thread
+    @profile_memory("background_update", threshold_mb=10)
+    @RenderOptimizer.throttle(200)  # Limit background updates to 5fps
     def _update_background_components(self):
         """Update background UI components."""
         try:
@@ -3602,71 +3650,104 @@ class ProfessionalWeatherDashboard(SafeCTk):
             self.logger.error(f"API optimizer fetch failed: {e}")
             return self._direct_fetch_weather_data()
 
+    @time_operation("weather_data_fetch")
     def _direct_fetch_weather_data(self):
-        """Direct weather data fetch as fallback."""
-        try:
-            # Import custom exceptions for proper handling
-            # For Windows compatibility, use threading timeout instead of signal
-            import threading
+        """Direct weather data fetch with intelligent caching and performance monitoring."""
+        # Check intelligent cache first
+        cache_key = f"weather_data_{self.current_city}"
+        
+        def fetch_weather_data():
+            try:
+                # Import custom exceptions for proper handling
+                # For Windows compatibility, use threading timeout instead of signal
+                import threading
 
-            from src.services.weather import (
-                APIKeyError,
-                NetworkError,
-                RateLimitError,
-                ServiceUnavailableError,
-                WeatherServiceError,
-            )
-
-            result = [None]
-            exception = [None]
-
-            def fetch_with_timeout():
-                try:
-                    # Fetch both current weather and forecast data
-                    current_weather = self.weather_service.get_enhanced_weather(self.current_city)
-                    
-                    # Try to fetch forecast data and add it to the weather object
-                    try:
-                        forecast_data = self.weather_service.get_forecast(self.current_city)
-                        self.logger.info(f"DEBUG: Fetched forecast_data type: {type(forecast_data)}")
-                        self.logger.info(f"DEBUG: Forecast data has {len(forecast_data.hourly_forecasts) if hasattr(forecast_data, 'hourly_forecasts') and forecast_data.hourly_forecasts else 0} hourly entries")
-                        
-                        # Add forecast data to the current weather object
-                        try:
-                            current_weather.forecast_data = forecast_data
-                            self.logger.info(f"DEBUG: Successfully set forecast_data on weather object")
-                        except Exception as set_error:
-                            self.logger.error(f"DEBUG: Failed to set forecast_data: {set_error}")
-                            
-                        self.logger.info(f"✅ Forecast data loaded with {len(forecast_data.hourly_forecasts)} hourly entries")
-                    except Exception as forecast_error:
-                        self.logger.warning(f"⚠️ Could not fetch forecast data: {forecast_error}")
-                        # Continue with current weather only
-                    
-                    result[0] = current_weather
-                except Exception as e:
-                    exception[0] = e
-
-            # Start fetch in thread with timeout
-            fetch_thread = threading.Thread(target=fetch_with_timeout, daemon=True)
-            fetch_thread.start()
-            fetch_thread.join(timeout=4.0)  # 4 second timeout for API call
-
-            if fetch_thread.is_alive():
-                # Timeout occurred
-                self.logger.warning(
-                    f"Weather API timeout for {self.current_city}, using cached/offline data"
+                from src.services.weather import (
+                    APIKeyError,
+                    NetworkError,
+                    RateLimitError,
+                    ServiceUnavailableError,
+                    WeatherServiceError,
                 )
-                return self._get_cached_or_offline_weather_data()
 
-            if exception[0]:
-                raise exception[0]
+                result = [None]
+                exception = [None]
 
-            if result[0]:
-                self.logger.info(f"✅ Weather data loaded successfully for {self.current_city}")
-                return result[0]
-            else:
-                raise WeatherServiceError("No weather data returned")
+                def fetch_with_timeout():
+                    try:
+                        # Fetch both current weather and forecast data
+                        current_weather = self.weather_service.get_enhanced_weather(self.current_city)
+                        
+                        # Try to fetch forecast data and add it to the weather object
+                        try:
+                            forecast_data = self.weather_service.get_forecast(self.current_city)
+                            self.logger.info(f"DEBUG: Fetched forecast_data type: {type(forecast_data)}")
+                            self.logger.info(f"DEBUG: Forecast data has {len(forecast_data.hourly_forecasts) if hasattr(forecast_data, 'hourly_forecasts') and forecast_data.hourly_forecasts else 0} hourly entries")
+                            
+                            # Add forecast data to the current weather object
+                            try:
+                                current_weather.forecast_data = forecast_data
+                                self.logger.info(f"DEBUG: Successfully set forecast_data on weather object")
+                            except Exception as set_error:
+                                self.logger.error(f"DEBUG: Failed to set forecast_data: {set_error}")
+                                
+                            self.logger.info(f"✅ Forecast data loaded with {len(forecast_data.hourly_forecasts)} hourly entries")
+                        except Exception as forecast_error:
+                            self.logger.warning(f"⚠️ Could not fetch forecast data: {forecast_error}")
+                            # Continue with current weather only
+                        
+                        result[0] = current_weather
+                    except Exception as e:
+                        exception[0] = e
+
+                # Start fetch in thread with timeout
+                fetch_thread = threading.Thread(target=fetch_with_timeout, daemon=True)
+                fetch_thread.start()
+                fetch_thread.join(timeout=4.0)  # 4 second timeout for API call
+
+                if fetch_thread.is_alive():
+                    # Timeout occurred
+                    self.logger.warning(
+                        f"Weather API timeout for {self.current_city}, using cached/offline data"
+                    )
+                    return self._get_cached_or_offline_weather_data()
+
+                if exception[0]:
+                    raise exception[0]
+
+                if result[0]:
+                    self.logger.info(f"✅ Weather data loaded successfully for {self.current_city}")
+                    # Store in optimized database
+                    try:
+                        self.optimized_db.insert_weather_data_batch([{
+                            'city': self.current_city,
+                            'temperature': result[0].temperature,
+                            'condition': result[0].condition,
+                            'humidity': result[0].humidity,
+                            'wind_speed': result[0].wind_speed,
+                            'timestamp': datetime.now().isoformat()
+                        }])
+                    except Exception as db_error:
+                        self.logger.warning(f"Failed to store weather data in optimized DB: {db_error}")
+                    
+                    return result[0]
+                else:
+                    raise WeatherServiceError("No weather data returned")
+                    
+            except Exception as e:
+                self.logger.error(f"Error fetching weather data: {e}")
+                raise
+        
+        try:
+            # Use intelligent cache with 5-minute TTL
+            return self.intelligent_cache.get_or_compute(
+                cache_key, 
+                fetch_weather_data, 
+                ttl_minutes=5
+            )
+        except Exception as e:
+            self.logger.error(f"Cache error, falling back to direct fetch: {e}")
+            return fetch_weather_data()
 
         except (RateLimitError, APIKeyError) as e:
             self.logger.warning(f"API issue for {self.current_city}: {e}")
@@ -3855,6 +3936,7 @@ class ProfessionalWeatherDashboard(SafeCTk):
             task_name="air_quality_data",
         )
 
+    @ensure_main_thread
     def _update_forecast_display(self, forecast_data):
         """Update forecast display with new data."""
         try:
@@ -4053,6 +4135,26 @@ class ProfessionalWeatherDashboard(SafeCTk):
         self.error_handler.show_error_toast(
             f"Weather service error: {error_details}. Using cached data."
         )
+
+    def _create_journal_tab(self):
+        """Create the journal tab with weather integration"""
+        try:
+            # Create the journal tab widget
+            self.journal_widget = WeatherJournalTab(
+                parent=self.journal_tab,
+                weather_service=self.weather_service
+            )
+            self.journal_widget.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+            
+        except Exception as e:
+            logging.error(f"Error creating journal tab: {e}")
+            # Create fallback content
+            error_label = SafeCTkLabel(
+                self.journal_tab,
+                text="Journal feature temporarily unavailable",
+                font=(DataTerminalTheme.FONT_FAMILY, 14)
+            )
+            error_label.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
 
     def _create_maps_tab(self):
         """Create the maps tab with proper configuration"""
@@ -4433,6 +4535,7 @@ The interactive maps feature requires additional packages:
             # Update maps display
             self._update_maps_weather_display()
 
+    @ensure_main_thread
     def _update_maps_weather_display(self):
         """Update the maps weather display with current weather data."""
         try:

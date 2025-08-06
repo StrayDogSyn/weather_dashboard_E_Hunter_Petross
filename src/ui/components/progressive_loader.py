@@ -128,19 +128,55 @@ class ProgressiveLoader:
         if ctk:
             title_label = ctk.CTkLabel(
                 header_frame,
-                text="🌤️ Loading Weather Dashboard",
+                text="⚡ PROJECT CODEFRONT",
                 font=ctk.CTkFont(size=18, weight="bold")
             )
         else:
             title_label = tk.Label(
                 header_frame,
-                text="🌤️ Loading Weather Dashboard",
+                text="⚡ PROJECT CODEFRONT",
                 font=("Arial", 18, "bold"),
                 fg='#ffffff',
                 bg='#2d2d2d'
             )
         
         title_label.pack()
+        
+        # Subtitle
+        if ctk:
+            subtitle_label = ctk.CTkLabel(
+                header_frame,
+                text="Advanced Weather Intelligence System v3.5",
+                font=ctk.CTkFont(size=12)
+            )
+        else:
+            subtitle_label = tk.Label(
+                header_frame,
+                text="Advanced Weather Intelligence System v3.5",
+                font=("Arial", 12),
+                fg='#cccccc',
+                bg='#2d2d2d'
+            )
+        
+        subtitle_label.pack(pady=(0, 5))
+        
+        # Capstone info
+        if ctk:
+            capstone_label = ctk.CTkLabel(
+                header_frame,
+                text="Justice Through Code - Tech Pathways Capstone",
+                font=ctk.CTkFont(size=10)
+            )
+        else:
+            capstone_label = tk.Label(
+                header_frame,
+                text="Justice Through Code - Tech Pathways Capstone",
+                font=("Arial", 10),
+                fg='#999999',
+                bg='#2d2d2d'
+            )
+        
+        capstone_label.pack()
     
     def _create_progress_section(self):
         """Create the progress indicator section."""

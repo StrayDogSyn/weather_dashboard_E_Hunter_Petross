@@ -1,14 +1,18 @@
-# 🌤️ Professional Weather Dashboard
+# ⚡ PROJECT CODEFRONT
+
+## Advanced Weather Intelligence System v3.5
+
+### Justice Through Code - Tech Pathways Capstone
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-A modern, professional weather dashboard application built with Python and CustomTkinter. Features real-time weather data, interactive maps, AI-powered analytics, and a dynamic theme system.
+A comprehensive weather intelligence platform demonstrating advanced Python development. Features real-time weather data, interactive maps, AI-powered analytics, and a dynamic theme system.
 
 > **📋 Status**: ✅ Fully Operational | 🎨 Multi-Theme | 🔬 ML Analytics | 🛠️ Clean Architecture | 🔧 Recently Stabilized
 
-**Author**: E Hunter Petross | **Project**: Weather Dashboard Capstone | **Technology**: Python, CustomTkinter, OpenWeatherMap API
+**Developer**: E. Hunter Petross | **Program**: Justice Through Code - Tech Pathways Capstone | **Year**: 2025 | **Technology**: Python, CustomTkinter, OpenWeatherMap API
 
 ## **Screenshots**
 

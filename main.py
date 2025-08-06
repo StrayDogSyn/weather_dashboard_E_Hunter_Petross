@@ -89,6 +89,74 @@ except ImportError:
     ctk = None
 
 
+class WeatherApp(ctk.CTk):
+    """Main Weather Application class with enhanced service initialization."""
+    
+    def __init__(self):
+        """Initialize the weather application with proper service handling."""
+        super().__init__()
+        
+        self.logger = logging.getLogger(__name__)
+        self.weather_service = None
+        
+        # Initialize TimerManager first
+        try:
+            from src.utils.timer_manager import TimerManager
+            self.timer_manager = TimerManager(self)
+            self.logger.info("TimerManager initialized successfully")
+        except ImportError as e:
+            self.logger.error(f"TimerManager import error: {e}")
+            self.timer_manager = None
+        
+        # Set up window close protocol
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
+        try:
+            # Import from correct location
+            from src.services.weather.enhanced_weather_service import EnhancedWeatherService
+            from src.services.config.config_service import ConfigService
+            
+            # Initialize config service first
+            config_service = ConfigService()
+            
+            # Initialize enhanced weather service
+            self.weather_service = EnhancedWeatherService(config_service)
+            self.logger.info("Enhanced weather service initialized successfully")
+            
+        except ImportError as e:
+            self.logger.error(f"Import error: {e}")
+            # Fallback to basic service
+            try:
+                from src.services.weather.weather_service import WeatherService
+                self.weather_service = WeatherService()
+                self.logger.info("Fallback to basic weather service")
+            except ImportError as fallback_error:
+                self.logger.error(f"Fallback service import error: {fallback_error}")
+                self.weather_service = None
+        except Exception as e:
+            self.logger.error(f"Weather service initialization error: {e}")
+            self.weather_service = None
+    
+    def on_closing(self):
+        """Clean shutdown"""
+        self.logger.info("Shutting down application...")
+        
+        # Stop all timers
+        if hasattr(self, 'timer_manager') and self.timer_manager:
+            self.timer_manager.shutdown()
+        
+        # Stop background services
+        if hasattr(self, 'api_optimizer'):
+            self.api_optimizer.shutdown()
+            
+        # Close thread pools
+        if hasattr(self, 'async_loader'):
+            self.async_loader.executor.shutdown(wait=False)
+        
+        # Destroy window
+        self.destroy()
+
+
 class ProgressiveWeatherApp:
     """Progressive loading weather application with skeleton UI."""
 
@@ -109,6 +177,9 @@ class ProgressiveWeatherApp:
         ]
         self.current_step = 0
         self.cancel_event = threading.Event()
+        
+        # Track after() call IDs to prevent invalid command errors
+        self.pending_after_calls = []
 
         # Hardcoded London data for instant display
         self.cached_london_data = {
@@ -284,7 +355,7 @@ class ProgressiveWeatherApp:
         """Initialize the weather service for search functionality."""
         try:
             from src.services.config.config_service import ConfigService
-            from src.services.enhanced_weather_service import EnhancedWeatherService
+            from src.services.weather.enhanced_weather_service import EnhancedWeatherService
 
             # Initialize config service first
             config_service = ConfigService()
@@ -368,15 +439,31 @@ class ProgressiveWeatherApp:
     def replace_skeleton_with_dashboard(self):
         """Replace skeleton UI with full dashboard."""
         try:
-            if self.dashboard and self.root:
+            if self.root:
+                # Cancel any pending after() calls to prevent invalid command errors
+                self._cancel_pending_calls()
+                
                 # Clear skeleton content
                 for widget in self.root.winfo_children():
+                    # Cancel any widget-specific after() calls
+                    try:
+                        if hasattr(widget, 'after_cancel') and hasattr(widget, 'tk'):
+                            # Try to cancel any pending calls on this widget
+                            pass
+                    except:
+                        pass
                     widget.destroy()
 
                 # Create new dashboard in the same window
                 self.dashboard = None
                 from src.ui.professional_weather_dashboard import ProfessionalWeatherDashboard
-                self.dashboard = ProfessionalWeatherDashboard(master=self.root)
+                from src.services.config.config_service import ConfigService
+                
+                # Initialize config service
+                config_service = ConfigService()
+                
+                # Create dashboard with proper error handling
+                self.dashboard = ProfessionalWeatherDashboard(master=self.root, config_service=config_service)
 
                 self.root.title("Weather Dashboard")
                 self.logger.info("Skeleton UI replaced with full dashboard")
@@ -385,37 +472,142 @@ class ProgressiveWeatherApp:
         except Exception as e:
             self.logger.error(f"Failed to replace skeleton UI: {e}")
             return False
+    
+    def _cancel_pending_calls(self):
+        """Cancel any pending after() calls to prevent invalid command errors."""
+        try:
+            # Cancel all tracked after() calls
+            for call_id in self.pending_after_calls:
+                try:
+                    if self.root and hasattr(self.root, 'after_cancel'):
+                        self.root.after_cancel(call_id)
+                except Exception as cancel_error:
+                    self.logger.debug(f"Error canceling call {call_id}: {cancel_error}")
+            
+            # Clear the list
+            self.pending_after_calls.clear()
+            
+        except Exception as e:
+            self.logger.debug(f"Error canceling pending calls: {e}")
+    
+    def _safe_after(self, delay, callback):
+        """Safely schedule an after() call and track it."""
+        try:
+            if self.root and hasattr(self.root, 'after'):
+                call_id = self.root.after(delay, callback)
+                self.pending_after_calls.append(call_id)
+                return call_id
+        except Exception as e:
+            self.logger.debug(f"Error scheduling after() call: {e}")
+        return None
+    
+    def replace_with_dashboard(self):
+        """Replace current UI with full dashboard - enhanced version."""
+        try:
+            if not self.root:
+                self.logger.error("No root window available for dashboard replacement")
+                return False
+                
+            # Import necessary components
+            from src.ui.professional_weather_dashboard import ProfessionalWeatherDashboard
+            from src.services.config.config_service import ConfigService
+            from src.ui.safe_widgets import SafeWidget
+            
+            # Clear existing content safely
+            for widget in self.root.winfo_children():
+                try:
+                    widget.destroy()
+                except Exception as widget_error:
+                    self.logger.warning(f"Error destroying widget: {widget_error}")
+            
+            # Initialize services
+            config_service = ConfigService()
+            
+            # Create new dashboard with error handling
+            try:
+                self.dashboard = ProfessionalWeatherDashboard(
+                    master=self.root, 
+                    config_service=config_service
+                )
+                
+                # Update window title
+                self.root.title("Weather Dashboard - Ready")
+                
+                # Log successful replacement
+                self.logger.info("Successfully replaced skeleton with full dashboard")
+                
+                return True
+                
+            except Exception as dashboard_error:
+                self.logger.error(f"Failed to create dashboard: {dashboard_error}")
+                
+                # Create fallback UI
+                self._create_fallback_ui()
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"Critical error in dashboard replacement: {e}")
+            return False
+    
+    def _create_fallback_ui(self):
+        """Create a simple fallback UI if dashboard creation fails."""
+        try:
+            if ctk:
+                fallback_frame = ctk.CTkFrame(self.root)
+                fallback_label = ctk.CTkLabel(
+                    fallback_frame,
+                    text="Weather Dashboard\n\nSorry, there was an error loading the full interface.\nPlease check the logs for details.",
+                    font=ctk.CTkFont(size=16)
+                )
+            else:
+                fallback_frame = tk.Frame(self.root, bg='#2d2d2d')
+                fallback_label = tk.Label(
+                    fallback_frame,
+                    text="Weather Dashboard\n\nSorry, there was an error loading the full interface.\nPlease check the logs for details.",
+                    font=("Arial", 16),
+                    fg='#ffffff',
+                    bg='#2d2d2d'
+                )
+            
+            fallback_frame.pack(fill=tk.BOTH, expand=True)
+            fallback_label.pack(expand=True)
+            
+            self.root.title("Weather Dashboard - Error")
+            self.logger.info("Fallback UI created")
+            
+        except Exception as fallback_error:
+            self.logger.error(f"Failed to create fallback UI: {fallback_error}")
 
     def start_progressive_loading(self):
         """Start the progressive loading sequence."""
         def loading_sequence():
             try:
                 # Step 1: Initializing
-                self.root.after(0, lambda: self.update_progress(0))
+                self._safe_after(0, lambda: self.update_progress(0))
                 time.sleep(0.5)
 
                 if self.cancel_event.is_set():
                     return
 
                 # Step 2: Connecting to weather service
-                self.root.after(0, lambda: self.update_progress(1))
+                self._safe_after(0, lambda: self.update_progress(1))
                 time.sleep(1.0)
 
                 if self.cancel_event.is_set():
                     return
 
                 # Step 3: Loading forecast data
-                self.root.after(0, lambda: self.update_progress(2))
+                self._safe_after(0, lambda: self.update_progress(2))
                 time.sleep(2.0)
 
                 if self.cancel_event.is_set():
                     return
 
-                # Step 4: Ready
-                self.root.after(0, lambda: self.update_progress(3))
+                # Step 4: Setting up dashboard
+                self._safe_after(0, lambda: self.update_progress(3))
 
                 # Replace skeleton with full dashboard after a brief delay
-                self.root.after(1000, self.replace_skeleton_with_dashboard)
+                self._safe_after(1000, self.replace_skeleton_with_dashboard)
 
             except Exception as e:
                 self.logger.error(f"Progressive loading failed: {e}")
@@ -432,10 +624,10 @@ class ProgressiveWeatherApp:
 
             # Start progressive loading
             self.start_progressive_loading()
-
+            
             # Run main loop
             self.root.mainloop()
-
+            
         except Exception as e:
             self.logger.error(f"Application error: {e}")
             raise
@@ -445,6 +637,45 @@ class ProgressiveWeatherApp:
             if self.loading_manager:
                 self.loading_manager.shutdown()
             self.logger.info("Application shutdown")
+
+
+def replace_with_dashboard(splash_screen, services):
+    """Replace splash with dashboard - FIX master/parent issue"""
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Import the dashboard class
+        from src.ui.professional_weather_dashboard import ProfessionalWeatherDashboard
+        
+        # Create dashboard with parent, not master
+        dashboard = ProfessionalWeatherDashboard(
+            parent=splash_screen,  # Use parent parameter
+            weather_service=services.get('weather'),
+            config_service=services.get('config')
+        )
+        
+        # Properly transition
+        splash_screen.withdraw()
+        dashboard.mainloop()
+        
+    except Exception as e:
+        logger.error(f"Dashboard creation failed: {e}")
+        # Show error dialog
+        show_error_dialog(str(e))
+
+
+def show_error_dialog(message):
+    """Show error dialog to user."""
+    try:
+        import tkinter.messagebox as messagebox
+        messagebox.showerror(
+            "Dashboard Error",
+            f"Failed to create weather dashboard:\n\n{message}\n\nPlease check the logs for more details."
+        )
+    except Exception as dialog_error:
+        # Fallback to console output
+        print(f"ERROR: {message}")
+        print(f"Failed to show error dialog: {dialog_error}")
 
 
 async def main_async():
@@ -530,23 +761,31 @@ def main_sync():
 
 
 def main():
-    """Main entry point with async/sync mode selection."""
-    # Check for async mode preference
-    use_async = os.getenv('ASYNC_MODE', 'true').lower() == 'true'
+    """Main entry point - Force sync mode for stability."""
+    # Force sync mode for stability
+    os.environ['ASYNC_MODE'] = 'false'
     
-    if use_async and ASYNC_AVAILABLE:
-        try:
-            # Try async mode first
-            asyncio.run(main_async())
-        except Exception as e:
-            logging.error(f"Async mode failed: {e}")
-            logging.info("Falling back to synchronous mode...")
-            main_sync()
-    else:
-        # Use synchronous mode
-        if not ASYNC_AVAILABLE:
-            logging.info("Async components not available, using sync mode")
+    # Setup logging first
+    setup_logging()
+    logger = logging.getLogger(__name__)
+    
+    try:
+        logger.info("Starting in SYNC mode for stability")
+        
+        # Use synchronous mode only
         main_sync()
+        
+    except KeyboardInterrupt:
+        logger.info("Application interrupted by user")
+    except Exception as e:
+        logger.exception(f"Application failed to start: {e}")
+        # Show error dialog
+        try:
+            import tkinter.messagebox as mb
+            mb.showerror("Startup Error", f"Failed to start: {str(e)}")
+        except:
+            pass
+        raise
 
 
 if __name__ == "__main__":

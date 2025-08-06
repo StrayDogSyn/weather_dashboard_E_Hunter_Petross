@@ -8,6 +8,7 @@ import logging
 
 
 from src.ui.safe_widgets import SafeCTkTabview
+from src.utils.error_wrapper import ensure_main_thread
 from src.ui.components.common.header import HeaderComponent
 from src.ui.components.common.status_bar_component import StatusBarComponent
 from src.ui.components.journal_tab_manager import JournalTabManager
@@ -180,10 +181,13 @@ class DashboardController(BaseDashboard):
         # Trigger weather update (this would typically call the weather service)
         # For now, just update the status
         if self.status_bar_component:
-            self.status_bar_component.safe_after(
-                2000, lambda: self.status_bar_component.clear_status()
+            self.timer_manager.schedule_once(
+                'clear_location_status',
+                2000,
+                lambda: self.status_bar_component.clear_status()
             )
 
+    @ensure_main_thread
     def update_weather_data(self, weather_data):
         """Update weather data across all relevant tabs.
 
@@ -198,8 +202,10 @@ class DashboardController(BaseDashboard):
         # Update status bar
         if self.status_bar_component:
             self.status_bar_component.show_success("Weather data updated")
-            self.status_bar_component.safe_after(
-                3000, lambda: self.status_bar_component.clear_status()
+            self.timer_manager.schedule_once(
+                'clear_weather_status',
+                3000,
+                lambda: self.status_bar_component.clear_status()
             )
 
     def update_status(self, message, status_type="info"):

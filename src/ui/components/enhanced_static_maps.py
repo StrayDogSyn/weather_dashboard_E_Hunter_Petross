@@ -9,6 +9,8 @@ import math
 import os
 import customtkinter as ctk
 from customtkinter import CTkImage
+import tkinter as tk
+from ...utils.timer_manager import TimerManager
 
 class EnhancedStaticMapsComponent(ctk.CTkFrame):
     """Enhanced maps component with full functionality including browser launch and weather layers"""
@@ -19,6 +21,9 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         self.weather_service = weather_service
         self.config = config
         self.logger = logging.getLogger(__name__)
+        
+        # Initialize timer manager
+        self.timer_manager = TimerManager(parent.winfo_toplevel())
         
         # Map state
         self.center_lat = 40.7128  # Default NYC
@@ -34,6 +39,9 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
             'pressure': False,
             'clouds': False
         }
+        
+        # Auto-refresh state - DISABLED for stability
+        self.auto_refresh_enabled = False
         
         # API configuration
         self.api_key = self._get_api_key()
@@ -77,7 +85,7 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         self.search_entry = ctk.CTkEntry(
             self.search_frame,
             placeholder_text="Search for a location...",
-            width=300
+            width=450
         )
         self.search_entry.grid(row=0, column=1, sticky="ew")
         self.search_entry.bind("<Return>", self._on_search)
@@ -929,11 +937,57 @@ class EnhancedStaticMapsComponent(ctk.CTkFrame):
         if any(self.weather_layers.values()):
             self._refresh_map()
     
-    def cleanup(self):
-        """Clean up resources"""
+    def start_auto_refresh(self, interval_minutes: int = 1):
+        """Disabled for stability.
+        
+        Args:
+            interval_minutes: Refresh interval in minutes (default: 1)
+        """
+        self.logger.info("Map auto-refresh disabled for stability")
+        return
+    
+    def stop_auto_refresh(self):
+        """Stop auto-refresh."""
+        if not self.auto_refresh_enabled:
+            return
+            
+        self.auto_refresh_enabled = False
+        self.timer_manager.cancel('map_refresh')
+        self.logger.info("Auto-refresh stopped")
+    
+    def _safe_refresh(self):
+        """Thread-safe refresh with widget existence check."""
         try:
+            # Check if widget still exists
+            if not self.winfo_exists():
+                self.logger.warning("Widget destroyed, stopping auto-refresh")
+                self.stop_auto_refresh()
+                return
+                
+            # Check if any weather layers are active
+            if any(self.weather_layers.values()):
+                self._refresh_map()
+            else:
+                self.logger.debug("No weather layers active, skipping refresh")
+                
+        except tk.TclError as e:
+            self.logger.warning(f"Widget destroyed during refresh: {e}")
+            self.stop_auto_refresh()
+        except Exception as e:
+            self.logger.error(f"Error during auto-refresh: {e}")
+    
+    def cleanup(self):
+        """Clean up resources including timers."""
+        try:
+            # Stop auto-refresh and cleanup timers
+            self.stop_auto_refresh()
+            
+            if hasattr(self, 'timer_manager'):
+                self.timer_manager.shutdown()
+                
             if hasattr(self, 'current_image'):
                 self.current_image = None
+                
             self.logger.info("Enhanced static maps component cleaned up")
         except Exception as e:
             self.logger.error(f"Cleanup error: {e}")

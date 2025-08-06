@@ -7,6 +7,7 @@ Implements robust error recovery and fallback mechanisms.
 import json
 import logging
 import random
+import threading
 import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
@@ -317,6 +318,7 @@ class EnhancedWeatherService:
         
         # Observer pattern for weather updates
         self._observers: List[Callable] = []
+        self._observer_lock = threading.Lock()
 
     def _load_cache(self) -> None:
         """Load enhanced weather cache from file."""
@@ -339,24 +341,68 @@ class EnhancedWeatherService:
             self.logger.warning(f"Failed to save enhanced cache: {e}")
 
     def add_observer(self, observer: Callable) -> None:
-        """Add an observer for weather updates."""
-        if observer not in self._observers:
-            self._observers.append(observer)
-            self.logger.debug(f"Added weather observer: {observer.__name__ if hasattr(observer, '__name__') else str(observer)}")
+        """Add an observer for weather updates in a thread-safe manner."""
+        with self._observer_lock:
+            if observer not in self._observers:
+                self._observers.append(observer)
+                self.logger.debug(f"Added weather observer: {observer.__name__ if hasattr(observer, '__name__') else str(observer)}")
 
     def remove_observer(self, observer: Callable) -> None:
-        """Remove an observer for weather updates."""
-        if observer in self._observers:
-            self._observers.remove(observer)
-            self.logger.debug(f"Removed weather observer: {observer.__name__ if hasattr(observer, '__name__') else str(observer)}")
+        """Remove an observer for weather updates in a thread-safe manner."""
+        with self._observer_lock:
+            if observer in self._observers:
+                self._observers.remove(observer)
+                self.logger.debug(f"Removed weather observer: {observer.__name__ if hasattr(observer, '__name__') else str(observer)}")
 
     def notify_observers(self, weather_data: Any) -> None:
-        """Notify all observers of weather data updates."""
-        for observer in self._observers:
-            try:
-                observer(weather_data)
-            except Exception as e:
-                self.logger.error(f"Error notifying observer {observer}: {e}")
+        """Thread-safe observer notification with dead observer cleanup."""
+        with self._observer_lock:
+            dead_observers = []
+            
+            for observer in self._observers[:]:
+                try:
+                    # Check if observer is still valid (widget-based observers)
+                    if hasattr(observer, '__self__'):
+                        widget = observer.__self__
+                        if hasattr(widget, 'winfo_exists'):
+                            try:
+                                if not widget.winfo_exists():
+                                    dead_observers.append(observer)
+                                    continue
+                            except Exception:
+                                # Widget is likely destroyed
+                                dead_observers.append(observer)
+                                continue
+                    
+                    # Notify observer
+                    observer(weather_data)
+                    
+                except Exception as e:
+                    self.logger.error(f"Observer error: {e}")
+                    dead_observers.append(observer)
+            
+            # Clean up dead observers
+            for observer in dead_observers:
+                try:
+                    self._observers.remove(observer)
+                    self.logger.debug(f"Removed dead observer: {observer.__name__ if hasattr(observer, '__name__') else str(observer)}")
+                except ValueError:
+                    pass  # Observer already removed
+                    
+            if dead_observers:
+                self.logger.info(f"Cleaned up {len(dead_observers)} dead observers")
+    
+    def get_observer_count(self) -> int:
+        """Get the current number of active observers."""
+        with self._observer_lock:
+            return len(self._observers)
+    
+    def cleanup_observers(self) -> None:
+        """Manually cleanup all observers."""
+        with self._observer_lock:
+            observer_count = len(self._observers)
+            self._observers.clear()
+            self.logger.info(f"Cleaned up all {observer_count} observers")
 
     def _is_cache_valid(self, cache_entry: Dict[str, Any], cache_duration: int = None) -> bool:
         """Check if cache entry is still valid."""
