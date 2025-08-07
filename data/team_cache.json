@@ -23,11 +23,11 @@
       "member_name": "Capstone_tobi",
       "city_name": "Chicago",
       "country": "",
-      "last_updated": "",
+      "last_updated": "2023-01-01 15:14:29",
       "weather_data": {
-        "temperature": 0.0,
-        "humidity": 0.0,
-        "wind_speed": 0.0,
+        "temperature": 8.01,
+        "humidity": 60.0,
+        "wind_speed": 4.52,
         "description": "Few clouds",
         "main": "Few",
         "pressure": 0.0,
@@ -42,11 +42,11 @@
       "member_name": "Capstone_tobi",
       "city_name": "Denver",
       "country": "",
-      "last_updated": "",
+      "last_updated": "2023-01-01 15:14:29",
       "weather_data": {
-        "temperature": 0.0,
-        "humidity": 0.0,
-        "wind_speed": 0.0,
+        "temperature": -2.52,
+        "humidity": 55.0,
+        "wind_speed": 9.97,
         "description": "Thunderstorm",
         "main": "Thunderstorm",
         "pressure": 0.0,
@@ -59,15 +59,167 @@
     },
     {
       "member_name": "Elizabeth",
-      "city_name": "",
+      "city_name": "Miami",
       "country": "",
-      "last_updated": "",
+      "last_updated": "2025-07-10 00:45:05",
       "weather_data": {
         "temperature": 28.77,
         "humidity": 77.0,
-        "wind_speed": 0.0,
+        "wind_speed": 4.63,
         "description": "broken clouds",
         "main": "Broken",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "Charleston",
+      "country": "",
+      "last_updated": "2025-07-10 00:56:40",
+      "weather_data": {
+        "temperature": 25.49,
+        "humidity": 80.0,
+        "wind_speed": 2.57,
+        "description": "clear sky",
+        "main": "Clear",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "London",
+      "country": "",
+      "last_updated": "2025-07-10 00:57:23",
+      "weather_data": {
+        "temperature": 18.99,
+        "humidity": 70.0,
+        "wind_speed": 1.02,
+        "description": "overcast clouds",
+        "main": "Overcast",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "Tokyo",
+      "country": "",
+      "last_updated": "2025-07-10 00:59:56",
+      "weather_data": {
+        "temperature": 33.09,
+        "humidity": 58.0,
+        "wind_speed": 5.14,
+        "description": "few clouds",
+        "main": "Few",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "San Francisco",
+      "country": "",
+      "last_updated": "2025-07-10 00:55:17",
+      "weather_data": {
+        "temperature": 16.84,
+        "humidity": 78.0,
+        "wind_speed": 11.83,
+        "description": "fog",
+        "main": "Fog",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "New York",
+      "country": "",
+      "last_updated": "2025-07-10 01:02:03",
+      "weather_data": {
+        "temperature": 29.16,
+        "humidity": 66.0,
+        "wind_speed": 3.13,
+        "description": "light rain",
+        "main": "Light",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "Dayton",
+      "country": "",
+      "last_updated": "2025-07-10 02:20:08",
+      "weather_data": {
+        "temperature": 23.8,
+        "humidity": 87.0,
+        "wind_speed": 2.57,
+        "description": "broken clouds",
+        "main": "Broken",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "Culloden",
+      "country": "",
+      "last_updated": "2025-07-10 19:07:13",
+      "weather_data": {
+        "temperature": 30.83,
+        "humidity": 65.0,
+        "wind_speed": 2.24,
+        "description": "broken clouds",
+        "main": "Broken",
+        "pressure": 0.0,
+        "feels_like": 0.0,
+        "visibility": 0.0,
+        "wind_direction": 0.0
+      },
+      "avatar_url": null,
+      "github_username": "elizabeth"
+    },
+    {
+      "member_name": "Elizabeth",
+      "city_name": "Charlotte",
+      "country": "",
+      "last_updated": "2025-07-25 17:13:07",
+      "weather_data": {
+        "temperature": 33.03,
+        "humidity": 58.0,
+        "wind_speed": 2.06,
+        "description": "scattered clouds",
+        "main": "Scattered",
         "pressure": 0.0,
         "feels_like": 0.0,
         "visibility": 0.0,
@@ -229,5 +381,5 @@
       "github_username": "unknown"
     }
   ],
-  "timestamp": "2025-08-06T01:15:47.261286"
+  "timestamp": "2025-08-06T19:58:10.288031"
 }
