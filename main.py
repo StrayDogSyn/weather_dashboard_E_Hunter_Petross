@@ -14,7 +14,7 @@ import asyncio
 src_path = Path(__file__).parent / "src"
 sys.path.insert(0, str(src_path))
 
-from utils.loading_manager import LoadingManager
+from src.utils.loading_manager import LoadingManager
 from dotenv import load_dotenv
 
 # Async loading imports
@@ -85,31 +85,46 @@ try:
     import customtkinter as ctk
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
+    CTK_AVAILABLE = True
 except ImportError:
     ctk = None
+    CTK_AVAILABLE = False
 
 
-class WeatherApp(ctk.CTk):
+class WeatherApp:
     """Main Weather Application class with enhanced service initialization."""
     
     def __init__(self):
         """Initialize the weather application with proper service handling."""
-        super().__init__()
+        if CTK_AVAILABLE:
+            # Initialize as CTk if available
+            import customtkinter as ctk
+            self._root = ctk.CTk()
+        else:
+            # Fallback to tkinter
+            import tkinter as tk
+            self._root = tk.Tk()
         
         self.logger = logging.getLogger(__name__)
         self.weather_service = None
         
-        # Initialize TimerManager first
+        # Initialize TimerManager first (only if CTK is available)
         try:
-            from src.utils.timer_manager import TimerManager
-            self.timer_manager = TimerManager(self)
-            self.logger.info("TimerManager initialized successfully")
+            if CTK_AVAILABLE:
+                from src.utils.timer_manager import TimerManager
+                import customtkinter as ctk
+                # Type assertion since we know it's CTk when CTK_AVAILABLE is True
+                self.timer_manager = TimerManager(self._root)  # type: ignore
+                self.logger.info("TimerManager initialized successfully")
+            else:
+                self.timer_manager = None
+                self.logger.info("TimerManager not available (CTK not imported)")
         except ImportError as e:
             self.logger.error(f"TimerManager import error: {e}")
             self.timer_manager = None
         
         # Set up window close protocol
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self._root.protocol("WM_DELETE_WINDOW", self.on_closing)
         
         try:
             # Import from correct location
@@ -128,7 +143,10 @@ class WeatherApp(ctk.CTk):
             # Fallback to basic service
             try:
                 from src.services.weather.weather_service import WeatherService
-                self.weather_service = WeatherService()
+                from src.services.config.config_service import ConfigService
+                
+                config_service = ConfigService()
+                self.weather_service = WeatherService(config_service)
                 self.logger.info("Fallback to basic weather service")
             except ImportError as fallback_error:
                 self.logger.error(f"Fallback service import error: {fallback_error}")
@@ -145,16 +163,18 @@ class WeatherApp(ctk.CTk):
         if hasattr(self, 'timer_manager') and self.timer_manager:
             self.timer_manager.shutdown()
         
-        # Stop background services
-        if hasattr(self, 'api_optimizer'):
-            self.api_optimizer.shutdown()
+        # Stop background services (if they exist)
+        api_optimizer = getattr(self, 'api_optimizer', None)
+        if api_optimizer:
+            api_optimizer.shutdown()
             
-        # Close thread pools
-        if hasattr(self, 'async_loader'):
-            self.async_loader.executor.shutdown(wait=False)
+        # Close thread pools (if they exist)
+        async_loader = getattr(self, 'async_loader', None)
+        if async_loader:
+            async_loader.executor.shutdown(wait=False)
         
         # Destroy window
-        self.destroy()
+        self._root.destroy()
 
 
 class ProgressiveWeatherApp:
@@ -396,7 +416,8 @@ class ProgressiveWeatherApp:
                 self.status_label.configure(text=self.progress_steps[step_index])
             else:
                 self.status_label.config(text=self.progress_steps[step_index])
-            self.root.update_idletasks()
+            if self.root:
+                self.root.update_idletasks()
             self.logger.info(f"Progress: {self.progress_steps[step_index]}")
 
     def load_dashboard_component(self):
@@ -463,7 +484,7 @@ class ProgressiveWeatherApp:
                 config_service = ConfigService()
                 
                 # Create dashboard with proper error handling
-                self.dashboard = ProfessionalWeatherDashboard(master=self.root, config_service=config_service)
+                self.dashboard = ProfessionalWeatherDashboard(config_service=config_service)
 
                 self.root.title("Weather Dashboard")
                 self.logger.info("Skeleton UI replaced with full dashboard")
@@ -526,7 +547,6 @@ class ProgressiveWeatherApp:
             # Create new dashboard with error handling
             try:
                 self.dashboard = ProfessionalWeatherDashboard(
-                    master=self.root, 
                     config_service=config_service
                 )
                 
@@ -572,7 +592,8 @@ class ProgressiveWeatherApp:
             fallback_frame.pack(fill=tk.BOTH, expand=True)
             fallback_label.pack(expand=True)
             
-            self.root.title("Weather Dashboard - Error")
+            if self.root:
+                self.root.title("Weather Dashboard - Error")
             self.logger.info("Fallback UI created")
             
         except Exception as fallback_error:
@@ -626,7 +647,8 @@ class ProgressiveWeatherApp:
             self.start_progressive_loading()
             
             # Run main loop
-            self.root.mainloop()
+            if self.root:
+                self.root.mainloop()
             
         except Exception as e:
             self.logger.error(f"Application error: {e}")
@@ -649,8 +671,6 @@ def replace_with_dashboard(splash_screen, services):
         
         # Create dashboard with parent, not master
         dashboard = ProfessionalWeatherDashboard(
-            parent=splash_screen,  # Use parent parameter
-            weather_service=services.get('weather'),
             config_service=services.get('config')
         )
         
